@@ -1,0 +1,28 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/types/package.json ./packages/types/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY packages/ui ./packages/ui
+COPY packages/types ./packages/types
+
+# Build storybook
+WORKDIR /app/packages/ui
+RUN pnpm run build-storybook
+
+# Expose port
+EXPOSE 6006
+
+# Start storybook
+CMD ["npx", "http-server", "storybook-static", "-p", "6006", "-a", "0.0.0.0"] 

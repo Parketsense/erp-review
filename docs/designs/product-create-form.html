@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKETSENSE - Създаване на продукт</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .container {
+            background: white;
+            margin: 20px auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 500;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Content */
+        .content {
+            padding: 20px;
+            background: white;
+        }
+
+        /* Names Section */
+        .names-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .names-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .names-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+        }
+
+        .auto-generated {
+            background: #e9ecef !important;
+            color: #495057;
+        }
+
+        .required::after {
+            content: ' *';
+            color: #dc3545;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #333;
+            color: white;
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .section-content {
+            padding: 15px;
+        }
+
+        /* Attributes Section */
+        .attributes-section {
+            grid-column: 1 / -1;
+            margin: 20px 0;
+        }
+
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .attribute-row {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .attribute-label {
+            min-width: 120px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .attribute-row select,
+        .attribute-row input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        .add-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .add-btn:hover {
+            background: #218838;
+        }
+
+        /* Media Section */
+        .media-section {
+            grid-column: 1 / -1;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .media-upload {
+            background: #f8f9fa;
+            border: 1px dashed #ced4da;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .media-upload:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .media-upload input[type="file"] {
+            display: none;
+        }
+
+        .media-upload-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .media-upload-desc {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            grid-column: 1 / -1;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox-group label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-info {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #007bff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-grid,
+            .names-grid,
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .attributes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+
+        /* Utility classes */
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .font-weight-bold {
+            font-weight: 600;
+        }
+
+        .mb-0 {
+            margin-bottom: 0;
+        }
+
+        .mt-2 {
+            margin-top: 8px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Създаване на продукт</h1>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+
+        <div class="content">
+            <!-- Names Section -->
+            <div class="names-section">
+                <h3>Основни имена на продукта</h3>
+                <div class="names-grid">
+                    <div class="form-group">
+                        <label for="nameBg" class="required">Име на български</label>
+                        <input type="text" id="nameBg" class="auto-generated" readonly 
+                               placeholder="Автогенерирано име на български">
+                    </div>
+                    <div class="form-group">
+                        <label for="nameEn" class="required">Име на английски</label>
+                        <input type="text" id="nameEn" class="auto-generated" readonly 
+                               placeholder="Auto-generated English name">
+                    </div>
+                </div>
+                <p class="text-muted mt-2" style="font-size: 12px;">
+                    Имената се обновяват автоматично при промяна на атрибутите
+                </p>
+            </div>
+
+            <div class="main-grid">
+                <!-- Basic Information -->
+                <div class="section-card">
+                    <div class="section-header">Основна информация</div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label for="productType" class="required">Тип продукт</label>
+                            <select id="productType" onchange="loadAttributesForType()">
+                                <option value="">Избери тип продукт...</option>
+                                <option value="parquet">Паркет</option>
+                                <option value="doors">Врати</option>
+                                <option value="furniture">Мебели</option>
+                                <option value="wall-coverings">Стенни облицовки</option>
+                                <option value="wall-decorations">Декорации за стена</option>
+                                <option value="installation">Услуги за монтаж</option>
+                                <option value="materials">Материали за монтаж</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="code">Код</label>
+                            <input type="text" id="code" placeholder="Автогенериран или ръчен">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="supplier">Доставчик</label>
+                            <select id="supplier">
+                                <option value="">Избери доставчик...</option>
+                                <option value="supplier1">Доставчик 1</option>
+                                <option value="supplier2">Доставчик 2</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manufacturer" class="required">Производител</label>
+                            <select id="manufacturer" onchange="filterAttributesByManufacturer()">
+                                <option value="">Избери производител...</option>
+                                <option value="hickx">Hickx</option>
+                                <option value="bauwerk">Bauwerk</option>
+                                <option value="foglie-doro">Foglie d'Oro</option>
+                                <option value="quick-step">Quick-Step</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="section-card">
+                    <div class="section-header">Допълнителна информация</div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label for="unit">Мерна единица</label>
+                            <select id="unit">
+                                <option value="m2">кв.м</option>
+                                <option value="m">л.м</option>
+                                <option value="piece">броя</option>
+                                <option value="package">пакет</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="packageSize">Големина на пакет</label>
+                            <input type="text" id="packageSize" placeholder="напр. 2.4 кв.м">
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="active" checked>
+                            <label for="active">Активен продукт</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="recommended">
+                            <label for="recommended">Препоръчителен</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="newProduct" checked>
+                            <label for="newProduct">Нов продукт</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Attributes Section -->
+            <div class="section-card attributes-section" id="attributesSection" style="display: none;">
+                <div class="section-header">Атрибути на продукта</div>
+                <div class="section-content">
+                    <div class="attributes-grid" id="attributesContainer">
+                        <div class="empty-state">
+                            <p>Изберете тип продукт за да се заредят атрибутите</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Section -->
+            <div class="section-card media-section">
+                <div class="section-header">Медийно съдържание</div>
+                <div class="section-content">
+                    <div class="media-grid">
+                        <div class="media-upload" onclick="document.getElementById('images').click()">
+                            <div class="media-upload-title">📷 Изображения</div>
+                            <div class="media-upload-desc">JPG, PNG, WebP до 10MB</div>
+                            <input type="file" id="images" multiple accept="image/*">
+                        </div>
+                        
+                        <div class="media-upload" onclick="document.getElementById('documents').click()">
+                            <div class="media-upload-title">📄 Документи</div>
+                            <div class="media-upload-desc">PDF, DOC, XLS до 25MB</div>
+                            <input type="file" id="documents" multiple accept=".pdf,.doc,.docx,.xls,.xlsx">
+                        </div>
+
+                        <div class="media-upload">
+                            <div class="media-upload-title">🎥 Видео линк</div>
+                            <input type="url" placeholder="YouTube/Vimeo URL" style="margin-top: 8px; width: 100%; font-size: 12px;">
+                        </div>
+
+                        <div class="media-upload" onclick="document.getElementById('models3d').click()">
+                            <div class="media-upload-title">🎲 3D модели</div>
+                            <div class="media-upload-desc">OBJ, FBX, GLB до 50MB</div>
+                            <input type="file" id="models3d" multiple accept=".obj,.fbx,.glb,.gltf">
+                        </div>
+
+                        <div class="media-upload" onclick="document.getElementById('textures').click()">
+                            <div class="media-upload-title">🎨 Текстури</div>
+                            <div class="media-upload-desc">Всички image формати</div>
+                            <input type="file" id="textures" multiple accept="image/*">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Section -->
+            <div class="section-card pricing-section">
+                <div class="section-header">Ценообразуване</div>
+                <div class="section-content">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="autoPricing" checked onchange="toggleAutoPricing()">
+                        <label for="autoPricing">Автоматично пресмятане на цените</label>
+                    </div>
+
+                    <div class="pricing-grid">
+                        <div class="form-group">
+                            <label for="costEur" class="required">Доставна цена без ДДС (EUR)</label>
+                            <input type="number" id="costEur" step="0.01" placeholder="0.00" onchange="calculatePrices()">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="costBgn">Доставна цена без ДДС (BGN)</label>
+                            <input type="number" id="costBgn" class="auto-generated" readonly placeholder="Автоизчислена">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="saleBgn">Продажна цена без ДДС (BGN)</label>
+                            <input type="number" id="saleBgn" class="auto-generated" readonly placeholder="Автоизчислена">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="saleEur">Продажна цена без ДДС (EUR)</label>
+                            <input type="number" id="saleEur" class="auto-generated" readonly placeholder="Автоизчислена">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="markup">Markup %</label>
+                            <input type="number" id="markup" value="30" class="auto-generated" readonly placeholder="От производител">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-info">
+                Всички полета с * са задължителни
+            </div>
+            <div>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                    Отказ
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveProduct()">
+                    ПОТВЪРДИ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Product attributes configuration (same as before)
+        const productAttributes = {
+            parquet: [
+                { id: 'construction_type', label: 'Тип конструкция', type: 'select', required: true },
+                { id: 'wood_type', label: 'Дървесина/Материал', type: 'select', required: true },
+                { id: 'category', label: 'Категория', type: 'select', required: false },
+                { id: 'collection', label: 'Колекция', type: 'select', required: false },
+                { id: 'finish', label: 'Финиш', type: 'select', required: true },
+                { id: 'selection', label: 'Селекция', type: 'select', required: false },
+                { id: 'color', label: 'Цвят', type: 'select', required: true },
+                { id: 'thickness', label: 'Дебелина (мм)', type: 'number', required: true },
+                { id: 'width', label: 'Ширина (мм)', type: 'number', required: true },
+                { id: 'length', label: 'Дължина (мм)', type: 'number', required: true }
+            ],
+            doors: [
+                { id: 'door_type', label: 'Тип врата', type: 'select', required: true },
+                { id: 'collection', label: 'Колекция', type: 'select', required: false },
+                { id: 'finish_push', label: 'Финиш от пуш страна', type: 'select', required: true },
+                { id: 'finish_pull', label: 'Финиш от пул страна', type: 'select', required: true },
+                { id: 'lock_type', label: 'Вид брава', type: 'select', required: true },
+                { id: 'opening_direction', label: 'Посока отваряне', type: 'select', required: true },
+                { id: 'height', label: 'Височина (мм)', type: 'number', required: true },
+                { id: 'width', label: 'Ширина (мм)', type: 'number', required: true }
+            ],
+            furniture: [
+                { id: 'furniture_style', label: 'Стил мебели', type: 'select', required: true },
+                { id: 'furniture_type', label: 'Тип мебел', type: 'select', required: true },
+                { id: 'material', label: 'Материал', type: 'select', required: true },
+                { id: 'finish', label: 'Финиш', type: 'select', required: true },
+                { id: 'color', label: 'Цвят', type: 'select', required: true }
+            ]
+        };
+
+        // Attribute values by manufacturer (same as before)
+        const attributeValues = {
+            hickx: {
+                construction_type: ['Инженерен', 'Масивен'],
+                wood_type: ['Дъб', 'Орех', 'Ясен'],
+                finish: ['Мат', 'Сатен'],
+                color: ['Натурален', 'Тъмен орех', 'Антик дъб'],
+                collection: ['Elegance', 'Classic', 'Premium']
+            },
+            bauwerk: {
+                construction_type: ['Инженерен', 'Масивен', 'Многослоен'],
+                wood_type: ['Дъб', 'Орех', 'Бук', 'Ясен'],
+                finish: ['UV лак', 'Масло', 'Восък'],
+                color: ['Бял дъб', 'Сребрист дъб', 'Тъмен венге'],
+                collection: ['Prestige', 'Premium', 'Classic']
+            },
+            'foglie-doro': {
+                construction_type: ['Инженерен'],
+                wood_type: ['Дъб', 'Орех'],
+                finish: ['Мат', 'Полумат', 'Гланц'],
+                color: ['Биел дъб', 'Кафяв дъб', 'Сив дъб', 'Черен дъб'],
+                collection: ['Gold Collection', 'Silver Collection']
+            },
+            'quick-step': {
+                construction_type: ['Ламинат', 'Винил', 'Инженерен'],
+                wood_type: ['Дъб', 'Орех', 'Клен', 'Вишна'],
+                finish: ['Мат', 'Естествен', 'Текстуриран'],
+                color: ['Натурален дъб', 'Тъмен дъб', 'Бял дъб'],
+                collection: ['Impressive', 'Classic', 'Majestic']
+            }
+        };
+
+        let currentProductType = '';
+        let currentManufacturer = '';
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification show ${type}`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function loadAttributesForType() {
+            const productType = document.getElementById('productType').value;
+            const container = document.getElementById('attributesContainer');
+            const section = document.getElementById('attributesSection');
+            
+            if (!productType) {
+                section.style.display = 'none';
+                return;
+            }
+
+            currentProductType = productType;
+            section.style.display = 'block';
+            container.innerHTML = '';
+            container.classList.add('loading');
+
+            setTimeout(() => {
+                const attributes = productAttributes[productType] || [];
+                
+                if (attributes.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <p>Няма дефинирани атрибути за този тип продукт</p>
+                        </div>
+                    `;
+                } else {
+                    attributes.forEach(attr => {
+                        const field = createAttributeField(attr);
+                        container.appendChild(field);
+                    });
+                }
+
+                container.classList.remove('loading');
+                container.classList.add('fade-in');
+                
+                if (currentManufacturer) {
+                    filterAttributesByManufacturer();
+                }
+
+                updateProductNames();
+                showNotification(`Заредени ${attributes.length} атрибута за ${getProductTypeName(productType)}`);
+            }, 300);
+        }
+
+        function createAttributeField(attr) {
+            const div = document.createElement('div');
+            div.className = 'attribute-row';
+            div.innerHTML = `
+                <span class="attribute-label">${attr.label}${attr.required ? ' *' : ''}:</span>
+                ${attr.type === 'select' ? 
+                    `<select id="${attr.id}" onchange="updateProductNames()">
+                        <option value="">Избери...</option>
+                    </select>` :
+                    `<input type="${attr.type}" id="${attr.id}" onchange="updateProductNames()" placeholder="Въведи ${attr.label.toLowerCase()}">`
+                }
+                <button type="button" class="add-btn" onclick="openAddValueModal('${attr.id}')" title="Добави нова стойност">+</button>
+            `;
+            return div;
+        }
+
+        function filterAttributesByManufacturer() {
+            const manufacturer = document.getElementById('manufacturer').value;
+            currentManufacturer = manufacturer;
+
+            if (!manufacturer || !currentProductType) return;
+
+            const manufacturerValues = attributeValues[manufacturer];
+            if (!manufacturerValues) {
+                showNotification(`Няма дефинирани стойности за производител ${manufacturer}`, 'warning');
+                return;
+            }
+
+            Object.keys(manufacturerValues).forEach(attrId => {
+                const select = document.getElementById(attrId);
+                if (select && select.tagName === 'SELECT') {
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Избери...</option>';
+                    
+                    manufacturerValues[attrId].forEach(value => {
+                        const option = document.createElement('option');
+                        option.value = value.toLowerCase().replace(/\s+/g, '-');
+                        option.textContent = value;
+                        select.appendChild(option);
+                    });
+
+                    if (currentValue) {
+                        select.value = currentValue;
+                    }
+                }
+            });
+
+            updateProductNames();
+            showNotification(`Филтрирани стойности за ${manufacturer}`);
+        }
+
+        function updateProductNames() {
+            const nameBg = generateProductName('bg');
+            const nameEn = generateProductName('en');
+            
+            document.getElementById('nameBg').value = nameBg;
+            document.getElementById('nameEn').value = nameEn;
+        }
+
+        function generateProductName(language) {
+            if (!currentProductType || !currentManufacturer) return '';
+
+            const manufacturer = currentManufacturer.charAt(0).toUpperCase() + currentManufacturer.slice(1);
+            
+            if (currentProductType === 'parquet') {
+                const collection = getFieldValue('collection') || '';
+                const wood = getFieldValue('wood_type') || '';
+                const color = getFieldValue('color') || '';
+                const thickness = getFieldValue('thickness') || '';
+                const width = getFieldValue('width') || '';
+                const length = getFieldValue('length') || '';
+                
+                const dimensions = thickness && width && length ? `${thickness}x${width}x${length}` : '';
+                
+                return [manufacturer, collection, wood, color, dimensions]
+                    .filter(Boolean).join(' ');
+            }
+            
+            return manufacturer;
+        }
+
+        function getFieldValue(fieldId) {
+            const field = document.getElementById(fieldId);
+            return field ? field.value : '';
+        }
+
+        function getProductTypeName(type) {
+            const names = {
+                'parquet': 'Паркет',
+                'doors': 'Врати', 
+                'furniture': 'Мебели',
+                'wall-coverings': 'Стенни облицовки',
+                'wall-decorations': 'Декорации за стена',
+                'installation': 'Услуги за монтаж',
+                'materials': 'Материали за монтаж'
+            };
+            return names[type] || type;
+        }
+
+        function calculatePrices() {
+            const costEur = parseFloat(document.getElementById('costEur').value) || 0;
+            const markup = parseFloat(document.getElementById('markup').value) || 30;
+            const exchangeRate = 1.956;
+            
+            if (document.getElementById('autoPricing').checked && costEur > 0) {
+                const costBgn = costEur * exchangeRate;
+                const saleBgn = costBgn * (1 + markup / 100);
+                const saleEur = saleBgn / exchangeRate;
+                
+                document.getElementById('costBgn').value = costBgn.toFixed(2);
+                document.getElementById('saleBgn').value = saleBgn.toFixed(2);
+                document.getElementById('saleEur').value = saleEur.toFixed(2);
+            }
+        }
+
+        function toggleAutoPricing() {
+            const auto = document.getElementById('autoPricing').checked;
+            const fields = ['costBgn', 'saleBgn', 'saleEur'];
+            
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.readOnly = auto;
+                if (auto) {
+                    field.classList.add('auto-generated');
+                } else {
+                    field.classList.remove('auto-generated');
+                }
+            });
+            
+            if (auto) {
+                calculatePrices();
+            }
+        }
+
+        function openAddValueModal(attributeId) {
+            const attrLabel = document.querySelector(`#${attributeId}`).closest('.attribute-row').querySelector('.attribute-label').textContent;
+            const newValue = prompt(`Добави нова стойност за "${attrLabel}":`);
+            
+            if (newValue && newValue.trim()) {
+                const select = document.getElementById(attributeId);
+                if (select && select.tagName === 'SELECT') {
+                    const option = document.createElement('option');
+                    option.value = newValue.toLowerCase().replace(/\s+/g, '-');
+                    option.textContent = newValue.trim();
+                    option.selected = true;
+                    select.appendChild(option);
+                    
+                    updateProductNames();
+                    showNotification(`Добавена нова стойност: ${newValue}`);
+                }
+            }
+        }
+
+        function saveProduct() {
+            const requiredFields = ['productType', 'manufacturer'];
+            const missing = requiredFields.filter(fieldId => !document.getElementById(fieldId).value);
+            
+            if (missing.length > 0) {
+                showNotification('Моля попълнете всички задължителни полета', 'error');
+                return;
+            }
+            
+            showNotification('Продуктът е запазен успешно!');
+        }
+
+        function closeModal() {
+            if (confirm('Сигурни ли сте, че искате да затворите? Несъхранените промени ще бъдат изгубени.')) {
+                console.log('Closing modal');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            ['images', 'documents', 'models3d', 'textures'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('change', function(e) {
+                        const files = e.target.files;
+                        if (files.length > 0) {
+                            showNotification(`Избрани ${files.length} файла за ${id}`);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

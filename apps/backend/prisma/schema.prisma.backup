@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String           @id @default(uuid())
+  email                  String           @unique
+  name                   String?
+  role                   String           @default("user")
+  isActive               Boolean          @default(true)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  updatedAttributeValues AttributeValue[] @relation("AttributeValueUpdatedBy")
+  createdAttributeValues AttributeValue[] @relation("AttributeValueCreatedBy")
+  updatedClients         Client[]         @relation("ClientUpdatedBy")
+  createdClients         Client[]         @relation("ClientCreatedBy")
+  updatedProducts        Product[]        @relation("ProductUpdatedBy")
+  createdProducts        Product[]        @relation("ProductCreatedBy")
+
+  @@map("users")
+}
+
+model Client {
+  id            String   @id @default(uuid())
+  name          String
+  eik           String?  @unique
+  mol           String?
+  address       String?
+  phone         String?
+  email         String?
+  contactPerson String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdById   String?
+  updatedById   String?
+  updatedBy     User?    @relation("ClientUpdatedBy", fields: [updatedById], references: [id])
+  createdBy     User?    @relation("ClientCreatedBy", fields: [createdById], references: [id])
+
+  @@map("clients")
+}
+
+model Product {
+  id              String                  @id @default(uuid())
+  code            String                  @unique
+  nameBg          String
+  nameEn          String?
+  productTypeId   String
+  manufacturerId  String
+  supplier        String?
+  unit            String                  @default("m2")
+  packageSize     String?
+  costEur         Float?
+  costBgn         Float?
+  saleBgn         Float?
+  saleEur         Float?
+  markup          Float?                  @default(30)
+  isActive        Boolean                 @default(true)
+  isRecommended   Boolean                 @default(false)
+  isNew           Boolean                 @default(false)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  createdById     String?
+  updatedById     String?
+  attributeValues ProductAttributeValue[]
+  updatedBy       User?                   @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  createdBy       User?                   @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  manufacturer    Manufacturer            @relation(fields: [manufacturerId], references: [id])
+  productType     ProductType             @relation(fields: [productTypeId], references: [id])
+
+  @@map("products")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  entity    String
+  entityId  String
+  action    String
+  oldData   String?
+  newData   String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model ProductType {
+  id             String          @id @default(uuid())
+  name           String          @unique
+  nameBg         String
+  nameEn         String?
+  icon           String?
+  description    String?
+  displayOrder   Int             @default(0)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  attributeTypes AttributeType[]
+  products       Product[]
+
+  @@map("product_types")
+}
+
+model Manufacturer {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  displayName     String
+  code            String?          @unique
+  website         String?
+  description     String?
+  logoUrl         String?
+  colorCode       String?          @default("#6c757d")
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  attributeValues AttributeValue[]
+  products        Product[]
+
+  @@map("manufacturers")
+}
+
+model AttributeType {
+  id                     String                  @id @default(uuid())
+  name                   String
+  nameBg                 String
+  nameEn                 String?
+  type                   String
+  productTypeId          String
+  isRequired             Boolean                 @default(false)
+  displayOrder           Int                     @default(0)
+  placeholder            String?
+  validation             String?
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  productType            ProductType             @relation(fields: [productTypeId], references: [id])
+  attributeValues        AttributeValue[]
+  productAttributeValues ProductAttributeValue[]
+
+  @@unique([productTypeId, name])
+  @@map("attribute_types")
+}
+
+model AttributeValue {
+  id                     String                  @id @default(uuid())
+  nameBg                 String
+  nameEn                 String?
+  description            String?
+  icon                   String?
+  colorCode              String?
+  attributeTypeId        String
+  manufacturerId         String?
+  sortOrder              Int                     @default(0)
+  isActive               Boolean                 @default(true)
+  isDefault              Boolean                 @default(false)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  createdById            String?
+  updatedById            String?
+  updatedBy              User?                   @relation("AttributeValueUpdatedBy", fields: [updatedById], references: [id])
+  createdBy              User?                   @relation("AttributeValueCreatedBy", fields: [createdById], references: [id])
+  manufacturer           Manufacturer?           @relation(fields: [manufacturerId], references: [id])
+  attributeType          AttributeType           @relation(fields: [attributeTypeId], references: [id])
+  productAttributeValues ProductAttributeValue[]
+
+  @@map("attribute_values")
+}
+
+model ProductAttributeValue {
+  id               String          @id @default(uuid())
+  productId        String
+  attributeTypeId  String
+  attributeValueId String?
+  customValue      String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  attributeValue   AttributeValue? @relation(fields: [attributeValueId], references: [id])
+  attributeType    AttributeType   @relation(fields: [attributeTypeId], references: [id])
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, attributeTypeId])
+  @@map("product_attribute_values")
+}

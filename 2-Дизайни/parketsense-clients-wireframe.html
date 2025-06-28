@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKETSENSE ERP - Клиенти</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Header */
+        .header {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Sidebar */
+        .layout {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+        
+        .sidebar {
+            width: 60px;
+            background-color: #2c2c2c;
+            padding: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .sidebar-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #555;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-icon:hover, .sidebar-icon.active {
+            background-color: #007bff;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Search and Filters */
+        .search-filters {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* Clients Table */
+        .clients-table {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .client-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .type-individual {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .type-company {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .architect-badge {
+            background-color: #fff3e0;
+            color: #f57c00;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        /* Stats Cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">PARKETSENSE</div>
+        <div class="user-menu">
+            <span>Анатоли Миланов</span>
+            <button class="btn btn-primary" style="padding: 0.3rem 1rem; font-size: 0.85rem;">Изход</button>
+        </div>
+    </header>
+    
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-icon active" title="Клиенти"></div>
+            <div class="sidebar-icon" title="Продукти"></div>
+            <div class="sidebar-icon" title="Оферти"></div>
+            <div class="sidebar-icon" title="Поръчки"></div>
+            <div class="sidebar-icon" title="Фактури"></div>
+            <div class="sidebar-icon" title="Склад"></div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Клиенти</h1>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="showModal()">+ Нов клиент</button>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-value">1,247</div>
+                    <div class="stat-label">Общо клиенти</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">523</div>
+                    <div class="stat-label">С фирми</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">47</div>
+                    <div class="stat-label">Архитекти</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Активни последния месец</div>
+                </div>
+            </div>
+            
+            <!-- Search and Filters -->
+            <div class="search-filters">
+                <input type="text" class="search-input" placeholder="Търсене по име, фирма, телефон или email...">
+                <button class="filter-btn">С фирма: Всички ▼</button>
+                <button class="filter-btn">Архитект: Всички ▼</button>
+            </div>
+            
+            <!-- Clients Table -->
+            <div class="clients-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Име</th>
+                            <th>Фирма</th>
+                            <th>Телефон</th>
+                            <th>Email</th>
+                            <th>Проекти</th>
+                            <th>Последна активност</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                Иван Сивков
+                                <span class="architect-badge">Архитект 10%</span>
+                                <a href="#" style="float: right; font-size: 0.85rem; color: #666;" title="История на промените">📋</a>
+                            </td>
+                            <td>Архитектурно студио Сивков ЕООД</td>
+                            <td>+359 888 123 456</td>
+                            <td>ivan.sivkov@email.com</td>
+                            <td>3</td>
+                            <td>24.04.2025</td>
+                        </tr>
+                        <tr>
+                            <td>Мария Петрова</td>
+                            <td>-</td>
+                            <td>+359 899 234 567</td>
+                            <td>m.petrova@gmail.com</td>
+                            <td>2</td>
+                            <td>22.04.2025</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Георги Димитров
+                                <span class="architect-badge">Архитект 15%</span>
+                            </td>
+                            <td>ГД Архитекти ООД</td>
+                            <td>-</td>
+                            <td>gd@architects.bg</td>
+                            <td>5</td>
+                            <td>20.04.2025</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal for New/Edit Client -->
+    <div class="modal" id="clientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Нов клиент</h2>
+                <button onclick="hideModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Име *</label>
+                    <input type="text" class="form-control" placeholder="Име">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фамилия *</label>
+                    <input type="text" class="form-control" placeholder="Фамилия">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-control" placeholder="+359">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" placeholder="email@example.com">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Адрес</label>
+                    <input type="text" class="form-control" placeholder="Адрес">
+                </div>
+                
+                <!-- Company Option -->
+                <div class="checkbox-group" style="margin: 1.5rem 0;">
+                    <input type="checkbox" id="hasCompany" onchange="toggleCompanyFields(this)">
+                    <label for="hasCompany" style="font-weight: 500;">Клиентът представлява фирма</label>
+                </div>
+                
+                <!-- Company Fields (hidden by default) -->
+                <div id="companyFields" style="display: none; background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <h4 style="margin: 0 0 1rem; color: #333; font-size: 1.1rem;">Фирмени данни</h4>
+                    <div class="form-group">
+                        <label class="form-label">Име на фирма *</label>
+                        <input type="text" class="form-control" placeholder="ООД, ЕООД, АД...">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ЕИК/Булстат *</label>
+                            <input type="text" class="form-control" placeholder="123456789">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ДДС номер</label>
+                            <input type="text" class="form-control" placeholder="BG123456789">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Адрес по регистрация</label>
+                        <input type="text" class="form-control" placeholder="Адрес по регистрация">
+                    </div>
+                </div>
+                
+                <!-- Architect Option -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="isArchitect" onchange="toggleCommission(this)">
+                    <label for="isArchitect">Клиентът е архитект/дизайнер</label>
+                </div>
+                
+                <div id="commissionField" style="display: none; margin-top: 1rem;">
+                    <label class="form-label">Комисионна %</label>
+                    <input type="number" class="form-control" value="10" min="0" max="100" style="width: 100px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal()">Отказ</button>
+                <button class="btn btn-primary">Запази</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showModal() {
+            document.getElementById('clientModal').style.display = 'block';
+        }
+        
+        function hideModal() {
+            document.getElementById('clientModal').style.display = 'none';
+        }
+        
+        function toggleCompanyFields(checkbox) {
+            const companyFields = document.getElementById('companyFields');
+            companyFields.style.display = checkbox.checked ? 'block' : 'none';
+        }
+        
+        function toggleCommission(checkbox) {
+            const commissionField = document.getElementById('commissionField');
+            commissionField.style.display = checkbox.checked ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

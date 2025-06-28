@@ -1,0 +1,44 @@
+{
+  "name": "parketsense-erp",
+  "version": "2.0.0",
+  "description": "PARKETSENSE ERP System - AI-Native Business Management Platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm:dev:*\"",
+    "dev:backend": "cd apps/backend && npm run start:dev",
+    "dev:frontend": "cd apps/frontend && npm run dev",
+    "start:dev": "cd apps/backend && npm run start:dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd apps/backend && npm run build",
+    "build:frontend": "cd apps/frontend && npm run build",
+    "type-check": "npm run type-check:backend && npm run type-check:frontend",
+    "type-check:backend": "cd apps/backend && npm run type-check",
+    "type-check:frontend": "cd apps/frontend && npm run type-check",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd apps/backend && npm run lint",
+    "lint:frontend": "cd apps/frontend && npm run lint",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd apps/backend && npm run test",
+    "test:frontend": "cd apps/frontend && npm run test",
+    "clean": "rm -rf apps/*/node_modules apps/*/dist apps/*/.next node_modules",
+    "db:generate": "cd apps/backend && npm run db:generate",
+    "db:migrate": "cd apps/backend && npm run db:migrate",
+    "db:reset": "cd apps/backend && npm run db:reset",
+    "db:studio": "cd apps/backend && npm run db:studio",
+    "db:seed": "cd apps/backend && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.2.0"
+} 

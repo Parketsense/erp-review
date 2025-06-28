@@ -1,0 +1,63 @@
+graph TB
+    Start([Клиент в шоурум]) --> Consult[Консултация и подбор]
+    Consult --> ClientInfo[Записване контакти]
+    
+    ClientInfo --> CreateClient{Нов клиент?}
+    CreateClient -->|Да| NewClient[Създаване в системата<br/>- Физическо/Юридическо лице<br/>- Архитект checkbox<br/>- Комисионна %]
+    CreateClient -->|Не| ExistingClient[Избор съществуващ]
+    
+    NewClient --> CreateProject
+    ExistingClient --> CreateProject[Създаване на проект<br/>Къща/Апартамент/Офис]
+    
+    CreateProject --> CreatePhase[Създаване на фаза<br/>Етаж 1/Етаж 2/Монтаж]
+    
+    CreatePhase --> CreateVariant[Създаване на вариант<br/>- Име<br/>- Дизайнер/Архитект]
+    
+    CreateVariant --> AddRoom[Добавяне на стая<br/>- Име<br/>- Квадратура<br/>- Отстъпка %<br/>- Фира %]
+    
+    AddRoom --> AddProducts[Добавяне на продукти<br/>- Търсене/Създаване<br/>- Количество<br/>- Цена<br/>- Отстъпка]
+    
+    AddProducts --> MoreRooms{Още стаи?}
+    MoreRooms -->|Да| AddRoom
+    MoreRooms -->|Не| MoreVariants{Още варианти?}
+    
+    MoreVariants -->|Да| CreateVariant
+    MoreVariants -->|Не| UploadPhotos[Качване на снимки<br/>в галерията]
+    
+    UploadPhotos --> OrderVariants[Подреждане на варианти<br/>Drag & Drop]
+    
+    OrderVariants --> SetConditions[Условия на офертата<br/>- Доставка<br/>- Плащане<br/>- Съхранение]
+    
+    SetConditions --> EmailText[Текст на email<br/>+ автоматичен линк]
+    
+    EmailText --> Preview[Preview на офертата]
+    
+    Preview --> Send[Изпращане<br/>JWT токен линк]
+    
+    Send --> ClientView[Клиентът вижда:<br/>- Варианти<br/>- Сравнение<br/>- Бутон 'Избери']
+    
+    ClientView --> ClientSelect{Клиент избира?}
+    ClientSelect -->|Да| PhoneConfirm[Телефонно потвърждение]
+    ClientSelect -->|Не| Corrections[Корекции]
+    
+    Corrections --> Send
+    
+    PhoneConfirm --> AdminConfirm[Администратор потвърждава]
+    
+    AdminConfirm --> Proforma[Проформа фактура<br/>70% аванс]
+    
+    Proforma --> Payment{Плащане получено?}
+    Payment -->|Да| GenerateOrders[Автоматично генерира:<br/>- Оригинална фактура<br/>- Поръчка в системата<br/>- Поръчки към производители]
+    
+    GenerateOrders --> OrderManagement[Управление на поръчки<br/>- Потвърждение<br/>- Плащане<br/>- Доставка]
+    
+    OrderManagement --> Delivery[Доставка на стока]
+    
+    Delivery --> FinalInvoice[Финална фактура<br/>Общо - Аванс]
+    
+    FinalInvoice --> End([Приключване])
+    
+    style Start fill:#e1f5fe
+    style End fill:#c8e6c9
+    style ClientView fill:#fff3e0
+    style GenerateOrders fill:#ffebee

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Окончателна проформа PF2025-001789</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .breadcrumb {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .title-section {
+            flex: 1;
+        }
+        
+        .title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .auto-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.375rem 0.875rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            border: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .invoice-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .invoice-header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .invoice-header-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .company-info h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .company-details {
+            opacity: 0.9;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .invoice-meta {
+            text-align: right;
+        }
+        
+        .invoice-number {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .invoice-date {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+        
+        .inherited-indicator {
+            background: rgba(251, 191, 36, 0.2);
+            color: #f59e0b;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+        
+        .billing-section {
+            padding: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .billing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .billing-party h3 {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .party-details {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+        
+        .party-name {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .party-info {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        
+        .items-section {
+            padding: 2rem;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        
+        .items-table th {
+            background: #f8fafc;
+            padding: 0.875rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .items-table td {
+            padding: 1rem 0.875rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        
+        .items-table tbody tr:hover {
+            background: #f8fafc;
+        }
+        
+        .product-name {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .product-code {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .quantity-info {
+            font-size: 0.875rem;
+        }
+        
+        .delivered-note {
+            color: #059669;
+            font-size: 0.75rem;
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+        
+        .amount {
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .totals-section {
+            background: #f8fafc;
+            padding: 1.5rem 2rem;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .totals-grid {
+            display: grid;
+            gap: 0.75rem;
+            max-width: 400px;
+            margin-left: auto;
+        }
+        
+        .total-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2rem;
+            padding: 0.5rem 0;
+        }
+        
+        .total-row.final {
+            border-top: 2px solid #374151;
+            padding-top: 0.75rem;
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: #1f2937;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .card-header.calculation {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .card-header.flow {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+        
+        .card-header.metadata {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+        }
+        
+        .card-content {
+            padding: 1.5rem;
+        }
+        
+        .calculation-step {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .calculation-step:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            background: #f0fdf4;
+            margin: 0.75rem -1.5rem -1.5rem;
+            padding: 1rem 1.5rem;
+            color: #059669;
+        }
+        
+        .step-label {
+            font-size: 0.875rem;
+        }
+        
+        .step-value {
+            font-weight: 500;
+        }
+        
+        .linked-invoice {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid;
+        }
+        
+        .linked-invoice.advance { border-left-color: #10b981; }
+        .linked-invoice.interim { border-left-color: #f59e0b; }
+        .linked-invoice.credit { border-left-color: #8b5cf6; }
+        
+        .invoice-link {
+            font-weight: 500;
+            color: #374151;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        
+        .invoice-link:hover {
+            color: #3b82f6;
+        }
+        
+        .invoice-amount-small {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        
+        .metadata-item {
+            margin-bottom: 1rem;
+        }
+        
+        .metadata-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metadata-value {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-badge.draft {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        @media (max-width: 768px) {
+            .invoice-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .invoice-header-grid,
+            .billing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="breadcrumb">
+                <a href="/projects">Проекти</a> → 
+                <a href="/projects/123">Линднер Парк А16</a> → 
+                <a href="/variants/456">Вариант Дневна</a> → 
+                <a href="/variants/456/invoices">Фактури</a> → 
+                Окончателна проформа
+                    </table>
+                </div>
+            </div>
+            <div class="header-main">
+                <div class="title-section">
+                    <h1 class="title">
+                        Проформа PF2025-001789
+                        <span class="auto-badge">Автоматично</span>
+                    </h1>
+                    <div class="subtitle">
+                        Окончателна проформа • Създадена на 25.06.2025 • 
+                        <span class="status-badge draft">📝 Чернова</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary">
+                        📄 Преглед PDF
+                    </button>
+                    <button class="btn btn-primary">
+                        📧 Изпрати
+                    </button>
+                    <button class="btn btn-success">
+                        ✅ Маркирай като платена
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="invoice-content">
+            <!-- Main Invoice Content -->
+            <div class="main-content">
+                <!-- Invoice Header -->
+                <div class="invoice-header">
+                    <div class="invoice-header-grid">
+                        <div class="company-info">
+                            <h2>Паркетсенс ООД</h2>
+                            <div class="company-details">
+                                ЕИК: BG200123456<br>
+                                бул. България 25, София 1000<br>
+                                МОЛ: Иван Петров<br>
+                                Тел: +359 2 123 4567
+                            </div>
+                            <div class="inherited-indicator">
+                                🔒 Наследено от авансовата
+                            </div>
+                        </div>
+                        <div class="invoice-meta">
+                            <div class="invoice-number">PF2025-001789</div>
+                            <div class="invoice-date">
+                                Дата: 25.06.2025<br>
+                                Валидност: 24.07.2025
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Information -->
+                <div class="billing-section">
+                    <div class="billing-grid">
+                        <div class="billing-party">
+                            <h3>Доставчик</h3>
+                            <div class="party-details">
+                                <div class="party-name">Паркетсенс ООД</div>
+                                <div class="party-info">
+                                    ЕИК: BG200123456<br>
+                                    бул. България 25, София 1000
+                                </div>
+                            </div>
+                        </div>
+                        <div class="billing-party">
+                            <h3>Получател</h3>
+                            <div class="party-details">
+                                <div class="party-name">Линднер-Даниел Павлов</div>
+                                <div class="party-info">
+                                    ЕИК/БУЛСТАТ: BG123456789<br>
+                                    бул. Витоша 15, София<br>
+                                    МОЛ: Даниел Павлов
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="items-section">
+                    <h3 class="section-title">
+                        📦 Позиции в проформата
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">
+                            (адаптирани спрямо доставени количества)
+                        </span>
+                    </h3>
+                    
+                    <div style="background: #f0f9ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: #1e40af;">
+                        <strong>📋 Точно като в оригинала:</strong> Всички продукти се изброяват нормално, 
+                        след това "авансово плащане PF2025-001512", "междинна фактура PF2025-001678" и "кредитно известие CR2025-000023" 
+                        като обикновени редове с техните номера директно в името. ДДС се изчислява върху крайната сума след отваждания.
+                    </div>
+                    
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Продукт</th>
+                                <th>Количество</th>
+                                <th>Ед. цена</th>
+                                <th>Сума</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="product-name">Weitzer Дъб Plank 1800 Havana Трислоен клик ProActive+ T11 W175 L1800 lively colourful</div>
+                                    <div class="product-code">Код: WEI-OAK-1800-HAV</div>
+                                </td>
+                                <td>
+                                    <div class="quantity-info">95,5 кв.м</div>
+                                    <div class="delivered-note">✓ доставено: 95,5 от 98 кв.м</div>
+                                </td>
+                                <td class="amount">€195.25</td>
+                                <td class="amount">€18,646.38</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="product-name">Лак за паркет матов</div>
+                                    <div class="product-code">Код: LAC-MAT-2L</div>
+                                </td>
+                                <td>
+                                    <div class="quantity-info">12 бр.</div>
+                                    <div class="delivered-note">✓ доставено: 12 от 12 бр.</div>
+                                </td>
+                                <td class="amount">€24,90</td>
+                                <td class="amount">€298,80</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="product-name">Подложка за паркет 3мм</div>
+                                    <div class="product-code">Код: PAD-3MM-100</div>
+                                </td>
+                                <td>
+                                    <div class="quantity-info">102 кв.м</div>
+                                    <div class="delivered-note">✓ доставено: 102 от 100 кв.м</div>
+                                </td>
+                                <td class="amount">€4,15</td>
+                                <td class="amount">€423,30</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="product-name">Лайсни за завършек дъб</div>
+                                    <div class="product-code">Код: TRIM-OAK-240</div>
+                                </td>
+                                <td>
+                                    <div class="quantity-info">24 м.л.</div>
+                                    <div class="delivered-note">✓ доставено: 24 от 25 м.л.</div>
+                                </td>
+                                <td class="amount">€12,80</td>
+                                <td class="amount">€307,20</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="product-name">Монтаж на паркет с лепило</div>
+                                    <div class="product-code">Код: INST-ADH-95</div>
+                                </td>
+                                <td>
+                                    <div class="quantity-info">95,5 кв.м</div>
+                                    <div class="delivered-note">✓ извършен монтаж</div>
+                                </td>
+                                <td class="amount">€18,50</td>
+                                <td class="amount">€1,767,75</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="product-name">Циклене и лакиране</div>
+                                    <div class="product-code">Код: SAND-LAC-95</div>
+                                </td>
+                                <td>
+                                    <div class="quantity-info">95,5 кв.м</div>
+                                    <div class="delivered-note">✓ изпълнено</div>
+                                </td>
+                                <td class="amount">€15,75</td>
+                                <td class="amount">€1,504,13</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="product-name">Материали за монтаж (лепило, пирони)</div>
+                                    <div class="product-code">Код: MAT-INST-SET</div>
+                                </td>
+                                <td>
+                                    <div class="quantity-info">1 комплект</div>
+                                    <div class="delivered-note">✓ доставено</div>
+                                </td>
+                                <td class="amount">€5,211,90</td>
+                                <td class="amount">€5,211,90</td>
+                            </tr>
+                            <tr style="border-top: 2px solid #e5e7eb; font-weight: 600; background: #f8fafc;">
+                                <td colspan="3" style="text-align: right; padding-right: 1rem;">
+                                    <strong>Общо продукти и услуги:</strong>
+                                </td>
+                                <td class="amount">
+                                    <strong>€42,020,83</strong>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Flow Summary -->
+                <div class="info-card">
+                    <div class="card-header calculation">
+                        🧮 Обобщение на потока
+                    </div>
+                    <div class="card-content">
+                        <div class="calculation-step">
+                            <span class="step-label">Общо продукти (без ДДС):</span>
+                            <span class="step-value">€37,940.96</span>
+                        </div>
+                        <div class="calculation-step">
+                            <span class="step-label">Платени аванси:</span>
+                            <span class="step-value" style="color: #dc2626;">-€25,000.00</span>
+                        </div>
+                        <div class="calculation-step">
+                            <span class="step-label">Платени междинни:</span>
+                            <span class="step-value" style="color: #dc2626;">-€8,000.00</span>
+                        </div>
+                        <div class="calculation-step">
+                            <span class="step-label">Кредити:</span>
+                            <span class="step-value" style="color: #059669;">€1,000.00</span>
+                        </div>
+                        <div style="border-top: 1px solid #e5e7eb; margin: 0.75rem 0; padding-top: 0.75rem;">
+                        </div>
+                        <div class="calculation-step">
+                            <span class="step-label">Остатък за доплащане:</span>
+                            <span class="step-value" style="color: #059669; font-weight: 700;">€7,129.15</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Related Invoices -->
+                <div class="info-card">
+                    <div class="card-header flow">
+                        🔗 Свързани фактури
+                    </div>
+                    <div class="card-content">
+                        <div class="linked-invoice advance">
+                            <div>
+                                <a href="/invoices/advance-123" class="invoice-link">PF2025-001512</a>
+                                <div class="invoice-amount-small">Авансова • €25,000.00</div>
+                            </div>
+                            <span style="color: #059669;">✅</span>
+                        </div>
+                        <div class="linked-invoice interim">
+                            <div>
+                                <a href="/invoices/interim-456" class="invoice-link">PF2025-001678</a>
+                                <div class="invoice-amount-small">Междинна • €8,000.00</div>
+                            </div>
+                            <span style="color: #059669;">✅</span>
+                        </div>
+                        <div class="linked-invoice credit">
+                            <div>
+                                <a href="/invoices/credit-789" class="invoice-link">CR2025-000023</a>
+                                <div class="invoice-amount-small">Кредитно • €1,000.00</div>
+                            </div>
+                            <span style="color: #8b5cf6;">📋</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="info-card">
+                    <div class="card-header metadata">
+                        ⚙️ Метаданни
+                    </div>
+                    <div class="card-content">
+                        <div class="metadata-item">
+                            <div class="metadata-label">Автоматично генериране</div>
+                            <div class="metadata-value">✅ Да</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-label">Източник на данни</div>
+                            <div class="metadata-value">PF2025-001512 (авансова)</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-label">Позиции адаптирани</div>
+                            <div class="metadata-value">✅ Спрямо доставени количества</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-label">Създадена от</div>
+                            <div class="metadata-value">Иван Петров</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-label">Създадена на</div>
+                            <div class="metadata-value">25.06.2025 14:23</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-label">Валидност</div>
+                            <div class="metadata-value">30 дни</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

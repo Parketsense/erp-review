@@ -1,0 +1,277 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// USERS & AUTHENTICATION
+// ========================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  passwordHash String
+  firstName String
+  lastName  String
+  phone     String?
+  role      String   @default("USER") // ADMIN, MANAGER, USER, VIEWER
+  isActive  Boolean  @default(true)
+  lastLoginAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdClients Client[]
+  projects      Project[]
+
+  @@map("users")
+}
+
+// ========================================
+// CLIENTS MODULE
+// ========================================
+
+model Client {
+  id          String     @id @default(cuid())
+  
+  // Basic information
+  firstName   String
+  lastName    String
+  phone       String?
+  email       String?
+  address     String?
+  
+  // Company information (optional)
+  hasCompany  Boolean    @default(false)
+  companyName String?
+  eikBulstat  String?
+  vatNumber   String?
+  companyAddress String?
+  companyPhone   String?
+  companyEmail   String?
+  
+  // Architect/Designer
+  isArchitect Boolean    @default(false)
+  commissionPercent Real? @default(10.00)
+  
+  // Metadata
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdBy   String
+  
+  // Relations
+  user        User       @relation(fields: [createdBy], references: [id])
+  projects    Project[]
+  offers      Offer[]
+
+  @@map("clients")
+}
+
+// ========================================
+// PROJECTS MODULE
+// ========================================
+
+model Project {
+  id          String      @id @default(cuid())
+  name        String
+  type        String      @default("APARTMENT") // APARTMENT, HOUSE, OFFICE, COMMERCIAL, OTHER
+  address     String?
+  description String?
+  status      String      @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED, ON_HOLD
+  clientId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  createdBy   String
+  
+  // Relations
+  client      Client      @relation(fields: [clientId], references: [id])
+  user        User        @relation(fields: [createdBy], references: [id])
+  phases      ProjectPhase[]
+  contacts    ProjectContact[]
+  offers      Offer[]
+
+  @@map("projects")
+}
+
+model ProjectPhase {
+  id        String    @id @default(cuid())
+  name      String
+  type      String
+  status    String    @default("ACTIVE")
+  sortOrder Int       @default(0)
+  projectId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  // Relations
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  variants  ProjectVariant[]
+
+  @@map("project_phases")
+}
+
+model ProjectVariant {
+  id        String    @id @default(cuid())
+  name      String
+  status    String    @default("ACTIVE")
+  sortOrder Int       @default(0)
+  phaseId   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  // Relations
+  phase     ProjectPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  rooms     ProjectRoom[]
+  offers    Offer[]
+
+  @@map("project_variants")
+}
+
+model ProjectRoom {
+  id        String    @id @default(cuid())
+  name      String
+  area      Real?
+  discount  Real?
+  firma     Real?
+  variantId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  // Relations
+  variant   ProjectVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  products  ProjectRoomProduct[]
+  offers    Offer[]
+
+  @@map("project_rooms")
+}
+
+model ProjectRoomProduct {
+  id        String    @id @default(cuid())
+  roomId    String
+  productId String
+  quantity  Real
+  unitPrice Real
+  discount  Real?
+  totalPrice Real
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  // Relations
+  room      ProjectRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  product   Product     @relation(fields: [productId], references: [id])
+
+  @@map("project_room_products")
+}
+
+model ProjectContact {
+  id              String  @id @default(cuid())
+  name            String
+  phone           String?
+  email           String?
+  position        String?
+  receivesOffers  Boolean @default(true)
+  receivesInvoices Boolean @default(true)
+  isPrimary       Boolean @default(false)
+  notes           String?
+  projectId       String
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_contacts")
+}
+
+// ========================================
+// PRODUCTS MODULE 
+// ========================================
+
+model Product {
+  id            String      @id @default(cuid())
+  type          String      @default("PARQUET") // PARQUET, LAMINATE, VINYL, ACCESSORIES, SERVICES
+  nameBg        String
+  nameEn        String
+  code          String?     @unique
+  manufacturer  String
+  collection    String?
+  color         String?
+  category      String?
+  length        Int?
+  width         Int?
+  thickness     Int?
+  unit          String?     @default("м²")
+  buyPriceBgn   Real
+  sellPriceBgn  Real
+  buyPriceEur   Real?
+  sellPriceEur  Real?
+  packSize      Real?
+  thumbnailUrl  String?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  roomProducts  ProjectRoomProduct[]
+
+  @@map("products")
+}
+
+// ========================================
+// OFFERS MODULE
+// ========================================
+
+model Offer {
+  id          String      @id @default(cuid())
+  offerNumber String      @unique
+  type        String      @default("MATERIALS") // MATERIALS, INSTALLATION, COMPLETE, LUXURY, CUSTOM
+  status      String      @default("DRAFT") // DRAFT, SENT, ACCEPTED, REJECTED, EXPIRED
+  projectId   String
+  variantId   String
+  roomId      String
+  clientId    String
+  totalAmount Real
+  currency    String      @default("EUR")
+  validUntil  DateTime?
+  notes       String?
+  terms       String?
+  conditions  String?
+  deliveryTime String?
+  warranty    String?
+  issuedBy    String?
+  issuedAt    DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations
+  project     Project     @relation(fields: [projectId], references: [id])
+  variant     ProjectVariant @relation(fields: [variantId], references: [id])
+  room        ProjectRoom @relation(fields: [roomId], references: [id])
+  client      Client      @relation(fields: [clientId], references: [id])
+  items       OfferItem[]
+
+  @@map("offers")
+}
+
+model OfferItem {
+  id          String   @id @default(cuid())
+  offerId     String
+  productName String
+  quantity    Real
+  unitPrice   Real
+  totalPrice  Real
+  description String?
+  unit        String?  @default("м²")
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@map("offer_items")
+} 

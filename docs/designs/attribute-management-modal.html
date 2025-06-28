@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKETSENSE - Управление на атрибути</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.4;
+            padding: 20px;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 95vh;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Header */
+        .modal-header {
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Filters */
+        .filters-section {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        .filter-group select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            min-width: 150px;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* Action buttons in filters */
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        /* Content */
+        .modal-content {
+            padding: 20px;
+            max-height: calc(95vh - 180px);
+            overflow-y: auto;
+        }
+
+        /* Product Type Sections */
+        .product-type-section {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .product-type-header {
+            background: #333;
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .product-type-title {
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .product-type-stats {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .product-type-content {
+            padding: 15px;
+            background: white;
+        }
+
+        .product-type-content.collapsed {
+            display: none;
+        }
+
+        /* Attributes Grid */
+        .attributes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 15px;
+        }
+
+        .attribute-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .attribute-header {
+            background: white;
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .attribute-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .attribute-type {
+            font-size: 11px;
+            color: #6c757d;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 2px;
+        }
+
+        .attribute-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .attribute-btn {
+            background: none;
+            border: none;
+            padding: 4px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .attribute-btn:hover {
+            background: #e9ecef;
+        }
+
+        .attribute-btn.add {
+            color: #28a745;
+        }
+
+        .attribute-btn.edit {
+            color: #007bff;
+        }
+
+        .attribute-btn.delete {
+            color: #dc3545;
+        }
+
+        /* Attribute Values */
+        .attribute-values {
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .value-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .value-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .value-icon {
+            font-size: 14px;
+        }
+
+        .value-text {
+            color: #333;
+        }
+
+        .value-manufacturer {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 10px;
+            margin-left: auto;
+            margin-right: 8px;
+        }
+
+        .value-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .value-btn {
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .value-btn:hover {
+            background: #e9ecef;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .empty-state .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        /* Add new attribute */
+        .add-attribute-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border: 2px dashed #3b82f6;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-attribute-card:hover {
+            background: linear-gradient(135deg, #bbdefb 0%, #e1bee7 100%);
+            transform: translateY(-1px);
+        }
+
+        .add-attribute-icon {
+            font-size: 24px;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+
+        .add-attribute-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1565c0;
+        }
+
+        /* Footer */
+        .modal-footer {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-info {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        /* Bulk Import Modal */
+        .bulk-modal {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-area {
+            border: 2px dashed #ced4da;
+            border-radius: 6px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 15px 0;
+        }
+
+        .upload-area:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        /* Demo background */
+        .demo-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal {
+                width: 98%;
+                max-height: 98vh;
+            }
+            
+            .attributes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .filter-actions {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Background -->
+    <div class="demo-background">
+        <div class="demo-card">
+            <h2 style="margin-bottom: 20px;">PARKETSENSE Demo</h2>
+            <p style="margin-bottom: 20px; color: #666;">Управление на продуктови атрибути</p>
+            <button class="btn btn-primary" onclick="openAttributesModal()">⚙️ Управление на атрибути</button>
+        </div>
+    </div>
+
+    <!-- Main Modal -->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Управление на продуктови атрибути</div>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label for="productTypeFilter">Тип продукт:</label>
+                    <select id="productTypeFilter" onchange="filterByProductType()">
+                        <option value="">Всички типове</option>
+                        <option value="parquet">🏠 Паркет</option>
+                        <option value="doors">🚪 Врати</option>
+                        <option value="furniture">🪑 Мебели</option>
+                        <option value="wall-coverings">🧱 Стенни облицовки</option>
+                        <option value="wall-decorations">🎨 Декорации за стена</option>
+                        <option value="installation">🔧 Услуги за монтаж</option>
+                        <option value="materials">📦 Материали за монтаж</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="manufacturerFilter">Производител:</label>
+                    <select id="manufacturerFilter" onchange="filterByManufacturer()">
+                        <option value="">Всички производители</option>
+                        <option value="all">🌍 Универсални стойности</option>
+                        <option value="hickx">🏭 Hickx</option>
+                        <option value="bauwerk">🏭 Bauwerk</option>
+                        <option value="foglie-doro">🏭 Foglie d'Oro</option>
+                        <option value="quick-step">🏭 Quick-Step</option>
+                        <option value="ikea">🏭 IKEA</option>
+                        <option value="rehau">🏭 REHAU</option>
+                    </select>
+                </div>
+
+                <div class="filter-group search-box">
+                    <input type="text" id="searchBox" placeholder="Търси атрибут или стойност..." onchange="filterBySearch()">
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn btn-info" onclick="openBulkImport()">📁 Bulk импорт</button>
+                    <button class="btn btn-primary" onclick="addNewProductType()">+ Нов тип продукт</button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="modal-content" id="modalContent">
+                
+                <!-- Parquet Section -->
+                <div class="product-type-section" data-type="parquet">
+                    <div class="product-type-header" onclick="toggleSection('parquet')">
+                        <div class="product-type-title">
+                            🏠 Паркет
+                        </div>
+                        <div class="product-type-stats">15 атрибута • 127 стойности</div>
+                    </div>
+                    <div class="product-type-content" id="parquet-content">
+                        <div class="attributes-grid">
+                            
+                            <!-- Construction Type Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🏗️ Тип конструкция
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('construction_type')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🔧</span>
+                                            <span class="value-text">Инженерен / Engineered</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🪵</span>
+                                            <span class="value-text">Масивен / Solid</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📋</span>
+                                            <span class="value-text">Ламинат / Laminate</span>
+                                        </div>
+                                        <span class="value-manufacturer">Quick-Step</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Wood Type Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🌳 Дървесина/Материал
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('wood_type')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🟤</span>
+                                            <span class="value-text">Дъб / Oak</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🟫</span>
+                                            <span class="value-text">Орех / Walnut</span>
+                                        </div>
+                                        <span class="value-manufacturer">Hickx</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">⚪</span>
+                                            <span class="value-text">Ясен / Ash</span>
+                                        </div>
+                                        <span class="value-manufacturer">Bauwerk</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Color Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🎨 Цвят
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('color')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🟤</span>
+                                            <span class="value-text">Натурален / Natural</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🟫</span>
+                                            <span class="value-text">Тъмен орех / Dark Walnut</span>
+                                        </div>
+                                        <span class="value-manufacturer">Hickx</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">⚫</span>
+                                            <span class="value-text">Антик дъб / Antique Oak</span>
+                                        </div>
+                                        <span class="value-manufacturer">Hickx</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">⚪</span>
+                                            <span class="value-text">Бял дъб / White Oak</span>
+                                        </div>
+                                        <span class="value-manufacturer">Bauwerk</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thickness Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        📏 Дебелина (мм)
+                                        <span class="attribute-type">number</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('thickness')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📐</span>
+                                            <span class="value-text">12 / 12</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📐</span>
+                                            <span class="value-text">15 / 15</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📐</span>
+                                            <span class="value-text">18 / 18</span>
+                                        </div>
+                                        <span class="value-manufacturer">Hickx</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Attribute Card -->
+                            <div class="add-attribute-card" onclick="addNewAttribute('parquet')">
+                                <div class="add-attribute-icon">➕</div>
+                                <div class="add-attribute-text">Добави нов атрибут за паркет</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doors Section -->
+                <div class="product-type-section" data-type="doors">
+                    <div class="product-type-header" onclick="toggleSection('doors')">
+                        <div class="product-type-title">
+                            🚪 Врати
+                        </div>
+                        <div class="product-type-stats">11 атрибута • 89 стойности</div>
+                    </div>
+                    <div class="product-type-content collapsed" id="doors-content">
+                        <div class="attributes-grid">
+                            
+                            <!-- Door Type Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🚪 Тип врата
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('door_type')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">↔️</span>
+                                            <span class="value-text">Плъзгаща / Sliding</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🔄</span>
+                                            <span class="value-text">Въртяща / Hinged</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📂</span>
+                                            <span class="value-text">Хармоника / Folding</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Door Finish Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🎨 Финиш
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('door_finish')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">⚪</span>
+                                            <span class="value-text">Бял мат / White Matt</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🟫</span>
+                                            <span class="value-text">Дърво / Wood</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🖤</span>
+                                            <span class="value-text">Черен мат / Black Matt</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Door Size Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        📐 Размери (В x Ш)
+                                        <span class="attribute-type">text</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('door_size')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📏</span>
+                                            <span class="value-text">2000x800 / 2000x800</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📏</span>
+                                            <span class="value-text">2000x900 / 2000x900</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Attribute Card -->
+                            <div class="add-attribute-card" onclick="addNewAttribute('doors')">
+                                <div class="add-attribute-icon">➕</div>
+                                <div class="add-attribute-text">Добави нов атрибут за врати</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Furniture Section -->
+                <div class="product-type-section" data-type="furniture">
+                    <div class="product-type-header" onclick="toggleSection('furniture')">
+                        <div class="product-type-title">
+                            🪑 Мебели
+                        </div>
+                        <div class="product-type-stats">8 атрибута • 56 стойности</div>
+                    </div>
+                    <div class="product-type-content collapsed" id="furniture-content">
+                        <div class="attributes-grid">
+                            
+                            <!-- Furniture Type Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🪑 Тип мебел
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('furniture_type')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🚪</span>
+                                            <span class="value-text">Гардероб / Wardrobe</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🪑</span>
+                                            <span class="value-text">Стол / Chair</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🛏️</span>
+                                            <span class="value-text">Легло / Bed</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Furniture Style Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🎨 Стил
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('furniture_style')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🏔️</span>
+                                            <span class="value-text">Скандинавски / Scandinavian</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🏛️</span>
+                                            <span class="value-text">Класически / Classic</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🔳</span>
+                                            <span class="value-text">Модерен / Modern</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Furniture Material Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🌳 Материал
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('furniture_material')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🌳</span>
+                                            <span class="value-text">Масивно дърво / Solid Wood</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">📋</span>
+                                            <span class="value-text">МДФ / MDF</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🪨</span>
+                                            <span class="value-text">Метал / Metal</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Attribute Card -->
+                            <div class="add-attribute-card" onclick="addNewAttribute('furniture')">
+                                <div class="add-attribute-icon">➕</div>
+                                <div class="add-attribute-text">Добави нов атрибут за мебели</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wall Coverings Section -->
+                <div class="product-type-section" data-type="wall-coverings">
+                    <div class="product-type-header" onclick="toggleSection('wall-coverings')">
+                        <div class="product-type-title">
+                            🧱 Стенни облицовки
+                        </div>
+                        <div class="product-type-stats">7 атрибута • 42 стойности</div>
+                    </div>
+                    <div class="product-type-content collapsed" id="wall-coverings-content">
+                        <div class="attributes-grid">
+                            
+                            <!-- Wall Material Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🧱 Материал
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('wall_material')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🟫</span>
+                                            <span class="value-text">Керамика / Ceramic</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🪨</span>
+                                            <span class="value-text">Камък / Stone</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🧵</span>
+                                            <span class="value-text">Текстил / Textile</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Attribute Card -->
+                            <div class="add-attribute-card" onclick="addNewAttribute('wall-coverings')">
+                                <div class="add-attribute-icon">➕</div>
+                                <div class="add-attribute-text">Добави нов атрибут за стенни облицовки</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wall Decorations Section -->
+                <div class="product-type-section" data-type="wall-decorations">
+                    <div class="product-type-header" onclick="toggleSection('wall-decorations')">
+                        <div class="product-type-title">
+                            🎨 Декорации за стена
+                        </div>
+                        <div class="product-type-stats">5 атрибута • 28 стойности</div>
+                    </div>
+                    <div class="product-type-content collapsed" id="wall-decorations-content">
+                        <div class="attributes-grid">
+                            
+                            <!-- Decoration Type Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🎨 Тип декорация
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('decoration_type')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🔲</span>
+                                            <span class="value-text">Мозайка / Mosaic</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">💎</span>
+                                            <span class="value-text">Стъкло / Glass</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🔘</span>
+                                            <span class="value-text">Метал / Metal</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Attribute Card -->
+                            <div class="add-attribute-card" onclick="addNewAttribute('wall-decorations')">
+                                <div class="add-attribute-icon">➕</div>
+                                <div class="add-attribute-text">Добави нов атрибут за декорации</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Installation Services Section -->
+                <div class="product-type-section" data-type="installation">
+                    <div class="product-type-header" onclick="toggleSection('installation')">
+                        <div class="product-type-title">
+                            🔧 Услуги за монтаж
+                        </div>
+                        <div class="product-type-stats">5 атрибута • 18 стойности</div>
+                    </div>
+                    <div class="product-type-content collapsed" id="installation-content">
+                        <div class="attributes-grid">
+                            
+                            <!-- Service Type Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        🔧 Тип услуга
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('service_type')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🏠</span>
+                                            <span class="value-text">Полагане паркет / Parquet Installation</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🚪</span>
+                                            <span class="value-text">Монтаж врати / Door Installation</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Attribute Card -->
+                            <div class="add-attribute-card" onclick="addNewAttribute('installation')">
+                                <div class="add-attribute-icon">➕</div>
+                                <div class="add-attribute-text">Добави нов атрибут за услуги</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materials Section -->
+                <div class="product-type-section" data-type="materials">
+                    <div class="product-type-header" onclick="toggleSection('materials')">
+                        <div class="product-type-title">
+                            📦 Материали за монтаж
+                        </div>
+                        <div class="product-type-stats">4 атрибута • 15 стойности</div>
+                    </div>
+                    <div class="product-type-content collapsed" id="materials-content">
+                        <div class="attributes-grid">
+                            
+                            <!-- Material Type Attribute -->
+                            <div class="attribute-card">
+                                <div class="attribute-header">
+                                    <div class="attribute-name">
+                                        📦 Тип материал
+                                        <span class="attribute-type">select</span>
+                                    </div>
+                                    <div class="attribute-actions">
+                                        <button class="attribute-btn add" onclick="addAttributeValue('material_type')" title="Добави стойност">+</button>
+                                        <button class="attribute-btn edit" title="Редактирай">✏️</button>
+                                        <button class="attribute-btn delete" title="Изтрий">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="attribute-values">
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🧴</span>
+                                            <span class="value-text">Лепило / Adhesive</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🎨</span>
+                                            <span class="value-text">Лак / Varnish</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="value-item">
+                                        <div class="value-content">
+                                            <span class="value-icon">🔧</span>
+                                            <span class="value-text">Инструменти / Tools</span>
+                                        </div>
+                                        <span class="value-manufacturer">Всички</span>
+                                        <div class="value-actions">
+                                            <button class="value-btn" title="Редактирай">✏️</button>
+                                            <button class="value-btn" title="Изтрий">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Attribute Card -->
+                            <div class="add-attribute-card" onclick="addNewAttribute('materials')">
+                                <div class="add-attribute-icon">➕</div>
+                                <div class="add-attribute-text">Добави нов атрибут за материали</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <div class="footer-info">
+                    Общо: 55 атрибута • 425 стойности
+                </div>
+                <div>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        Затвори
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveChanges()">
+                        ПОТВЪРДИ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div class="modal-overlay" id="bulkImportOverlay" style="display: none;">
+        <div class="bulk-modal">
+            <div class="modal-header">
+                <div class="modal-title">Bulk импорт на атрибути</div>
+                <button class="close-btn" onclick="closeBulkImport()">✕</button>
+            </div>
+
+            <div class="modal-content">
+                <div class="filter-group" style="margin-bottom: 15px;">
+                    <label for="importProductType">Тип продукт:</label>
+                    <select id="importProductType">
+                        <option value="parquet">🏠 Паркет</option>
+                        <option value="doors">🚪 Врати</option>
+                        <option value="furniture">🪑 Мебели</option>
+                        <option value="wall-coverings">🧱 Стенни облицовки</option>
+                        <option value="wall-decorations">🎨 Декорации за стена</option>
+                        <option value="installation">🔧 Услуги за монтаж</option>
+                        <option value="materials">📦 Материали за монтаж</option>
+                    </select>
+                </div>
+
+                <div class="filter-group" style="margin-bottom: 15px;">
+                    <label for="importAttribute">Атрибут:</label>
+                    <select id="importAttribute">
+                        <option value="color">🎨 Цвят</option>
+                        <option value="finish">✨ Финиш</option>
+                        <option value="collection">📚 Колекция</option>
+                        <option value="wood_type">🌳 Дървесина/Материал</option>
+                        <option value="size">📏 Размери</option>
+                        <option value="thickness">📐 Дебелина</option>
+                        <option value="style">🎨 Стил</option>
+                        <option value="type">🏷️ Тип</option>
+                    </select>
+                </div>
+
+                <div class="filter-group" style="margin-bottom: 15px;">
+                    <label for="importManufacturer">Производител:</label>
+                    <select id="importManufacturer">
+                        <option value="all">🌍 Всички производители</option>
+                        <option value="hickx">🏭 Hickx</option>
+                        <option value="bauwerk">🏭 Bauwerk</option>
+                        <option value="foglie-doro">🏭 Foglie d'Oro</option>
+                        <option value="quick-step">🏭 Quick-Step</option>
+                        <option value="ikea">🏭 IKEA</option>
+                        <option value="rehau">🏭 REHAU</option>
+                    </select>
+                </div>
+
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Кликнете или пуснете CSV/Excel файл тук</div>
+                    <div class="upload-hint">Поддържани формати: .csv, .xlsx, .xls</div>
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" style="display: none;" onchange="handleFileUpload(event)">
+                </div>
+
+                <div style="font-size: 12px; color: #6c757d; margin-top: 10px;">
+                    <strong>Изисквани колони:</strong> name_bg, name_en, (icon), (color_code), (description)
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="footer-info">
+                    Файлът ще бъде валидиран преди импорт
+                </div>
+                <div>
+                    <button type="button" class="btn btn-secondary" onclick="closeBulkImport()">Отказ</button>
+                    <button type="button" class="btn btn-info" onclick="downloadTemplate()">📥 Шаблон</button>
+                    <button type="button" class="btn btn-primary" onclick="startImport()" disabled id="importBtn">ИМПОРТ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAttributesModal() {
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function toggleSection(sectionType) {
+            const content = document.getElementById(sectionType + '-content');
+            if (content) {
+                content.classList.toggle('collapsed');
+            }
+        }
+
+        function filterByProductType() {
+            const selectedType = document.getElementById('productTypeFilter').value;
+            const sections = document.querySelectorAll('.product-type-section');
+            
+            sections.forEach(section => {
+                if (!selectedType || section.dataset.type === selectedType) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        function filterByManufacturer() {
+            const selectedManufacturer = document.getElementById('manufacturerFilter').value;
+            const valueItems = document.querySelectorAll('.value-item');
+            
+            valueItems.forEach(item => {
+                const manufacturerTag = item.querySelector('.value-manufacturer');
+                if (!selectedManufacturer || 
+                    selectedManufacturer === 'all' && manufacturerTag.textContent === 'Всички' ||
+                    manufacturerTag.textContent.toLowerCase().includes(selectedManufacturer.toLowerCase())) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function filterBySearch() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const attributeCards = document.querySelectorAll('.attribute-card');
+            
+            attributeCards.forEach(card => {
+                const attributeName = card.querySelector('.attribute-name').textContent.toLowerCase();
+                const valueTexts = Array.from(card.querySelectorAll('.value-text')).map(el => el.textContent.toLowerCase());
+                
+                const matches = attributeName.includes(searchTerm) || 
+                               valueTexts.some(text => text.includes(searchTerm));
+                
+                card.style.display = matches ? 'block' : 'none';
+            });
+        }
+
+        function addAttributeValue(attributeId) {
+            // This would open the add value modal we created before
+            alert('Отваря модала за добавяне на стойност за атрибут: ' + attributeId);
+        }
+
+        function addNewAttribute(productType) {
+            alert('Създаване на нов атрибут за тип продукт: ' + productType);
+        }
+
+        function addNewProductType() {
+            const name = prompt('Въведете име на новия тип продукт:');
+            if (name && name.trim()) {
+                alert('Създаден нов тип продукт: ' + name);
+                // Here would add new section to the DOM
+            }
+        }
+
+        function openBulkImport() {
+            document.getElementById('bulkImportOverlay').style.display = 'flex';
+        }
+
+        function closeBulkImport() {
+            document.getElementById('bulkImportOverlay').style.display = 'none';
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const uploadArea = document.getElementById('uploadArea');
+                uploadArea.innerHTML = '<div class="upload-icon">✅</div><div class="upload-text">Файл: ' + file.name + '</div><div class="upload-hint">Готов за импорт</div>';
+                document.getElementById('importBtn').disabled = false;
+            }
+        }
+
+        function downloadTemplate() {
+            alert('Изтегляне на CSV шаблон с необходимите колони...');
+        }
+
+        function startImport() {
+            const importBtn = document.getElementById('importBtn');
+            importBtn.innerHTML = '<span class="spinner"></span>Импортиране...';
+            importBtn.disabled = true;
+            
+            // Simulate import process
+            setTimeout(function() {
+                alert('Импортът завърши успешно! Добавени 15 нови стойности.');
+                closeBulkImport();
+                // Reset button
+                importBtn.innerHTML = 'ИМПОРТ';
+                importBtn.disabled = false;
+            }, 2000);
+        }
+
+        function saveChanges() {
+            alert('Всички промени са запазени успешно!');
+        }
+
+        // Initialize drag and drop for file upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('fileInput').files = files;
+                    handleFileUpload({target: {files: files}});
+                }
+            });
+
+            // Close modals on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (document.getElementById('bulkImportOverlay').style.display !== 'none') {
+                        closeBulkImport();
+                    } else if (document.getElementById('modalOverlay').style.display !== 'none') {
+                        closeModal();
+                    }
+                }
+            });
+
+            // Close modals on overlay click
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'modalOverlay') {
+                    closeModal();
+                } else if (e.target.id === 'bulkImportOverlay') {
+                    closeBulkImport();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

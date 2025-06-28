@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Създаване на окончателна проформа - Автоматично</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .breadcrumb {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+        
+        .breadcrumb a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .auto-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .flow-analysis {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .flow-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .flow-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        
+        .scanning-animation {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .flow-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .flow-card.advance {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .flow-card.interim {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        .flow-card.credit {
+            border-color: #8b5cf6;
+            background: #faf5ff;
+        }
+        
+        .flow-card.final {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .flow-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        
+        .flow-card-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .flow-card.advance .flow-card-title { color: #064e3b; }
+        .flow-card.interim .flow-card-title { color: #92400e; }
+        .flow-card.credit .flow-card-title { color: #581c87; }
+        .flow-card.final .flow-card-title { color: #991b1b; }
+        
+        .invoice-item {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid;
+        }
+        
+        .invoice-item.paid { border-left-color: #10b981; }
+        .invoice-item.pending { border-left-color: #f59e0b; }
+        .invoice-item.applied { border-left-color: #8b5cf6; }
+        
+        .invoice-number {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .invoice-amount {
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        .invoice-status {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        
+        .total-summary {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .total-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .total-item {
+            text-align: center;
+        }
+        
+        .total-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+        
+        .total-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .total-value.large {
+            font-size: 2rem;
+        }
+        
+        .inherited-data {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .inherited-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .inherited-header h3 {
+            font-weight: 600;
+            color: #92400e;
+        }
+        
+        .inherited-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #92400e;
+        }
+        
+        .inherited-field {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+        }
+        
+        .field-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .field-value {
+            color: #451a03;
+        }
+        
+        .creation-form {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .form-field {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .checkbox-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .checkbox-field input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .checkbox-label {
+            flex: 1;
+        }
+        
+        .checkbox-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .checkbox-description {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            border: none;
+            font-size: 0.875rem;
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+        }
+        
+        .success-message {
+            background: #f0fdf4;
+            border: 2px solid #10b981;
+            color: #064e3b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .warning-box {
+            background: #fff7ed;
+            border: 2px solid #ea580c;
+            color: #9a3412;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="breadcrumb">
+                <a href="/projects">Проекти</a> → 
+                <a href="/projects/123">Линднер Парк А16</a> → 
+                <a href="/variants/456">Вариант Дневна</a> → 
+                Фактури
+            </div>
+            <h1 class="title">
+                🤖 Окончателна проформа
+                <span class="auto-badge">АВТОМАТИЧНО</span>
+            </h1>
+        </div>
+
+        <!-- Flow Analysis -->
+        <div class="flow-analysis">
+            <div class="flow-header">
+                <div class="scanning-animation"></div>
+                <h3>Анализ на фактуриращия поток</h3>
+                <span style="color: #10b981; font-weight: 600;">✓ Завършен</span>
+            </div>
+
+            <div class="flow-grid">
+                <!-- Advance Invoices -->
+                <div class="flow-card advance">
+                    <div class="flow-card-header">
+                        <div class="flow-card-title">Авансови фактури</div>
+                        <span style="color: #064e3b; font-weight: 600;">1 бр.</span>
+                    </div>
+                    <div class="invoice-item paid">
+                        <div class="invoice-number">PF2025-001512</div>
+                        <div class="invoice-amount">€46,269.30</div>
+                        <div class="invoice-status">✅ Платена (15.05.2025)</div>
+                    </div>
+                </div>
+
+                <!-- Interim Invoices -->
+                <div class="flow-card interim">
+                    <div class="flow-card-header">
+                        <div class="flow-card-title">Междинни фактури</div>
+                        <span style="color: #92400e; font-weight: 600;">1 бр.</span>
+                    </div>
+                    <div class="invoice-item paid">
+                        <div class="invoice-number">PF2025-001678</div>
+                        <div class="invoice-amount">€15,250.00</div>
+                        <div class="invoice-status">✅ Платена (20.06.2025)</div>
+                    </div>
+                </div>
+
+                <!-- Credit Notes -->
+                <div class="flow-card credit">
+                    <div class="flow-card-header">
+                        <div class="flow-card-title">Кредитни известия</div>
+                        <span style="color: #581c87; font-weight: 600;">1 бр.</span>
+                    </div>
+                    <div class="invoice-item applied">
+                        <div class="invoice-number">CR2025-000023</div>
+                        <div class="invoice-amount">-€2,000.00</div>
+                        <div class="invoice-status">📋 Приложено</div>
+                    </div>
+                </div>
+
+                <!-- Final Proformas -->
+                <div class="flow-card final">
+                    <div class="flow-card-header">
+                        <div class="flow-card-title">Окончателни</div>
+                        <span style="color: #991b1b; font-weight: 600;">0 бр.</span>
+                    </div>
+                    <div style="text-align: center; color: #64748b; font-style: italic; padding: 1rem;">
+                        Няма създадени окончателни проформи
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Summary -->
+        <div class="total-summary">
+            <div class="total-grid">
+                <div class="total-item">
+                    <div class="total-label">Обща стойност</div>
+                    <div class="total-value">€66,025.00</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">Платени аванси</div>
+                    <div class="total-value">€61,519.30</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">Кредити</div>
+                    <div class="total-value">€2,000.00</div>
+                </div>
+                <div class="total-item">
+                    <div class="total-label">За доплащане</div>
+                    <div class="total-value large">€4,505.70</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inherited Data -->
+        <div class="inherited-data">
+            <div class="inherited-header">
+                <span style="font-size: 1.25rem;">🔒</span>
+                <h3>Наследени данни от авансовата фактура</h3>
+            </div>
+            <div class="warning-box">
+                ⚠️ Тези данни са заключени за счетоводна съгласуваност и не могат да бъдат променени.
+            </div>
+            <div class="inherited-info">
+                <div class="inherited-field">
+                    <div class="field-label">Издаваща фирма:</div>
+                    <div class="field-value">Паркетсенс ООД</div>
+                </div>
+                <div class="inherited-field">
+                    <div class="field-label">Клиент:</div>
+                    <div class="field-value">Линднер-Даниел Павлов</div>
+                </div>
+                <div class="inherited-field">
+                    <div class="field-label">ЕИК/БУЛСТАТ:</div>
+                    <div class="field-value">BG123456789</div>
+                </div>
+                <div class="inherited-field">
+                    <div class="field-label">Валута:</div>
+                    <div class="field-value">EUR</div>
+                </div>
+                <div class="inherited-field">
+                    <div class="field-label">Адрес:</div>
+                    <div class="field-value">бул. Витоша 15, София</div>
+                </div>
+                <div class="inherited-field">
+                    <div class="field-label">МОЛ:</div>
+                    <div class="field-value">Даниел Павлов</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Creation Form -->
+        <div class="creation-form">
+            <h3 style="margin-bottom: 1.5rem; color: #0f172a;">Настройки за създаване</h3>
+
+            <div class="success-message" id="successMessage">
+                ✅ Окончателната проформа е създадена успешно! Номер: PF2025-001789
+            </div>
+
+            <div class="form-field">
+                <div class="checkbox-field">
+                    <input type="checkbox" id="overrideItems">
+                    <label for="overrideItems" class="checkbox-label">
+                        <div class="checkbox-title">Ръчно редактиране на позициите</div>
+                        <div class="checkbox-description">
+                            По подразбиране се копират позициите от авансовата фактура, адаптирани спрямо доставените количества. Отметни ако искаш пълен контрол върху позициите.
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="notes" class="form-label">Допълнителни бележки (опционално)</label>
+                <textarea 
+                    id="notes" 
+                    class="form-textarea" 
+                    placeholder="Въведи допълнителни бележки за тази окончателна проформа..."
+                ></textarea>
+            </div>
+
+            <div style="background: #f0f9ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 1rem 0;">
+                <h4 style="margin-bottom: 0.5rem; color: #1e40af;">🎯 Какво ще се случи:</h4>
+                <ul style="color: #1e40af; padding-left: 1.5rem; font-size: 0.875rem;">
+                    <li>Ще се създаде окончателна проформа за <strong>€4,505.70</strong></li>
+                    <li>Автоматично ще се наследят всички данни от авансовата фактура</li>
+                    <li>Позициите ще се адаптират спрямо доставените количества</li>
+                    <li>В метаданните ще се запише пълния анализ на потока</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/variants/456/invoices" class="btn btn-secondary">
+                    ← Назад към фактурите
+                </a>
+                <button class="btn btn-primary" onclick="createFinalProforma()">
+                    🚀 Създай окончателна проформа
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createFinalProforma() {
+            // Simulate API call
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Simulate redirect after 2 seconds
+            setTimeout(() => {
+                // In real app: window.location.href = '/invoices/new-id';
+                alert('Прехвърляне към новосъздадената проформа...');
+            }, 2000);
+        }
+        
+        // Simulate scanning animation completion
+        setTimeout(() => {
+            document.querySelector('.scanning-animation').style.display = 'none';
+        }, 3000);
+    </script>
+</body>
+</html>

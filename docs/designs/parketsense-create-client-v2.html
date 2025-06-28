@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKETSENSE - Създаване на клиент</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Header */
+        .header {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        /* Page Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Form Card */
+        .form-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .section-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* Company Section */
+        .company-section {
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            transition: all 0.3s;
+        }
+        
+        .company-section.active {
+            border-style: solid;
+            border-color: #007bff;
+            background-color: #f0f8ff;
+        }
+        
+        .toggle-company {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .toggle-company input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .company-fields {
+            display: none;
+        }
+        
+        .company-fields.show {
+            display: block;
+        }
+        
+        /* Architect Option */
+        .architect-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .commission-field {
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .commission-field.show {
+            display: block;
+        }
+        
+        /* Info Messages */
+        .info-message {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1976d2;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+        }
+        
+        .info-icon {
+            font-size: 1.2rem;
+        }
+        
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-outline {
+            background-color: white;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+        
+        .btn-outline:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Success Message */
+        .success-message {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        /* Duplicate Warning */
+        .duplicate-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Quick Tips */
+        .quick-tips {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            max-width: 300px;
+        }
+        
+        .tips-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #007bff;
+        }
+        
+        .tip {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+        
+        .tip:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">PARKETSENSE</div>
+        <div>
+            <span style="margin-right: 1rem;">Анатоли Миланов</span>
+            <button class="btn btn-outline" style="padding: 0.5rem 1rem;">Към списъка</button>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Нов клиент</h1>
+        </div>
+        
+        <!-- Success Message -->
+        <div class="success-message" id="successMessage">
+            ✅ Клиентът е успешно създаден!
+        </div>
+        
+        <!-- Personal Information -->
+        <div class="form-card">
+            <h2 class="section-title">
+                <span class="section-icon">👤</span>
+                Лични данни
+            </h2>
+            
+            <div class="info-message">
+                <span class="info-icon">ℹ️</span>
+                <div>
+                    <strong>Съвет:</strong> Започнете с личните данни на клиента. 
+                    Фирмени данни можете да добавите сега или по-късно.
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Име <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="firstName" placeholder="Въведете име">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фамилия <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="lastName" placeholder="Въведете фамилия">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Телефон</label>
+                    <input type="tel" class="form-control" id="phone" placeholder="+359 888 123 456">
+                    <div class="duplicate-warning" id="phoneWarning" style="display: none;">
+                        ⚠️ Внимание: Има клиент с подобен телефон
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="email@example.com">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Адрес</label>
+                <input type="text" class="form-control" id="address" placeholder="Град, улица, номер">
+            </div>
+            
+            <!-- Company Section -->
+            <div class="company-section" id="companySection">
+                <label class="toggle-company">
+                    <input type="checkbox" id="hasCompany" onchange="toggleCompany()">
+                    <strong>Клиентът представлява фирма</strong>
+                </label>
+                
+                <div class="company-fields" id="companyFields">
+                    <div class="form-group">
+                        <label class="form-label">Име на фирма <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="companyName" placeholder="ООД, ЕООД, АД...">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ЕИК/Булстат <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="eik" placeholder="123456789" onblur="checkEIK(this)">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ДДС номер</label>
+                            <input type="text" class="form-control" id="vatNumber" placeholder="BG123456789">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Фирмен телефон</label>
+                            <input type="tel" class="form-control" id="companyPhone" placeholder="+359 2 123 456">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Фирмен email</label>
+                            <input type="email" class="form-control" id="companyEmail" placeholder="office@company.bg">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Адрес по регистрация</label>
+                        <input type="text" class="form-control" id="companyAddress" placeholder="Адрес на фирмата">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Architect Section -->
+            <div class="architect-section">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="isArchitect" onchange="toggleCommission()">
+                    <label for="isArchitect"><strong>Клиентът е архитект/дизайнер</strong></label>
+                </div>
+                
+                <div class="commission-field" id="commissionField">
+                    <label class="form-label">Комисионна %</label>
+                    <input type="number" class="form-control" id="commission" value="10" min="0" max="100" style="width: 120px;">
+                    <small style="color: #666; display: block; margin-top: 0.25rem;">
+                        Стандартната комисионна е 10%
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Notes -->
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label class="form-label">Бележки</label>
+                <textarea class="form-control" id="notes" placeholder="Допълнителна информация за клиента..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button class="btn btn-outline" onclick="cancel()">
+                Отказ
+            </button>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-primary" onclick="saveAndContinue()">
+                    💾 Запази и продължи
+                </button>
+                <button class="btn btn-success" onclick="saveAndClose()">
+                    ✓ Запази и затвори
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Tips -->
+    <div class="quick-tips">
+        <div class="tips-title">💡 Полезни съвети</div>
+        <div class="tip">Телефонът не е задължителен</div>
+        <div class="tip">Можете да добавите фирма по-късно</div>
+        <div class="tip">Контактните лица се добавят към проекта</div>
+        <div class="tip">ЕИК-то трябва да е уникално</div>
+    </div>
+    
+    <script>
+        function toggleCompany() {
+            const checkbox = document.getElementById('hasCompany');
+            const section = document.getElementById('companySection');
+            const fields = document.getElementById('companyFields');
+            
+            if (checkbox.checked) {
+                section.classList.add('active');
+                fields.classList.add('show');
+            } else {
+                section.classList.remove('active');
+                fields.classList.remove('show');
+            }
+        }
+        
+        function toggleCommission() {
+            const checkbox = document.getElementById('isArchitect');
+            const field = document.getElementById('commissionField');
+            
+            field.classList.toggle('show', checkbox.checked);
+        }
+        
+        function checkEIK(input) {
+            const eik = input.value;
+            if (eik && (eik.length === 9 || eik.length === 13)) {
+                // Simulate check for duplicate
+                if (eik === '123456789') {
+                    alert('Внимание: Фирма с този ЕИК вече съществува!');
+                    input.style.borderColor = '#dc3545';
+                } else {
+                    input.style.borderColor = '#28a745';
+                }
+            }
+        }
+        
+        function validateForm() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            
+            if (!firstName || !lastName) {
+                alert('Моля въведете име и фамилия!');
+                return false;
+            }
+            
+            const hasCompany = document.getElementById('hasCompany').checked;
+            if (hasCompany) {
+                const companyName = document.getElementById('companyName').value.trim();
+                const eik = document.getElementById('eik').value.trim();
+                
+                if (!companyName || !eik) {
+                    alert('Моля въведете име на фирма и ЕИК!');
+                    return false;
+                }
+                
+                if (!/^\d{9}$|^\d{13}$/.test(eik)) {
+                    alert('ЕИК трябва да е 9 или 13 цифри!');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        function saveAndContinue() {
+            if (validateForm()) {
+                // Show success message
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Simulate save
+                setTimeout(() => {
+                    // Redirect to create project
+                    alert('Пренасочване към създаване на проект...');
+                }, 1000);
+            }
+        }
+        
+        function saveAndClose() {
+            if (validateForm()) {
+                // Show success message
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Simulate save
+                setTimeout(() => {
+                    // Redirect to clients list
+                    window.location.href = '#clients';
+                }, 1000);
+            }
+        }
+        
+        function cancel() {
+            if (confirm('Сигурни ли сте? Всички въведени данни ще бъдат загубени.')) {
+                window.location.href = '#clients';
+            }
+        }
+        
+        // Check for similar phone on blur
+        document.getElementById('phone').addEventListener('blur', function() {
+            const phone = this.value.trim();
+            const warning = document.getElementById('phoneWarning');
+            
+            if (phone && (phone.includes('888123456') || phone.includes('899234567'))) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
