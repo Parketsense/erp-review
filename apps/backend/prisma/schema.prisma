@@ -27,21 +27,40 @@ model User {
 }
 
 model Client {
-  id            String   @id @default(uuid())
-  name          String
-  eik           String?  @unique
-  mol           String?
-  address       String?
-  phone         String?
-  email         String?
-  contactPerson String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  createdById   String?
-  updatedById   String?
-  updatedBy     User?    @relation("ClientUpdatedBy", fields: [updatedById], references: [id])
-  createdBy     User?    @relation("ClientCreatedBy", fields: [createdById], references: [id])
+  id                String   @id @default(uuid())
+  
+  // Personal Information
+  firstName         String
+  lastName          String
+  phone             String?
+  email             String?
+  address           String?
+  
+  // Company Information
+  hasCompany        Boolean  @default(false)
+  companyName       String?
+  eikBulstat        String?  @unique
+  vatNumber         String?
+  companyAddress    String?
+  companyPhone      String?
+  companyEmail      String?
+  companyMol        String?  // МОЛ (Материално отговорно лице)
+  
+  // Architect/Designer
+  isArchitect       Boolean  @default(false)
+  commissionPercent Float?   // Комисионна в процент
+  
+  // Notes
+  notes             String?  // Бележки
+  
+  // System fields
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  createdById       String?
+  updatedById       String?
+  updatedBy         User?    @relation("ClientUpdatedBy", fields: [updatedById], references: [id])
+  createdBy         User?    @relation("ClientCreatedBy", fields: [createdById], references: [id])
 
   @@map("clients")
 }

@@ -385,4 +385,114 @@ export class ProductsService {
       data: updatedProduct
     };
   }
+
+  async removeMediaFile(productId: string, mediaType: string, filename: string) {
+    // Validate product exists
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId }
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Get current media data
+    const currentMedia = {
+      images: (product.images as string[]) || [],
+      documents: (product.documents as string[]) || [],
+      models3d: (product.models3d as string[]) || [],
+      textures: (product.textures as string[]) || [],
+    };
+
+    // Remove file from appropriate array
+    const fileUrl = `/uploads/${filename}`;
+    
+    switch (mediaType) {
+      case 'images':
+        currentMedia.images = currentMedia.images.filter(url => url !== fileUrl);
+        break;
+      case 'documents':
+        currentMedia.documents = currentMedia.documents.filter(url => url !== fileUrl);
+        break;
+      case 'models3d':
+        currentMedia.models3d = currentMedia.models3d.filter(url => url !== fileUrl);
+        break;
+      case 'textures':
+        currentMedia.textures = currentMedia.textures.filter(url => url !== fileUrl);
+        break;
+      default:
+        throw new Error('Invalid media type');
+    }
+
+    // Update product without the removed file
+    const updatedProduct = await this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        images: currentMedia.images,
+        documents: currentMedia.documents,
+        models3d: currentMedia.models3d,
+        textures: currentMedia.textures,
+      },
+      include: {
+        productType: {
+          select: { nameBg: true, nameEn: true }
+        },
+        manufacturer: {
+          select: { displayName: true, colorCode: true }
+        }
+      }
+    });
+
+    // Optional: Delete physical file from filesystem
+    const fs = require('fs');
+    const path = require('path');
+    const filePath = path.join(process.cwd(), 'uploads', filename);
+    
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (error) {
+      console.warn('Failed to delete physical file:', error);
+    }
+
+    return {
+      success: true,
+      message: `File ${filename} removed successfully`,
+      data: updatedProduct
+    };
+  }
+
+  async updateVideoUrl(productId: string, videoUrl: string) {
+    // Validate product exists
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId }
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Update product with new video URL
+    const updatedProduct = await this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        videoUrl: videoUrl || null,
+      },
+      include: {
+        productType: {
+          select: { nameBg: true, nameEn: true }
+        },
+        manufacturer: {
+          select: { displayName: true, colorCode: true }
+        }
+      }
+    });
+
+    return {
+      success: true,
+      message: 'Video URL updated successfully',
+      data: updatedProduct
+    };
+  }
 } 

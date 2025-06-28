@@ -15,6 +15,7 @@ export interface Client {
   companyMol?: string; // МОЛ (Материално отговорно лице)
   isArchitect: boolean;
   commissionPercent?: number;
+  notes?: string; // Бележки
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -58,4 +59,5 @@ export interface CreateClientDto {
   companyMol?: string; // МОЛ (Материално отговорно лице)
   isArchitect?: boolean;
   commissionPercent?: number;
+  notes?: string; // Бележки
 } 

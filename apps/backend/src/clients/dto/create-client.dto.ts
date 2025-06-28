@@ -73,4 +73,10 @@ export class CreateClientDto {
   @Min(0)
   @Max(100)
   commissionPercent?: number;
+
+  // Notes
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value === '' ? undefined : value)
+  notes?: string;
 } 

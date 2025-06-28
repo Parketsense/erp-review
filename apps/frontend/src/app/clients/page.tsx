@@ -2,189 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Users, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical } from 'lucide-react';
+import { Users, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Building2, User, Briefcase, Eye, Phone, Mail, MapPin } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  eik?: string;
-  mol?: string;
-  address?: string;
-  contactPerson?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ClientModalProps {
-  isOpen: boolean;
-  client?: Client | null;
-  onClose: () => void;
-  onSave: (client: Partial<Client>) => void;
-}
-
-function ClientModal({ isOpen, client, onClose, onSave }: ClientModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    eik: '',
-    mol: '',
-    address: '',
-    contactPerson: ''
-  });
-
-  useEffect(() => {
-    if (client) {
-      setFormData({
-        name: client.name || '',
-        email: client.email || '',
-        phone: client.phone || '',
-        eik: client.eik || '',
-        mol: client.mol || '',
-        address: client.address || '',
-        contactPerson: client.contactPerson || ''
-      });
-    } else {
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        eik: '',
-        mol: '',
-        address: '',
-        contactPerson: ''
-      });
-    }
-  }, [client]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold mb-4">
-          {client ? 'Редактирай клиент' : 'Нов клиент'}
-        </h3>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Име *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Телефон
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ЕИК
-              </label>
-              <input
-                type="text"
-                value={formData.eik}
-                onChange={(e) => setFormData(prev => ({ ...prev, eik: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                МОЛ
-              </label>
-              <input
-                type="text"
-                value={formData.mol}
-                onChange={(e) => setFormData(prev => ({ ...prev, mol: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Адрес
-              </label>
-              <input
-                type="text"
-                value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Контактно лице
-              </label>
-              <input
-                type="text"
-                value={formData.contactPerson}
-                onChange={(e) => setFormData(prev => ({ ...prev, contactPerson: e.target.value }))}
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          
-          <div className="flex gap-2 justify-end mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-50"
-            >
-              Отказ
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              {client ? 'Запази' : 'Създай'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+import ClientModal from '../../components/clients/ClientModal';
+import { Client, CreateClientDto } from '../../types/client';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -206,7 +29,7 @@ export default function ClientsPage() {
     }
   };
 
-  const handleSaveClient = async (clientData: Partial<Client>) => {
+  const handleSaveClient = async (clientData: CreateClientDto) => {
     try {
       showLoading(editingClient ? 'Запазване...' : 'Създаване...');
       
@@ -221,7 +44,7 @@ export default function ClientsPage() {
       setEditingClient(null);
     } catch (error) {
       console.error('Error saving client:', error);
-      alert('Грешка при запазването на клиента');
+      throw error; // Let the modal handle the error display
     } finally {
       hideLoading();
     }
@@ -260,98 +83,146 @@ export default function ClientsPage() {
   }, []);
 
   const filteredClients = clients.filter(client => {
-    const name = client.name || '';
-    const email = client.email || '';
-    const phone = client.phone || '';
+    const fullName = `${client.firstName} ${client.lastName}`;
     const searchLower = searchTerm.toLowerCase();
-    return name.toLowerCase().includes(searchLower) ||
-           email.toLowerCase().includes(searchLower) ||
-           phone.toLowerCase().includes(searchLower);
+    return fullName.toLowerCase().includes(searchLower) ||
+           (client.email && client.email.toLowerCase().includes(searchLower)) ||
+           (client.phone && client.phone.toLowerCase().includes(searchLower)) ||
+           (client.companyName && client.companyName.toLowerCase().includes(searchLower)) ||
+           (client.eikBulstat && client.eikBulstat.toLowerCase().includes(searchLower));
   });
+
+  const totalClients = clients.length;
+  const companiesCount = clients.filter(c => c.hasCompany).length;
+  const individualsCount = clients.filter(c => !c.hasCompany).length;
+  const architectsCount = clients.filter(c => c.isArchitect).length;
 
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-gray-900 text-white">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Link href="/">
+                  <button className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                </Link>
+                <div className="text-xl font-bold tracking-wide">PARKETSENSE</div>
+              </div>
+              <div className="text-sm text-gray-300">
+                Система за управление на клиенти
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="container mx-auto px-4 py-8">
-          {/* Header */}
+          {/* Page Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-6">
-              <Link href="/">
-                <button className="p-2 bg-white border rounded-lg hover:bg-gray-50">
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-              </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Клиенти</h1>
-                <p className="text-gray-600">Управление на клиенти</p>
+            <h1 className="text-3xl font-light text-gray-900 mb-2">Клиенти</h1>
+            <p className="text-gray-600">Управление на клиентската база</p>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Общо клиенти</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalClients}</p>
+                </div>
               </div>
             </div>
 
-            {/* Search and Add */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1">
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Фирми</p>
+                  <p className="text-2xl font-bold text-gray-900">{companiesCount}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Физически лица</p>
+                  <p className="text-2xl font-bold text-gray-900">{individualsCount}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Архитекти</p>
+                  <p className="text-2xl font-bold text-gray-900">{architectsCount}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search and Add */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="flex-1 max-w-md">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Търси клиенти..."
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Търси по име, email, телефон, фирма..."
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
+              
               <button 
                 onClick={openCreateModal}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors font-medium"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 Нов клиент
               </button>
             </div>
-          </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-gray-600 text-sm">Общо клиенти</p>
-                  <p className="text-2xl font-bold">{clients.length}</p>
-                </div>
+            {searchTerm && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-blue-800 text-sm">
+                  Намерени {filteredClients.length} от {totalClients} клиенти
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="ml-2 text-blue-600 underline hover:text-blue-800"
+                    >
+                      Изчисти търсенето
+                    </button>
+                  )}
+                </p>
               </div>
-            </div>
-            <div className="bg-white p-6 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-gray-600 text-sm">Фирми</p>
-                  <p className="text-2xl font-bold">{clients.filter(c => c.eik).length}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-gray-600 text-sm">Физически лица</p>
-                  <p className="text-2xl font-bold">{clients.filter(c => !c.eik).length}</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Clients List */}
-          <div className="bg-white rounded-lg border">
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-semibold">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-900">
                 Списък клиенти ({filteredClients.length})
               </h3>
             </div>
@@ -359,52 +230,135 @@ export default function ClientsPage() {
             {filteredClients.length === 0 ? (
               <div className="p-12 text-center">
                 <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Няма клиенти
+                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                  {searchTerm ? 'Няма намерени клиенти' : 'Няма клиенти'}
                 </h3>
-                <p className="text-gray-600">
-                  Добавете първия си клиент за да започнете
+                <p className="text-gray-600 mb-6">
+                  {searchTerm 
+                    ? 'Опитайте с различни ключови думи за търсене'
+                    : 'Добавете първия си клиент за да започнете'
+                  }
                 </p>
+                {!searchTerm && (
+                  <button 
+                    onClick={openCreateModal}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors mx-auto"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Добави клиент
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-gray-200">
                 {filteredClients.map((client) => (
-                  <div key={client.id} className="p-6 hover:bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold text-lg">{client.name}</h4>
-                        <p className="text-gray-600">{client.email}</p>
-                        {client.phone && (
-                          <p className="text-gray-600 text-sm">{client.phone}</p>
-                        )}
-                        {client.eik && (
-                          <p className="text-blue-600 text-sm">ЕИК: {client.eik}</p>
-                        )}
+                  <div key={client.id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-start gap-4">
+                          {/* Avatar */}
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                            {client.firstName.charAt(0)}{client.lastName.charAt(0)}
+                          </div>
+
+                          <div className="flex-1">
+                            {/* Name and Company */}
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="text-lg font-semibold text-gray-900">
+                                {client.firstName} {client.lastName}
+                              </h4>
+                              {client.hasCompany && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                  <Building2 className="w-3 h-3" />
+                                  Фирма
+                                </span>
+                              )}
+                              {client.isArchitect && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                                  <Briefcase className="w-3 h-3" />
+                                  Архитект
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Company Info */}
+                            {client.hasCompany && client.companyName && (
+                              <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+                                <p className="font-medium text-gray-900">{client.companyName}</p>
+                                {client.eikBulstat && (
+                                  <p className="text-sm text-gray-600">ЕИК: {client.eikBulstat}</p>
+                                )}
+                                {client.companyMol && (
+                                  <p className="text-sm text-gray-600">МОЛ: {client.companyMol}</p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Contact Info */}
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                              {client.phone && (
+                                <div className="flex items-center gap-1">
+                                  <Phone className="w-4 h-4" />
+                                  <span>{client.phone}</span>
+                                </div>
+                              )}
+                              {client.email && (
+                                <div className="flex items-center gap-1">
+                                  <Mail className="w-4 h-4" />
+                                  <span>{client.email}</span>
+                                </div>
+                              )}
+                              {client.address && (
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4" />
+                                  <span>{client.address}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Notes */}
+                            {client.notes && (
+                              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-gray-700">
+                                <strong>Бележки:</strong> {client.notes}
+                              </div>
+                            )}
+
+                            {/* Creation Info */}
+                            <div className="mt-3 text-xs text-gray-500">
+                              Създаден на {new Date(client.createdAt).toLocaleDateString('bg-BG')}
+                              {client.createdByUser && ` от ${client.createdByUser.name}`}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 relative">
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 relative ml-4">
                         <button 
                           onClick={() => setDropdownOpen(dropdownOpen === client.id ? null : client.id)}
-                          className="p-2 text-gray-400 hover:text-gray-600"
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                          <MoreVertical className="w-4 h-4" />
+                          <MoreVertical className="w-5 h-5" />
                         </button>
                         
                         {dropdownOpen === client.id && (
-                          <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-10 min-w-32">
-                            <button
-                              onClick={() => openEditModal(client)}
-                              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2"
-                            >
-                              <Edit className="w-4 h-4" />
-                              Редактирай
-                            </button>
-                            <button
-                              onClick={() => handleDeleteClient(client.id)}
-                              className="w-full px-4 py-2 text-left hover:bg-gray-50 text-red-600 flex items-center gap-2"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Изтрий
-                            </button>
+                          <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-40">
+                            <div className="py-1">
+                              <button
+                                onClick={() => openEditModal(client)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Редактирай
+                              </button>
+                              <button
+                                onClick={() => handleDeleteClient(client.id)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 text-red-600 flex items-center gap-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Изтрий
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -417,9 +371,10 @@ export default function ClientsPage() {
         </div>
       </div>
 
+      {/* Client Modal */}
       <ClientModal
         isOpen={isModalOpen}
-        client={editingClient}
+        initialData={editingClient}
         onClose={() => {
           setIsModalOpen(false);
           setEditingClient(null);

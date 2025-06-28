@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import MediaUploader from './MediaUploader';
 
 // SearchableDropdown Component
 interface SearchableDropdownProps {
@@ -233,7 +234,13 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
     attributes: {} as Record<string, string>,
     isActive: true,
     isRecommended: false,
-    isNew: false
+    isNew: false,
+    // Media files
+    images: [] as any[],
+    documents: [] as any[],
+    models3d: [] as any[],
+    textures: [] as any[],
+    videoUrl: ''
   });
 
   // State for add value modal
@@ -271,7 +278,13 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
         attributes: {} as Record<string, string>,
         isActive: true,
         isRecommended: false,
-        isNew: false
+        isNew: false,
+        // Media files
+        images: [] as any[],
+        documents: [] as any[],
+        models3d: [] as any[],
+        textures: [] as any[],
+        videoUrl: ''
       });
       
       // Clear other states
@@ -597,6 +610,12 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
       isActive: formData.isActive,
       isRecommended: formData.isRecommended,
       isNew: formData.isNew,
+      // Media files - convert to URLs array format expected by backend
+      images: formData.images.map(file => file.url),
+      documents: formData.documents.map(file => file.url),
+      models3d: formData.models3d.map(file => file.url),
+      textures: formData.textures.map(file => file.url),
+      videoUrl: formData.videoUrl || undefined,
       // Convert attributes object to array format expected by backend
       attributes: Object.entries(formData.attributes).map(([attributeTypeId, value]) => ({
         attributeTypeId,
@@ -1100,6 +1119,85 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                     placeholder="Автоматично от доставчик"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Media Files Section */}
+          <div className="bg-white border border-gray-200 rounded-md overflow-hidden mb-5">
+            <div className="bg-gray-800 text-white px-4 py-3 text-sm font-medium">
+              Медиа файлове и документи
+            </div>
+            <div className="p-4 space-y-6">
+              {/* Images */}
+              <MediaUploader
+                mediaType="images"
+                files={formData.images}
+                onFilesUpdate={(files) => handleInputChange('images', files)}
+                maxFiles={20}
+                maxFileSize={10}
+                disabled={false}
+              />
+
+              {/* Documents */}
+              <MediaUploader
+                mediaType="documents"
+                files={formData.documents}
+                onFilesUpdate={(files) => handleInputChange('documents', files)}
+                maxFiles={10}
+                maxFileSize={50}
+                disabled={false}
+              />
+
+              {/* 3D Models */}
+              <MediaUploader
+                mediaType="models3d"
+                files={formData.models3d}
+                onFilesUpdate={(files) => handleInputChange('models3d', files)}
+                maxFiles={5}
+                maxFileSize={100}
+                disabled={false}
+              />
+
+              {/* Textures */}
+              <MediaUploader
+                mediaType="textures"
+                files={formData.textures}
+                onFilesUpdate={(files) => handleInputChange('textures', files)}
+                maxFiles={15}
+                maxFileSize={25}
+                disabled={false}
+              />
+
+              {/* Video URL */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-gray-900 flex items-center space-x-2">
+                  <span>🎥</span>
+                  <span>Видео линк</span>
+                </h4>
+                <div className="flex space-x-3">
+                  <input
+                    type="url"
+                    value={formData.videoUrl}
+                    onChange={(e) => handleInputChange('videoUrl', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded text-xs"
+                    placeholder="https://youtube.com/watch?v=... или https://vimeo.com/..."
+                  />
+                  {formData.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange('videoUrl', '')}
+                      className="px-3 py-2 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                    >
+                      Изчисти
+                    </button>
+                  )}
+                </div>
+                {formData.videoUrl && (
+                  <div className="text-xs text-gray-500">
+                    ✅ Видео линкът ще бъде запазен към продукта
+                  </div>
+                )}
               </div>
             </div>
           </div>
