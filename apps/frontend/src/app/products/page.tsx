@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Package, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Factory, Tag, Eye, Image, FileText, Calendar } from 'lucide-react';
+import { Package, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Factory, Tag, Eye, Image, FileText, Calendar, Power } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -21,6 +21,7 @@ interface Product {
   manufacturer?: Manufacturer;
   attributes: Record<string, any>;
   mediaFiles: string[];
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -86,6 +87,25 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('Error deleting product:', error);
       alert('Грешка при изтриването на продукта');
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const handleToggleActive = async (productId: string, currentStatus: boolean) => {
+    const action = currentStatus ? 'деактивирате' : 'активирате';
+    if (!confirm(`Сигурни ли сте, че искате да ${action} този продукт?`)) {
+      return;
+    }
+    
+    try {
+      showLoading(`${currentStatus ? 'Деактивиране' : 'Активиране'}...`);
+      await apiClient.patch(`/products/${productId}/toggle-active`);
+      await loadProducts();
+      setDropdownOpen(null);
+    } catch (error) {
+      console.error('Error toggling product status:', error);
+      alert(`Грешка при ${currentStatus ? 'деактивирането' : 'активирането'} на продукта`);
     } finally {
       hideLoading();
     }
@@ -373,6 +393,13 @@ export default function ProductsPage() {
                               >
                                 <Eye className="w-4 h-4" />
                                 Преглед
+                              </button>
+                              <button
+                                onClick={() => handleToggleActive(product.id, product.isActive)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                              >
+                                <Power className="w-4 h-4" />
+                                {product.isActive ? 'Деактивирай' : 'Активирай'}
                               </button>
                               <button
                                 onClick={() => handleDeleteProduct(product.id)}

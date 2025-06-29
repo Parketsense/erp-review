@@ -54,4 +54,22 @@ export class SuppliersService {
       }
     }) as any;
   }
+
+  async toggleActive(id: string): Promise<Supplier> {
+    const supplier = await this.prisma.supplier.findUnique({
+      where: { id }
+    });
+    
+    if (!supplier) {
+      throw new NotFoundException(`Supplier with ID ${id} not found`);
+    }
+    
+    return this.prisma.supplier.update({
+      where: { id },
+      data: {
+        isActive: !supplier.isActive,
+        updatedAt: new Date()
+      }
+    }) as any;
+  }
 } 

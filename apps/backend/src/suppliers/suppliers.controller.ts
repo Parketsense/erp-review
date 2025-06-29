@@ -60,6 +60,17 @@ export class SuppliersController {
     };
   }
 
+  @Patch(':id/toggle-active')
+  async toggleActive(@Param('id') id: string) {
+    const supplier = await this.suppliersService.toggleActive(id);
+    
+    return {
+      success: true,
+      data: supplier,
+      message: `Supplier ${supplier.isActive ? 'activated' : 'deactivated'} successfully`
+    };
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const supplier = await this.suppliersService.remove(id);

@@ -86,4 +86,22 @@ export class ManufacturersService {
       }
     }) as any;
   }
+
+  async toggleActive(id: string): Promise<Manufacturer> {
+    const manufacturer = await this.prisma.manufacturer.findUnique({
+      where: { id }
+    });
+    
+    if (!manufacturer) {
+      throw new NotFoundException(`Manufacturer with ID ${id} not found`);
+    }
+    
+    return this.prisma.manufacturer.update({
+      where: { id },
+      data: {
+        isActive: !manufacturer.isActive,
+        updatedAt: new Date()
+      }
+    }) as any;
+  }
 } 

@@ -62,6 +62,11 @@ export class ClientsController {
     return this.clientsService.update(id, updateClientDto);
   }
 
+  @Patch(':id/toggle-active')
+  toggleActive(@Param('id') id: string) {
+    return this.clientsService.toggleActive(id);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.clientsService.remove(id);

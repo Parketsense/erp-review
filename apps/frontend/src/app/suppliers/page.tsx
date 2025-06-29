@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Truck, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X } from 'lucide-react';
+import { Truck, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X, Package, Power } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -646,6 +646,24 @@ export default function SuppliersPage() {
     }
   };
 
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    const action = currentStatus ? 'деактивирате' : 'активирате';
+    if (!confirm(`Сигурни ли сте, че искате да ${action} този доставчик?`)) {
+      return;
+    }
+    
+    try {
+      showLoading();
+      await apiClient.patch(`/suppliers/${id}/toggle-active`);
+      await loadSuppliers();
+      setDropdownOpen(null);
+    } catch (error) {
+      console.error('Грешка при промяна на статуса:', error);
+    } finally {
+      hideLoading();
+    }
+  };
+
   const handleEdit = (supplier: Supplier) => {
     setSelectedSupplier(supplier);
     setShowModal(true);
@@ -927,6 +945,13 @@ export default function SuppliersPage() {
                               >
                                 <Edit className="w-4 h-4" />
                                 Редактирай
+                              </button>
+                              <button
+                                onClick={() => handleToggleActive(supplier.id, supplier.isActive)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                              >
+                                <Power className="w-4 h-4" />
+                                {supplier.isActive ? 'Деактивирай' : 'Активирай'}
                               </button>
                               <button
                                 onClick={() => handleDelete(supplier.id)}

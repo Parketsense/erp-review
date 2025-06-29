@@ -495,4 +495,38 @@ export class ProductsService {
       data: updatedProduct
     };
   }
+
+  async toggleActive(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id }
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    const updatedProduct = await this.prisma.product.update({
+      where: { id },
+      data: {
+        isActive: !product.isActive,
+        updatedAt: new Date(),
+      },
+      include: {
+        productType: {
+          select: {
+            nameBg: true,
+            nameEn: true,
+          },
+        },
+        manufacturer: {
+          select: {
+            displayName: true,
+            colorCode: true,
+          },
+        },
+      },
+    });
+
+    return updatedProduct;
+  }
 } 

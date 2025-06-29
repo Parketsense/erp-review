@@ -60,6 +60,17 @@ export class ManufacturersController {
     };
   }
 
+  @Patch(':id/toggle-active')
+  async toggleActive(@Param('id') id: string) {
+    const manufacturer = await this.manufacturersService.toggleActive(id);
+    
+    return {
+      success: true,
+      data: manufacturer,
+      message: `Manufacturer ${manufacturer.isActive ? 'activated' : 'deactivated'} successfully`
+    };
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string) {
     const manufacturer = await this.manufacturersService.remove(id);

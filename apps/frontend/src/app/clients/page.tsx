@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Users, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Building2, User, Briefcase, Eye, Phone, Mail, MapPin } from 'lucide-react';
+import { Users, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Building2, User, Briefcase, Eye, Phone, Mail, MapPin, Power } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -62,6 +62,25 @@ export default function ClientsPage() {
     } catch (error) {
       console.error('Error deleting client:', error);
       alert('Грешка при изтриването на клиента');
+    } finally {
+      hideLoading();
+    }
+  };
+
+  const handleToggleActive = async (clientId: string, currentStatus: boolean) => {
+    const action = currentStatus ? 'деактивирате' : 'активирате';
+    if (!confirm(`Сигурни ли сте, че искате да ${action} този клиент?`)) {
+      return;
+    }
+    
+    try {
+      showLoading(`${currentStatus ? 'Деактивиране' : 'Активиране'}...`);
+      await apiClient.patch(`/clients/${clientId}/toggle-active`);
+      await loadClients();
+      setDropdownOpen(null);
+    } catch (error) {
+      console.error('Error toggling client status:', error);
+      alert(`Грешка при ${currentStatus ? 'деактивирането' : 'активирането'} на клиента`);
     } finally {
       hideLoading();
     }
@@ -350,6 +369,13 @@ export default function ClientsPage() {
                               >
                                 <Edit className="w-4 h-4" />
                                 Редактирай
+                              </button>
+                              <button
+                                onClick={() => handleToggleActive(client.id, client.isActive)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                              >
+                                <Power className="w-4 h-4" />
+                                {client.isActive ? 'Деактивирай' : 'Активирай'}
                               </button>
                               <button
                                 onClick={() => handleDeleteClient(client.id)}

@@ -166,6 +166,17 @@ export class ProductsController {
     return this.productsService.update(id, updateProductDto);
   }
 
+  @Patch(':id/toggle-active')
+  async toggleActive(@Param('id') id: string) {
+    const product = await this.productsService.toggleActive(id);
+    
+    return {
+      success: true,
+      data: product,
+      message: `Product ${product.isActive ? 'activated' : 'deactivated'} successfully`
+    };
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);

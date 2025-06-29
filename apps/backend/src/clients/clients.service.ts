@@ -287,5 +287,35 @@ export class ClientsService {
       },
     };
   }
+
+  async toggleActive(id: string) {
+    const client = await this.prisma.client.findUnique({ where: { id } });
+
+    if (!client) {
+      throw new NotFoundException(`Client with ID ${id} not found`);
+    }
+
+    const updatedClient = await this.prisma.client.update({
+      where: { id },
+      data: {
+        isActive: !client.isActive,
+        updatedAt: new Date(),
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: updatedClient,
+      message: `Client ${updatedClient.isActive ? 'activated' : 'deactivated'} successfully`,
+    };
+  }
 }
 

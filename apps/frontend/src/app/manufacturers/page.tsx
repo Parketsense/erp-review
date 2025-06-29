@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Factory, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X, Package } from 'lucide-react';
+import { Factory, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X, Package, Power } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -713,6 +713,24 @@ export default function ManufacturersPage() {
     }
   };
 
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    const action = currentStatus ? 'деактивирате' : 'активирате';
+    if (!confirm(`Сигурни ли сте, че искате да ${action} този производител?`)) {
+      return;
+    }
+    
+    try {
+      showLoading();
+      await apiClient.patch(`/manufacturers/${id}/toggle-active`);
+      await loadManufacturers();
+      setDropdownOpen(null);
+    } catch (error) {
+      console.error('Грешка при промяна на статуса:', error);
+    } finally {
+      hideLoading();
+    }
+  };
+
   const handleEdit = (manufacturer: Manufacturer) => {
     setSelectedManufacturer(manufacturer);
     setShowModal(true);
@@ -998,6 +1016,13 @@ export default function ManufacturersPage() {
                               >
                                 <Edit className="w-4 h-4" />
                                 Редактирай
+                              </button>
+                              <button
+                                onClick={() => handleToggleActive(manufacturer.id, manufacturer.isActive)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                              >
+                                <Power className="w-4 h-4" />
+                                {manufacturer.isActive ? 'Деактивирай' : 'Активирай'}
                               </button>
                               <button
                                 onClick={() => handleDelete(manufacturer.id)}
