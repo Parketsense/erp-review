@@ -95,22 +95,23 @@ export default function ProductsPage() {
   };
 
   const handleProductAction = async (productId: string, action: string) => {
+    const actionText = action === 'archive' ? 'архивирате' : 'активирате';
+    if (!confirm(`Сигурни ли сте, че искате да ${actionText} този продукт?`)) {
+      return;
+    }
+    
     try {
-      if (action === 'archive') {
-        // Обнови локално
-        setProducts(prev => prev.map(p => 
-          p.id === productId ? {...p, isActive: false} : p
-        ));
-        console.log('Product archived:', productId);
-      } else if (action === 'activate') {
-        // Обнови локално  
-        setProducts(prev => prev.map(p => 
-          p.id === productId ? {...p, isActive: true} : p
-        ));
-        console.log('Product activated:', productId);
-      }
+      showLoading(`${action === 'archive' ? 'Архивиране' : 'Активиране'}...`);
+      // Прави API заявка към backend-а
+      await apiClient.patch(`/products/${productId}/toggle-active`);
+      // Презарежда данните от сървъра
+      await loadProducts();
+      setDropdownOpen(null);
     } catch (error) {
-      console.error('Action failed:', error);
+      console.error('Error toggling product status:', error);
+      alert(`Грешка при ${action === 'archive' ? 'архивирането' : 'активирането'} на продукта`);
+    } finally {
+      hideLoading();
     }
   };
 
