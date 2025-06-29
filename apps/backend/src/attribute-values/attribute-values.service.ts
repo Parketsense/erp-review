@@ -177,4 +177,40 @@ export class AttributeValuesService {
       }
     }) as any;
   }
+
+  async findByProductTypeAndManufacturer(productTypeId: string, manufacturerId: string): Promise<AttributeValue[]> {
+    return this.prisma.attributeValue.findMany({
+      where: {
+        attributeType: {
+          productTypeId: productTypeId
+        },
+        OR: [
+          { manufacturerId },
+          { manufacturerId: null } // Include values available for all manufacturers
+        ],
+        isActive: true
+      },
+      orderBy: [
+        { sortOrder: 'asc' },
+        { nameBg: 'asc' }
+      ],
+      include: {
+        attributeType: {
+          select: {
+            id: true,
+            nameBg: true,
+            nameEn: true,
+            type: true,
+            productTypeId: true
+          }
+        },
+        manufacturer: {
+          select: {
+            displayName: true,
+            colorCode: true
+          }
+        }
+      }
+    }) as any;
+  }
 } 

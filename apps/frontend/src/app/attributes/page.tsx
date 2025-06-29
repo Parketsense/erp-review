@@ -114,6 +114,8 @@ export default function AttributesPage() {
   
   // Data states
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [productTypeManufacturers, setProductTypeManufacturers] = useState<{[key: string]: string[]}>({});
+  const [selectedManufacturers, setSelectedManufacturers] = useState<string[]>([]);
   
   // Form states
   const [newAttribute, setNewAttribute] = useState({
@@ -744,11 +746,35 @@ export default function AttributesPage() {
     }
   };
 
-  const editProductType = (productType: ProductType) => {
+  const editProductType = async (productType: ProductType) => {
     setEditingProductType({
       ...productType
     });
+    
+    // Load manufacturers for this product type
+    await loadProductTypeManufacturers(productType.id);
+    
     setShowEditProductTypeModal(true);
+  };
+
+  const loadProductTypeManufacturers = async (productTypeId: string) => {
+    try {
+      const response = await fetch(`/api/product-types/${productTypeId}/manufacturers`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data.manufacturers) {
+          const manufacturerIds = data.data.manufacturers.map((m: any) => m.id);
+          setSelectedManufacturers(manufacturerIds);
+          setProductTypeManufacturers(prev => ({
+            ...prev,
+            [productTypeId]: manufacturerIds
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading product type manufacturers:', error);
+      setDebugInfo('❌ Грешка при зареждане на производителите');
+    }
   };
 
   const saveEditedProductType = async () => {
@@ -757,6 +783,7 @@ export default function AttributesPage() {
     try {
       setDebugInfo('💾 Updating product type...');
       
+      // First update basic product type information
       const updateData = {
         nameBg: editingProductType.nameBg,
         nameEn: editingProductType.nameEn,
@@ -771,15 +798,30 @@ export default function AttributesPage() {
         body: JSON.stringify(updateData)
       });
       
-      if (response.ok) {
-        setDebugInfo('✅ Product type updated successfully');
-        setShowEditProductTypeModal(false);
-        setEditingProductType(null);
-        loadData();
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
         setDebugInfo(`❌ Failed to update product type: ${errorData.message || 'Unknown error'}`);
+        return;
       }
+
+      // Then update manufacturers
+      const manufacturersResponse = await fetch(`/api/product-types/${editingProductType.id}/manufacturers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manufacturerIds: selectedManufacturers })
+      });
+
+      if (!manufacturersResponse.ok) {
+        const errorData = await manufacturersResponse.json();
+        setDebugInfo(`❌ Failed to update manufacturers: ${errorData.message || 'Unknown error'}`);
+        return;
+      }
+
+      setDebugInfo('✅ Product type and manufacturers updated successfully');
+      setShowEditProductTypeModal(false);
+      setEditingProductType(null);
+      setSelectedManufacturers([]);
+      loadData();
     } catch (error) {
       setDebugInfo('❌ Error updating product type');
       console.error('Update product type error:', error);
@@ -2168,6 +2210,56 @@ export default function AttributesPage() {
                   <option value="TreePine">🌲 TreePine</option>
                   <option value="Boxes">📦 Boxes</option>
                 </select>
+              </div>
+              
+              <div className="parketsense-form-group">
+                <label className="parketsense-form-label">Свързани производители</label>
+                <div style={{ 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '8px', 
+                  padding: '12px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  backgroundColor: '#f9fafb'
+                }}>
+                  {manufacturers.length === 0 ? (
+                    <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
+                      Няма налични производители
+                    </p>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+                      {manufacturers.map(manufacturer => (
+                        <div key={manufacturer.id} className="parketsense-checkbox-group" style={{ margin: 0 }}>
+                          <input
+                            type="checkbox"
+                            id={`manufacturer-${manufacturer.id}`}
+                            checked={selectedManufacturers.includes(manufacturer.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedManufacturers(prev => [...prev, manufacturer.id]);
+                              } else {
+                                setSelectedManufacturers(prev => prev.filter(id => id !== manufacturer.id));
+                              }
+                            }}
+                            className="parketsense-checkbox-input"
+                          />
+                          <label 
+                            htmlFor={`manufacturer-${manufacturer.id}`} 
+                            className="parketsense-checkbox-label"
+                            style={{ fontSize: '14px' }}
+                          >
+                            {manufacturer.displayName}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#e0f2fe', borderRadius: '4px' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#0277bd' }}>
+                      💡 Избраните производители ще се показват при създаване на продукти от този тип
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
             

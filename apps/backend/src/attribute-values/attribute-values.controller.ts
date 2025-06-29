@@ -44,6 +44,55 @@ export class AttributeValuesController {
     };
   }
 
+  @Get('by-product-type-manufacturer')
+  async findByProductTypeAndManufacturer(
+    @Query('productTypeId') productTypeId: string,
+    @Query('manufacturerId') manufacturerId: string
+  ) {
+    if (!productTypeId || !manufacturerId) {
+      return {
+        success: false,
+        message: 'Both productTypeId and manufacturerId are required'
+      };
+    }
+
+    const attributeValues = await this.attributeValuesService.findByProductTypeAndManufacturer(productTypeId, manufacturerId);
+    
+    // Group by attribute type for easier frontend consumption
+    const groupedByAttribute = attributeValues.reduce((acc, value) => {
+      if (value.attributeType) {
+        const attrId = value.attributeType.id;
+        if (!acc[attrId]) {
+          acc[attrId] = {
+            attributeType: value.attributeType,
+            values: []
+          };
+        }
+        acc[attrId].values.push(value);
+      }
+      return acc;
+    }, {} as any);
+
+    const attributesCount = Object.keys(groupedByAttribute).length;
+    
+    console.log(`🔍 Loading attribute values for: { productTypeId: '${productTypeId}', manufacturerId: '${manufacturerId}' }`);
+    console.log(`📋 Found ${attributesCount} attributes for product type`);
+    
+    // Log each attribute and its values
+    Object.values(groupedByAttribute).forEach((group: any) => {
+      console.log(`📦 Found ${group.values.length} values for attribute ${group.attributeType.nameBg}`);
+    });
+    
+    console.log(`✅ Total attribute values loaded: ${attributeValues.length}`);
+    
+    return {
+      success: true,
+      data: attributeValues,
+      total: attributeValues.length,
+      attributesCount
+    };
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const attributeValue = await this.attributeValuesService.findOne(id);

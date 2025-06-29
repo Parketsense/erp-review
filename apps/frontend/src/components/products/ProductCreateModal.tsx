@@ -99,46 +99,49 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
     setHighlightedIndex(-1);
   };
 
-  const handleInputFocus = () => {
-    if (!disabled) {
-      setIsOpen(true);
-      setSearchTerm('');
+  // Add state for dropdown positioning
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  // Update positioning when dropdown opens
+  const updateDropdownPosition = () => {
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width
+      });
     }
   };
 
-  return (
-    <div ref={dropdownRef} className={`relative ${className}`}>
-      {/* Input Field */}
-      <input
-        ref={inputRef}
-        type="text"
-        value={isOpen ? searchTerm : displayText}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setHighlightedIndex(-1);
-        }}
-        onFocus={handleInputFocus}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={`
-          w-full px-2 py-1 border border-gray-300 rounded text-xs bg-white text-gray-900
-          focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'cursor-text'}
-        `}
-        style={{
-          backgroundColor: disabled ? '#f3f4f6' : 'white',
-          color: '#1f2937'
-        }}
-        autoComplete="off"
-      />
+  const handleInputFocus = () => {
+    setIsOpen(true);
+    setSearchTerm('');
+    setHighlightedIndex(-1);
+    updateDropdownPosition();
+  };
 
-      {/* Dropdown Arrow */}
-      <div 
-        className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
-      >
+  return (
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      {/* Input Field */}
+      <div className="relative">
+        <input
+          type="text"
+          ref={inputRef}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={handleInputFocus}
+          onKeyDown={handleKeyDown}
+          placeholder={displayText || placeholder}
+          className={`w-full px-3 py-2 pr-8 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+            disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+          }`}
+          disabled={disabled}
+        />
+        
+        {/* Arrow Icon */}
         <svg 
-          className={`w-3 h-3 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -149,7 +152,22 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 
       {/* Dropdown List */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+        <div style={{
+               backgroundColor: 'white',
+               border: '2px solid #3b82f6',
+               borderRadius: '6px',
+               minHeight: '50px',
+               maxHeight: '200px',
+               overflowY: 'auto',
+               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 25px 50px -12px rgba(59, 130, 246, 0.15)',
+               position: 'fixed',
+               zIndex: 50000,
+               top: `${dropdownPosition.top}px`,
+               left: `${dropdownPosition.left}px`,
+               width: `${dropdownPosition.width}px`,
+               minWidth: '200px'
+             }}>
+          
           {/* Clear option */}
           <div
             className={`px-3 py-2 text-xs cursor-pointer hover:bg-gray-100 border-b border-gray-100
@@ -160,29 +178,27 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
           </div>
 
           {/* Filtered options */}
-          {filteredOptions.length > 0 ? (
-            filteredOptions.map((option, index) => (
-              <div
-                key={option.id}
-                className={`px-3 py-2 text-xs cursor-pointer hover:bg-gray-100 
-                  ${value === option.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}
-                  ${index === highlightedIndex ? 'bg-blue-100' : ''}`}
-                onClick={() => handleOptionClick(option.id)}
-                style={{
-                  backgroundColor: 
-                    value === option.id ? '#dbeafe' : 
-                    index === highlightedIndex ? '#e0e7ff' : 'white',
-                  color: value === option.id ? '#1d4ed8' : '#374151'
-                }}
-              >
-                {option.label}
-              </div>
-            ))
-          ) : (
-            <div className="px-3 py-2 text-xs text-gray-500 italic">
-              Няма намерени резултати за "{searchTerm}"
-            </div>
-          )}
+          {(() => {
+            if (filteredOptions.length > 0) {
+              return filteredOptions.map((option, index) => (
+                <div
+                  key={option.id}
+                  className={`px-3 py-2 text-xs cursor-pointer hover:bg-gray-100 
+                    ${value === option.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'}
+                    ${index === highlightedIndex ? 'bg-blue-100' : ''}`}
+                  onClick={() => handleOptionClick(option.id)}
+                >
+                  {option.label}
+                </div>
+              ));
+            } else {
+              return (
+                <div className="px-3 py-2 text-xs text-gray-500 italic">
+                  Няма намерени резултати за "{searchTerm}"
+                </div>
+              );
+            }
+          })()}
 
           {/* Custom option at the bottom */}
           <div className="border-t border-gray-200">
@@ -221,6 +237,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
     productTypeId: '',
     manufacturerId: '',
     supplier: '',
+    supplierLinked: false,
     nameBg: '',
     nameEn: '',
     code: '',
@@ -231,6 +248,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
     saleBgn: '',
     saleEur: '',
     autoPricing: true,
+    manualProductName: false,
     attributes: {} as Record<string, string>,
     isActive: true,
     isRecommended: false,
@@ -265,6 +283,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
         productTypeId: '',
         manufacturerId: '',
         supplier: '',
+        supplierLinked: false,
         nameBg: '',
         nameEn: '',
         code: '',
@@ -275,6 +294,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
         saleBgn: '',
         saleEur: '',
         autoPricing: true,
+        manualProductName: false,
         attributes: {} as Record<string, string>,
         isActive: true,
         isRecommended: false,
@@ -360,26 +380,28 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
     }
   };
 
-  const loadAttributeValuesByManufacturer = async (manufacturerId: string) => {
-    if (!manufacturerId) {
-      console.log('🏭 No manufacturerId provided, clearing attribute values');
+  const loadAttributeValuesByProductTypeAndManufacturer = async (productTypeId: string, manufacturerId: string) => {
+    if (!productTypeId || !manufacturerId) {
+      console.log('🏭 Missing productTypeId or manufacturerId, clearing attribute values');
       setAttributeValues([]);
       return;
     }
 
     try {
-      console.log('🏭 Loading attribute values for manufacturer:', manufacturerId);
+      console.log('🏭 Loading attribute values for product type and manufacturer:', { productTypeId, manufacturerId });
       console.log('🏭 Current attributeValues before load:', attributeValues.length);
       
-      const response = await fetch(`/api/attribute-values/by-manufacturer/${manufacturerId}`);
+      const response = await fetch(`/api/attribute-values/by-product-type-manufacturer?productTypeId=${productTypeId}&manufacturerId=${manufacturerId}`);
       const data = await response.json();
       
       console.log('📦 Attribute values response:', data);
       console.log('📦 Response success:', data.success);
       console.log('📦 Response data:', data.data ? `Array with ${data.data.length} items` : 'No data');
+      console.log('📦 Attributes count:', data.attributesCount);
       
       if (data.success && data.data) {
         console.log('✅ Setting attribute values...', data.data.length);
+        
         setAttributeValues(data.data);
         
         // Check state update after a short delay
@@ -387,7 +409,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
           console.log('🔄 State check after setAttributeValues - current length should be', data.data.length);
         }, 50);
         
-        showNotification(`Заредени ${data.data.length} стойности за производителя`, 'success');
+        showNotification(`Заредени ${data.data.length} стойности за ${data.attributesCount} атрибута`, 'success');
       } else {
         console.log('⚠️ No attribute values found');
         setAttributeValues([]);
@@ -399,6 +421,11 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
   };
 
   const updateProductNames = () => {
+    // Не обновяваме имената ако е включено ръчното генериране
+    if (formData.manualProductName) {
+      return;
+    }
+    
     const selectedProductType = productTypes.find(pt => pt.id === formData.productTypeId);
     const selectedManufacturer = manufacturers.find(m => m.id === formData.manufacturerId);
     
@@ -447,6 +474,80 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
       nameEn,
       code: newCode
     }));
+  };
+
+  const calculatePricesFromBgn = (type: 'cost' | 'sale', bgnValue: string) => {
+    if (!formData.autoPricing || !bgnValue || !formData.supplier) return;
+
+    const bgnPrice = parseFloat(bgnValue) || 0;
+    const exchangeRate = 1.956; // EUR to BGN
+    const selectedSupplier = suppliers.find(s => s.id === formData.supplier);
+    const supplierDiscount = selectedSupplier?.discount || 0;
+
+    if (bgnPrice > 0) {
+      if (type === 'cost') {
+        // Изчисляваме от доставна цена в лева
+        const costEur = bgnPrice / exchangeRate;
+        const saleBgn = bgnPrice / (1 - supplierDiscount / 100);
+        const saleEur = saleBgn / exchangeRate;
+
+        setFormData(prev => ({
+          ...prev,
+          costEur: costEur.toFixed(2),
+          saleBgn: saleBgn.toFixed(2),
+          saleEur: saleEur.toFixed(2)
+        }));
+      } else {
+        // Изчисляваме от продажна цена в лева
+        const costBgn = bgnPrice * (1 - supplierDiscount / 100);
+        const costEur = costBgn / exchangeRate;
+        const saleEur = bgnPrice / exchangeRate;
+
+        setFormData(prev => ({
+          ...prev,
+          costBgn: costBgn.toFixed(2),
+          costEur: costEur.toFixed(2),
+          saleEur: saleEur.toFixed(2)
+        }));
+      }
+    }
+  };
+
+  const calculatePricesFromEur = (type: 'cost' | 'sale', eurValue: string) => {
+    if (!formData.autoPricing || !eurValue || !formData.supplier) return;
+
+    const eurPrice = parseFloat(eurValue) || 0;
+    const exchangeRate = 1.956; // EUR to BGN
+    const selectedSupplier = suppliers.find(s => s.id === formData.supplier);
+    const supplierDiscount = selectedSupplier?.discount || 0;
+
+    if (eurPrice > 0) {
+      if (type === 'cost') {
+        // Изчисляваме от доставна цена в евро
+        const costBgn = eurPrice * exchangeRate;
+        const saleBgn = costBgn / (1 - supplierDiscount / 100);
+        const saleEur = saleBgn / exchangeRate;
+
+        setFormData(prev => ({
+          ...prev,
+          costBgn: costBgn.toFixed(2),
+          saleBgn: saleBgn.toFixed(2),
+          saleEur: saleEur.toFixed(2)
+        }));
+      } else {
+        // Изчисляваме от продажна цена в евро
+        const saleBgn = eurPrice * exchangeRate;
+        const costBgn = saleBgn * (1 - supplierDiscount / 100);
+        const costEur = costBgn / exchangeRate;
+
+        setFormData(prev => ({
+          ...prev,
+          costBgn: costBgn.toFixed(2),
+          costEur: costEur.toFixed(2),
+          saleBgn: saleBgn.toFixed(2)
+        }));
+      }
+    }
   };
 
   const calculatePrices = (costEurValue?: string, supplierValue?: string) => {
@@ -536,12 +637,84 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
 
   const handleProductTypeChange = (productTypeId: string) => {
     handleInputChange('productTypeId', productTypeId);
-    loadAttributesForType(productTypeId);
+    if (productTypeId) {
+      loadAttributesForType(productTypeId);
+      loadManufacturersForType(productTypeId);
+      
+      // If manufacturer is already selected, load attribute values
+      if (formData.manufacturerId) {
+        loadAttributeValuesByProductTypeAndManufacturer(productTypeId, formData.manufacturerId);
+      }
+    } else {
+      setAttributes([]);
+      setAttributeValues([]);
+      // Reset to all manufacturers when no type selected
+      loadInitialData();
+    }
+  };
+
+  const loadManufacturersForType = async (productTypeId: string) => {
+    try {
+      console.log('🏭 Loading manufacturers for product type:', productTypeId);
+      
+      const response = await fetch(`/api/manufacturers/by-product-type/${productTypeId}`);
+      const data = await response.json();
+      
+      console.log('🏭 Manufacturers response:', data);
+      
+      if (data.success && data.data && data.data.length > 0) {
+        console.log('✅ Manufacturers loaded:', data.data.length);
+        setManufacturers(data.data);
+        showNotification(`Заредени ${data.data.length} производители за този тип продукт`, 'success');
+      } else {
+        console.log('⚠️ No manufacturers found for this product type, loading all manufacturers');
+        // Fallback to loading all manufacturers if none are specifically linked
+        const allManufacturersResponse = await fetch('/api/manufacturers');
+        const allManufacturersData = await allManufacturersResponse.json();
+        const allManufacturers = allManufacturersData?.data || [];
+        setManufacturers(allManufacturers);
+        showNotification('Няма специфични производители за този тип продукт. Показани са всички производители.', 'warning');
+      }
+    } catch (error) {
+      console.error('❌ Error loading manufacturers for product type:', error);
+      showNotification('Грешка при зареждане на производителите', 'error');
+      // Fallback to all manufacturers on error
+      try {
+        const allManufacturersResponse = await fetch('/api/manufacturers');
+        const allManufacturersData = await allManufacturersResponse.json();
+        const allManufacturers = allManufacturersData?.data || [];
+        setManufacturers(allManufacturers);
+      } catch (fallbackError) {
+        console.error('❌ Error loading fallback manufacturers:', fallbackError);
+        setManufacturers([]);
+      }
+    }
   };
 
   const handleManufacturerChange = (manufacturerId: string) => {
     handleInputChange('manufacturerId', manufacturerId);
-    loadAttributeValuesByManufacturer(manufacturerId);
+    
+    // Автоматично зареждане на доставчик със същото име
+    if (manufacturerId) {
+      const selectedManufacturer = manufacturers.find(m => m.id === manufacturerId);
+      if (selectedManufacturer) {
+        // Търсим доставчик със същото име
+        const matchingSupplier = suppliers.find(s => 
+          s.name.toLowerCase() === selectedManufacturer.name.toLowerCase() ||
+          s.displayName?.toLowerCase() === selectedManufacturer.displayName.toLowerCase()
+        );
+        
+        if (matchingSupplier) {
+          console.log('🔗 Auto-linking supplier:', matchingSupplier.displayName || matchingSupplier.name);
+          handleInputChange('supplier', matchingSupplier.id);
+          handleInputChange('supplierLinked', true); // Флаг за автоматично свързан доставчик
+        }
+      }
+    }
+    
+    if (formData.productTypeId && manufacturerId) {
+      loadAttributeValuesByProductTypeAndManufacturer(formData.productTypeId, manufacturerId);
+    }
   };
 
   const handleSupplierChange = (supplier: string) => {
@@ -553,17 +726,6 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
   const getAttributeValuesForAttribute = (attrId: string) => {
     // Filter by attributeTypeId (this is the correct field!)
     const filtered = attributeValues.filter(av => av.attributeTypeId === attrId);
-    
-    console.log(`🔍 ✅ Filtering values for attribute ${attrId}:`, {
-      totalValues: attributeValues.length,
-      filteredCount: filtered.length,
-      sampleFilteredValue: filtered[0],
-      usingField: 'attributeTypeId',
-      sampleValueFields: filtered[0] ? Object.keys(filtered[0]) : [],
-      sampleValueNameBg: filtered[0]?.nameBg,
-      allValuesForThisAttribute: filtered.map(v => ({ id: v.id, nameBg: v.nameBg, attrTypeId: v.attributeTypeId }))
-    });
-    
     return filtered;
   };
 
@@ -715,9 +877,9 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
         
         // Force complete reload of attribute values from API
         console.log('🔄 FORCE RELOADING ATTRIBUTE VALUES FROM API...');
-        if (formData.manufacturerId) {
+        if (formData.manufacturerId && formData.productTypeId) {
           try {
-            await loadAttributeValuesByManufacturer(formData.manufacturerId);
+            await loadAttributeValuesByProductTypeAndManufacturer(formData.productTypeId, formData.manufacturerId);
             console.log('✅ ATTRIBUTE VALUES RELOADED SUCCESSFULLY');
             
             // Force re-render of the entire attributes section
@@ -786,7 +948,21 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
         <div className="p-5 max-h-[80vh] overflow-y-auto">
           {/* Names Section */}
           <div className="bg-gray-50 border border-gray-200 rounded-md p-5 mb-5">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">Основни имена на продукта</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-800">Основни имена на продукта</h3>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="manualProductName"
+                  checked={formData.manualProductName}
+                  onChange={(e) => handleInputChange('manualProductName', e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="manualProductName" className="text-xs font-medium text-gray-700">
+                  Ръчно генериране
+                </label>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-group">
                 <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -795,9 +971,14 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                 <input 
                   type="text" 
                   value={formData.nameBg}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-xs bg-gray-100 text-gray-600"
-                  readOnly
-                  placeholder="Автогенерирано име на български"
+                  onChange={(e) => handleInputChange('nameBg', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded text-xs ${
+                    formData.manualProductName 
+                      ? 'border-blue-300 bg-white text-gray-900' 
+                      : 'border-gray-300 bg-gray-100 text-gray-600'
+                  }`}
+                  readOnly={!formData.manualProductName}
+                  placeholder={formData.manualProductName ? "Въведете име на български" : "Автогенерирано име на български"}
                 />
               </div>
               <div className="form-group">
@@ -807,14 +988,22 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                 <input 
                   type="text" 
                   value={formData.nameEn}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-xs bg-gray-100 text-gray-600"
-                  readOnly
-                  placeholder="Auto-generated English name"
+                  onChange={(e) => handleInputChange('nameEn', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded text-xs ${
+                    formData.manualProductName 
+                      ? 'border-blue-300 bg-white text-gray-900' 
+                      : 'border-gray-300 bg-gray-100 text-gray-600'
+                  }`}
+                  readOnly={!formData.manualProductName}
+                  placeholder={formData.manualProductName ? "Enter English name" : "Auto-generated English name"}
                 />
               </div>
             </div>
             <p className="text-gray-500 text-xs mt-2">
-              Имената се обновяват автоматично при промяна на атрибутите
+              {formData.manualProductName 
+                ? "Можете да въведете име ръчно" 
+                : "Имената се обновяват автоматично при промяна на атрибутите"
+              }
             </p>
           </div>
 
@@ -856,19 +1045,43 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                 </div>
 
                 <div className="form-group">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Доставчик</label>
-                  <select
-                    value={formData.supplier}
-                    onChange={(e) => handleSupplierChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded text-xs"
-                  >
-                    <option value="">Избери доставчик...</option>
-                    {suppliers.map((supplier) => (
-                      <option key={supplier.id} value={supplier.id}>
-                        {supplier.displayName || supplier.name}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Доставчик
+                    {formData.supplierLinked && (
+                      <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                        🔗 Автоматично свързан
+                      </span>
+                    )}
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={formData.supplier}
+                      onChange={(e) => handleSupplierChange(e.target.value)}
+                      className={`flex-1 px-3 py-2 border rounded text-xs ${
+                        formData.supplierLinked ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Избери доставчик...</option>
+                      {suppliers.map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                          {supplier.displayName || supplier.name}
+                        </option>
+                      ))}
+                    </select>
+                    {formData.supplierLinked && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleInputChange('supplier', '');
+                          handleInputChange('supplierLinked', false);
+                        }}
+                        className="px-3 py-2 bg-red-100 text-red-600 rounded text-xs hover:bg-red-200"
+                        title="Премахни автоматичната връзка"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -980,25 +1193,32 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {attributes.map((attr) => {
                     const availableValues = getAttributeValuesForAttribute(attr.id);
+                    
                     return (
                     <div key={attr.id} className="bg-gray-50 border border-gray-200 rounded p-3 flex items-center gap-3">
                       <span className="min-w-[120px] text-xs font-medium text-gray-700">
-                        {attr.nameBg}{attr.isRequired ? ' *' : ''}:
+                        {attr.nameBg}:
                       </span>
                       {/* Show dropdown for SELECT or COLOR types when values are available */}
                       {(attr.type === 'SELECT' || attr.type === 'COLOR') && availableValues.length > 0 ? (
-                        <SearchableDropdown
-                          options={availableValues.map(value => ({ 
+                        (() => {
+                          const options = availableValues.map(value => ({ 
                             id: value.id, 
                             label: attr.type === 'COLOR' && value.colorCode ? 
                               `🎨 ${value.nameBg} (${value.colorCode})` : 
                               value.nameBg + (value.colorCode ? ` (${value.colorCode})` : '') 
-                          }))}
-                          value={formData.attributes[attr.id] || ''}
-                          onChange={(value) => handleAttributeChange(attr.id, value)}
-                          className="flex-1"
-                          placeholder="Търси или избери..."
-                        />
+                          }));
+                          
+                          return (
+                            <SearchableDropdown
+                              options={options}
+                              value={formData.attributes[attr.id] || ''}
+                              onChange={(value) => handleAttributeChange(attr.id, value)}
+                              className="flex-1"
+                              placeholder="Търси или избери..."
+                            />
+                          );
+                        })()
                       ) : (
                         /* Input field for other types or when no values available */
                         <input
@@ -1073,10 +1293,14 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                     type="number"
                     step="0.01"
                     value={formData.costBgn}
-                    onChange={(e) => !formData.autoPricing && handleInputChange('costBgn', e.target.value)}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded text-xs ${formData.autoPricing ? 'bg-gray-100 text-gray-600' : ''}`}
-                    readOnly={formData.autoPricing}
-                    placeholder="Автоизчислена"
+                    onChange={(e) => {
+                      handleInputChange('costBgn', e.target.value);
+                      if (formData.autoPricing) {
+                        setTimeout(() => calculatePricesFromBgn('cost', e.target.value), 0);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-xs"
+                    placeholder="0.00"
                   />
                 </div>
 
@@ -1086,10 +1310,14 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                     type="number"
                     step="0.01"
                     value={formData.saleBgn}
-                    onChange={(e) => !formData.autoPricing && handleInputChange('saleBgn', e.target.value)}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded text-xs ${formData.autoPricing ? 'bg-gray-100 text-gray-600' : ''}`}
-                    readOnly={formData.autoPricing}
-                    placeholder="Автоизчислена"
+                    onChange={(e) => {
+                      handleInputChange('saleBgn', e.target.value);
+                      if (formData.autoPricing) {
+                        setTimeout(() => calculatePricesFromBgn('sale', e.target.value), 0);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-xs"
+                    placeholder="0.00"
                   />
                 </div>
 
@@ -1099,10 +1327,14 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
                     type="number"
                     step="0.01"
                     value={formData.saleEur}
-                    onChange={(e) => !formData.autoPricing && handleInputChange('saleEur', e.target.value)}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded text-xs ${formData.autoPricing ? 'bg-gray-100 text-gray-600' : ''}`}
-                    readOnly={formData.autoPricing}
-                    placeholder="Автоизчислена"
+                    onChange={(e) => {
+                      handleInputChange('saleEur', e.target.value);
+                      if (formData.autoPricing) {
+                        setTimeout(() => calculatePricesFromEur('sale', e.target.value), 0);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-xs"
+                    placeholder="0.00"
                   />
                 </div>
 

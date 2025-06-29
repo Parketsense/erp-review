@@ -118,42 +118,44 @@ model AuditLog {
 }
 
 model ProductType {
-  id             String          @id @default(uuid())
-  name           String          @unique
-  nameBg         String
-  nameEn         String?
-  icon           String?
-  description    String?
-  displayOrder   Int             @default(0)
-  isActive       Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  attributeTypes AttributeType[]
-  products       Product[]
+  id                      String                    @id @default(uuid())
+  name                    String                    @unique
+  nameBg                  String
+  nameEn                  String?
+  icon                    String?
+  description             String?
+  displayOrder            Int                       @default(0)
+  isActive                Boolean                   @default(true)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  attributeTypes          AttributeType[]
+  products                Product[]
+  productTypeManufacturers ProductTypeManufacturer[]
 
   @@map("product_types")
 }
 
 model Manufacturer {
-  id              String           @id @default(uuid())
-  name            String           @unique
-  displayName     String
-  code            String?          @unique
-  website         String?
-  description     String?
-  address         String?          // Адрес на производителя
-  contactName     String?          // Име на контактно лице
-  contactEmail    String?          // Мейл на контактно лице
-  contactPhone    String?          // Телефон на контактно лице
-  logoUrl         String?
-  colorCode       String?          @default("#6c757d")
-  discount        Float?           @default(0)    // Отстъпка в процент (0-100)
-  isActive        Boolean          @default(true)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  attributeValues AttributeValue[]
-  products        Product[]
-  contacts        Contact[]        // Допълнителни контакти
+  id                      String                    @id @default(uuid())
+  name                    String                    @unique
+  displayName             String
+  code                    String?                   @unique
+  website                 String?
+  description             String?
+  address                 String?                   // Адрес на производителя
+  contactName             String?                   // Име на контактно лице
+  contactEmail            String?                   // Мейл на контактно лице
+  contactPhone            String?                   // Телефон на контактно лице
+  logoUrl                 String?
+  colorCode               String?                   @default("#6c757d")
+  discount                Float?                    @default(0)    // Отстъпка в процент (0-100)
+  isActive                Boolean                   @default(true)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  attributeValues         AttributeValue[]
+  products                Product[]
+  contacts                Contact[]                 // Допълнителни контакти
+  productTypeManufacturers ProductTypeManufacturer[]
 
   @@map("manufacturers")
 }
@@ -267,4 +269,17 @@ model ProductAttributeValue {
 
   @@unique([productId, attributeTypeId])
   @@map("product_attribute_values")
+}
+
+model ProductTypeManufacturer {
+  id             String       @id @default(uuid())
+  productTypeId  String
+  manufacturerId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  productType    ProductType  @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+
+  @@unique([productTypeId, manufacturerId])
+  @@map("product_type_manufacturers")
 }

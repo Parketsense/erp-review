@@ -127,4 +127,70 @@ export class ProductTypesService {
       }
     }) as any;
   }
+
+  async getManufacturers(id: string) {
+    const productType = await this.prisma.productType.findUnique({
+      where: { id },
+      include: {
+        productTypeManufacturers: {
+          include: {
+            manufacturer: {
+              select: {
+                id: true,
+                name: true,
+                displayName: true,
+                code: true,
+                logoUrl: true,
+                colorCode: true,
+                isActive: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!productType) {
+      throw new NotFoundException(`Product type with ID ${id} not found`);
+    }
+
+    return {
+      productType: {
+        id: productType.id,
+        nameBg: productType.nameBg,
+        nameEn: productType.nameEn
+      },
+      manufacturers: productType.productTypeManufacturers.map(ptm => ptm.manufacturer)
+    };
+  }
+
+  async updateManufacturers(id: string, manufacturerIds: string[]) {
+    const productType = await this.prisma.productType.findUnique({
+      where: { id }
+    });
+
+    if (!productType) {
+      throw new NotFoundException(`Product type with ID ${id} not found`);
+    }
+
+    // Използваме транзакция за да обновим връзките
+    await this.prisma.$transaction(async (tx) => {
+      // Изтриваме текущите връзки
+      await tx.productTypeManufacturer.deleteMany({
+        where: { productTypeId: id }
+      });
+
+      // Създаваме новите връзки
+      if (manufacturerIds.length > 0) {
+        await tx.productTypeManufacturer.createMany({
+          data: manufacturerIds.map(manufacturerId => ({
+            productTypeId: id,
+            manufacturerId
+          }))
+        });
+      }
+    });
+
+    return this.getManufacturers(id);
+  }
 } 

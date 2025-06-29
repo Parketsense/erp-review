@@ -19,8 +19,8 @@ const TestAttributeIntegration: React.FC = () => {
       setError(null);
 
       const [typesData, manufacturersData] = await Promise.all([
-        attributesApi.productTypes.getAll(),
-        attributesApi.manufacturers.getAll()
+        attributesApi.getProductTypes(),
+        attributesApi.getManufacturers()
       ]);
 
       setProductTypes(typesData);
@@ -37,7 +37,7 @@ const TestAttributeIntegration: React.FC = () => {
     try {
       const colorAttributeType = "test-id"; // This would be dynamic in real use
       
-      const newValue = await attributesApi.attributeValues.create({
+      const newValue = await attributesApi.createAttributeValue({
         nameBg: 'Тест Интеграция',
         nameEn: 'Test Integration',
         colorCode: '#28a745',

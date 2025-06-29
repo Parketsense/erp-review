@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { attributesApi } from '../../services/attributesApi';
-import { Attribute, AttributeValue } from '../../types/attribute';
+import { AttributeType, AttributeValue } from '../../types/attribute';
 
 interface AttributeManagementModalProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ interface ProductTypeData {
   nameBg: string;
   nameEn: string;
   icon: string;
-  attributes: Attribute[];
+  attributes: AttributeType[];
   totalValues: number;
 }
 
@@ -28,7 +28,7 @@ export default function AttributeManagementModal({ isOpen, onClose }: AttributeM
     search: ''
   });
   const [showBulkImport, setShowBulkImport] = useState(false);
-  const [editingAttribute, setEditingAttribute] = useState<Attribute | null>(null);
+  const [editingAttribute, setEditingAttribute] = useState<AttributeType | null>(null);
   const [editingValue, setEditingValue] = useState<AttributeValue | null>(null);
 
   useEffect(() => {
@@ -47,20 +47,22 @@ export default function AttributeManagementModal({ isOpen, onClose }: AttributeM
       
       attributes.forEach(attr => {
         const productType = attr.productType;
-        if (!groupedData.has(productType.id)) {
+        if (productType && !groupedData.has(productType.id)) {
           groupedData.set(productType.id, {
             id: productType.id,
             nameBg: productType.nameBg,
-            nameEn: productType.nameEn,
-            icon: productType.icon,
+            nameEn: productType.nameEn || '',
+            icon: productType.icon || '📦',
             attributes: [],
             totalValues: 0
           });
         }
         
-        const ptData = groupedData.get(productType.id)!;
-        ptData.attributes.push(attr);
-        ptData.totalValues += attr.attributeValues?.length || 0;
+        if (productType) {
+          const ptData = groupedData.get(productType.id)!;
+          ptData.attributes.push(attr);
+          ptData.totalValues += attr.attributeValues?.length || 0;
+        }
       });
       
       setProductTypes(Array.from(groupedData.values()));
@@ -81,12 +83,12 @@ export default function AttributeManagementModal({ isOpen, onClose }: AttributeM
     setExpandedSections(newExpanded);
   };
 
-  const handleAddAttributeValue = (attribute: Attribute) => {
+  const handleAddAttributeValue = (attribute: AttributeType) => {
     // TODO: Open add value modal
     console.log('Adding value for attribute:', attribute.nameBg);
   };
 
-  const handleEditAttribute = (attribute: Attribute) => {
+  const handleEditAttribute = (attribute: AttributeType) => {
     setEditingAttribute(attribute);
   };
 
@@ -115,10 +117,10 @@ export default function AttributeManagementModal({ isOpen, onClose }: AttributeM
                            pt.nameEn.toLowerCase().includes(searchLower);
         const matchesAttributes = pt.attributes.some(attr => 
           attr.nameBg.toLowerCase().includes(searchLower) ||
-          attr.nameEn.toLowerCase().includes(searchLower) ||
+          (attr.nameEn || '').toLowerCase().includes(searchLower) ||
           attr.attributeValues?.some(val => 
             val.nameBg.toLowerCase().includes(searchLower) ||
-            val.nameEn.toLowerCase().includes(searchLower)
+            (val.nameEn || '').toLowerCase().includes(searchLower)
           )
         );
         if (!matchesType && !matchesAttributes) return false;

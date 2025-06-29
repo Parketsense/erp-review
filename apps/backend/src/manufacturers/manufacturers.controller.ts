@@ -22,6 +22,17 @@ export class ManufacturersController {
     });
   }
 
+  @Get('by-product-type/:productTypeId')
+  async findByProductType(@Param('productTypeId') productTypeId: string) {
+    const result = await this.manufacturersService.findByProductType(productTypeId);
+    
+    return {
+      success: true,
+      data: result.data,
+      total: result.data.length
+    };
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const manufacturer = await this.manufacturersService.findOne(id);

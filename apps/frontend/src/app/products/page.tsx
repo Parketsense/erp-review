@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Package, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Factory, Tag, Eye, Image, FileText, Calendar, Power, EyeOff, Archive, RotateCcw } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
@@ -13,17 +13,45 @@ interface Manufacturer {
   colorCode?: string;
 }
 
+interface ProductType {
+  nameBg: string;
+  nameEn: string;
+}
+
 interface Product {
   id: string;
   code: string;
-  name: string;
-  description?: string;
-  manufacturer?: Manufacturer;
-  attributes: Record<string, any>;
-  mediaFiles: string[];
+  nameBg: string;
+  nameEn: string;
+  productTypeId: string;
+  manufacturerId: string;
+  supplier: string;
+  unit: string;
+  packageSize: string | null;
+  costEur: number;
+  costBgn: number;
+  saleBgn: number;
+  saleEur: number;
+  markup: number;
   isActive: boolean;
+  isRecommended: boolean;
+  isNew: boolean;
+  images: string[];
+  documents: string[];
+  models3d: string[];
+  textures: string[];
+  videoUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  createdById: string | null;
+  updatedById: string | null;
+  productType: ProductType;
+  manufacturer: Manufacturer;
+  // Legacy fields for compatibility
+  name?: string;
+  description?: string;
+  attributes?: Record<string, any>;
+  mediaFiles?: string[];
 }
 
 export default function ProductsPage() {
@@ -34,28 +62,32 @@ export default function ProductsPage() {
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const { showLoading, hideLoading } = useLoading('products');
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       showLoading('Зареждане на продукти...');
       const params = showInactive ? '?includeInactive=true' : '';
-      const response = await apiClient.get(`/products${params}`);
-      console.log('🔍 Products API response:', response);
       
-      // Handle the API response structure correctly
+      const response = await apiClient.get(`/products${params}`);
+      
       if (response.success && response.data) {
-        setProducts(response.data || []);
-        console.log('✅ Products loaded:', response.data.length);
+        const transformedProducts = response.data.map((product: any) => ({
+          ...product,
+          name: product.nameBg,
+          mediaFiles: [...(product.images || []), ...(product.documents || []), ...(product.models3d || []), ...(product.textures || [])],
+          attributes: {}
+        }));
+        
+        setProducts(transformedProducts);
       } else {
-        console.error('❌ Invalid products response:', response);
         setProducts([]);
       }
     } catch (error) {
-      console.error('❌ Error loading products:', error);
+      console.error('Error loading products:', error);
       setProducts([]);
     } finally {
       hideLoading();
     }
-  };
+  }, [showInactive]);
 
   const handleCreateProduct = async (productData: any) => {
     try {
@@ -102,10 +134,10 @@ export default function ProductsPage() {
     
     try {
       showLoading(`${action === 'archive' ? 'Архивиране' : 'Активиране'}...`);
-      // Прави API заявка към backend-а
+      
       await apiClient.patch(`/products/${productId}/toggle-active`);
-      // Презарежда данните от сървъра
       await loadProducts();
+      
       setDropdownOpen(null);
     } catch (error) {
       console.error('Error toggling product status:', error);
@@ -136,19 +168,19 @@ export default function ProductsPage() {
 
   useEffect(() => {
     loadProducts();
-  }, [showInactive]);
+  }, [loadProducts]);
 
   const filteredProducts = products.filter(product => {
-    const name = product.name || '';
+    const name = product.nameBg || '';
+    const nameEn = product.nameEn || '';
     const code = product.code || '';
     const manufacturerName = product.manufacturer?.displayName || '';
-    const description = product.description || '';
     const searchLower = searchTerm.toLowerCase();
     
     return name.toLowerCase().includes(searchLower) ||
+           nameEn.toLowerCase().includes(searchLower) ||
            code.toLowerCase().includes(searchLower) ||
-           manufacturerName.toLowerCase().includes(searchLower) ||
-           description.toLowerCase().includes(searchLower);
+           manufacturerName.toLowerCase().includes(searchLower);
   });
 
   const uniqueManufacturers = Array.from(new Set(
@@ -160,7 +192,9 @@ export default function ProductsPage() {
   const totalProducts = products.length;
   const activeProducts = products.filter(p => p.isActive !== false);
   const inactiveProducts = products.filter(p => p.isActive === false);
-  const withMediaCount = activeProducts.filter(p => p.mediaFiles && p.mediaFiles.length > 0).length;
+  const withMediaCount = activeProducts.filter(p => 
+    (p.images?.length || 0) + (p.documents?.length || 0) + (p.models3d?.length || 0) + (p.textures?.length || 0) > 0
+  ).length;
   const withAttributesCount = activeProducts.filter(p => p.attributes && Object.keys(p.attributes).length > 0).length;
 
   return (
@@ -342,14 +376,14 @@ export default function ProductsPage() {
                         <div className="flex items-start gap-4">
                           {/* Product Icon */}
                           <div className={`w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-lg ${!product.isActive ? 'grayscale' : ''}`}>
-                            {product.name?.charAt(0) || 'P'}
+                            {product.nameBg?.charAt(0) || 'P'}
                           </div>
 
                           <div className="flex-1">
                             {/* Name and Code */}
                             <div className="flex items-center gap-3 mb-2 flex-wrap">
                               <h4 className="text-lg font-semibold text-gray-900">
-                                {product.name}
+                                {product.nameBg}
                               </h4>
                               {!product.isActive && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
@@ -361,10 +395,10 @@ export default function ProductsPage() {
                                 <Tag className="w-3 h-3" />
                                 {product.code}
                               </span>
-                              {product.mediaFiles && product.mediaFiles.length > 0 && (
+                              {((product.images?.length || 0) + (product.documents?.length || 0) + (product.models3d?.length || 0) + (product.textures?.length || 0)) > 0 && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
                                   <Image className="w-3 h-3" />
-                                  {product.mediaFiles.length} файла
+                                  {(product.images?.length || 0) + (product.documents?.length || 0) + (product.models3d?.length || 0) + (product.textures?.length || 0)} файла
                                 </span>
                               )}
                             </div>
@@ -379,10 +413,10 @@ export default function ProductsPage() {
                               </div>
                             )}
 
-                            {/* Description */}
-                            {product.description && (
+                            {/* English Name */}
+                            {product.nameEn && product.nameEn !== product.nameBg && (
                               <div className="mb-3 text-sm text-gray-600 line-clamp-2">
-                                {product.description}
+                                <span className="font-medium">EN:</span> {product.nameEn}
                               </div>
                             )}
 
@@ -394,10 +428,10 @@ export default function ProductsPage() {
                                   <span>{Object.keys(product.attributes).length} атрибута</span>
                                 </div>
                               )}
-                              {product.mediaFiles && product.mediaFiles.length > 0 && (
+                              {((product.images?.length || 0) + (product.documents?.length || 0) + (product.models3d?.length || 0) + (product.textures?.length || 0)) > 0 && (
                                 <div className="flex items-center gap-1">
                                   <FileText className="w-4 h-4" />
-                                  <span>{product.mediaFiles.length} медийни файла</span>
+                                  <span>{(product.images?.length || 0) + (product.documents?.length || 0) + (product.models3d?.length || 0) + (product.textures?.length || 0)} медийни файла</span>
                                 </div>
                               )}
                             </div>
@@ -425,8 +459,8 @@ export default function ProductsPage() {
                             <div className="py-1">
                               <button
                                 onClick={() => {
-                                  console.log('Edit product:', product.id);
                                   setDropdownOpen(null);
+                                  // TODO: Implement edit functionality
                                 }}
                                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
                               >
@@ -435,8 +469,8 @@ export default function ProductsPage() {
                               </button>
                               <button
                                 onClick={() => {
-                                  console.log('View product:', product.id);
                                   setDropdownOpen(null);
+                                  // TODO: Implement view functionality
                                 }}
                                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
                               >

@@ -113,4 +113,28 @@ export class ManufacturersService {
       }
     }) as any;
   }
+
+  async findByProductType(productTypeId: string): Promise<{ data: Manufacturer[] }> {
+    const manufacturers = await this.prisma.manufacturer.findMany({
+      where: {
+        isActive: true,
+        productTypeManufacturers: {
+          some: {
+            productTypeId: productTypeId
+          }
+        }
+      },
+      orderBy: { displayName: 'asc' },
+      include: {
+        _count: {
+          select: { 
+            products: true,
+            attributeValues: true 
+          }
+        }
+      }
+    }) as any;
+
+    return { data: manufacturers };
+  }
 } 

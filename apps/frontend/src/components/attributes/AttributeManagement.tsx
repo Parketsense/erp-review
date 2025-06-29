@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import { attributesApi } from '../../services/attributesApi';
 import { ProductType, Manufacturer, AttributeValue, AttributeType } from '../../types/attribute';
-import AttributeCard from './AttributeCard';
-import AddAttributeValueModal from './AddAttributeValueModal';
-import AddProductTypeModal from './AddProductTypeModal';
-import AddAttributeModal from './AddAttributeModal';
-import CreateAttributeModal from './CreateAttributeModal';
-import EditAttributeModal from './EditAttributeModal';
-import EditAttributeValueModal from './EditAttributeValueModal';
-import DeleteConfirmationModal from './DeleteConfirmationModal';
-import BulkImportModal from './BulkImportModal';
+// import AttributeCard from './AttributeCard';
+// import AddAttributeValueModal from './AddAttributeValueModal';
+// import AddProductTypeModal from './AddProductTypeModal';
+import AddAttributeModal, { AttributeValue as AddModalAttributeValue } from './AddAttributeModal';
+// import CreateAttributeModal from './CreateAttributeModal';
+// import EditAttributeModal from './EditAttributeModal';
+// import EditAttributeValueModal from './EditAttributeValueModal';
+// import DeleteConfirmationModal from './DeleteConfirmationModal';
+// import BulkImportModal from './BulkImportModal';
 
 interface AttributeManagementProps {
   isOpen: boolean;
@@ -100,8 +100,8 @@ export default function AttributeManagement({ isOpen, onClose }: AttributeManage
     setIsAddModalOpen(true);
   };
 
-  const handleSaveAttribute = (value: AttributeValue) => {
-    // API call is now done in AddAttributeValueModal
+  const handleSaveAttribute = (value: AddModalAttributeValue) => {
+    // API call is now done in AddAttributeModal
     // This function just handles UI updates after successful save
     setIsAddModalOpen(false);
     setSelectedAttribute(null);
@@ -852,41 +852,14 @@ export default function AttributeManagement({ isOpen, onClose }: AttributeManage
 
       {/* Add Attribute Value Modal */}
       {isAddModalOpen && selectedAttribute && (
-        <AddAttributeValueModal
+        <AddAttributeModal
           isOpen={isAddModalOpen}
           onClose={() => {
             setIsAddModalOpen(false);
             setSelectedAttribute(null);
           }}
           onSave={handleSaveAttribute}
-          attributeId={selectedAttribute.id}
           attributeName={selectedAttribute.name}
-          productType={selectedAttribute.productType}
-          manufacturer={selectedAttribute.manufacturer}
-        />
-      )}
-
-      {/* New Product Type Modal */}
-      {showAddProductType && (
-        <AddProductTypeModal
-          isOpen={showAddProductType}
-          onClose={() => setShowAddProductType(false)}
-          onSuccess={handleProductTypeAdded}
-        />
-      )}
-
-      {/* New Attribute Modal */}
-      {showAddAttribute && currentProductTypeId && (
-        <AddAttributeModal
-          isOpen={showAddAttribute}
-          onClose={() => { 
-            setShowAddAttribute(false); 
-            setCurrentProductTypeId(null); 
-          }}
-          onSave={handleAttributeAdded}
-          attributeName="Нов атрибут"
-          productType={currentProductTypeId}
-          manufacturer="all"
           manufacturers={manufacturers.map(m => ({
             id: m.id,
             name: m.name,
@@ -895,7 +868,16 @@ export default function AttributeManagement({ isOpen, onClose }: AttributeManage
         />
       )}
 
-      {/* Edit Attribute Modal */}
+      {/* Other modals temporarily disabled until components are created */}
+      {/* 
+      {showAddProductType && (
+        <AddProductTypeModal
+          isOpen={showAddProductType}
+          onClose={() => setShowAddProductType(false)}
+          onSuccess={handleProductTypeAdded}
+        />
+      )}
+
       {showEditAttribute && selectedAttributeForEdit && (
         <EditAttributeModal
           isOpen={showEditAttribute}
@@ -905,7 +887,6 @@ export default function AttributeManagement({ isOpen, onClose }: AttributeManage
         />
       )}
 
-      {/* Edit Attribute Value Modal */}
       {showEditValue && selectedValueForEdit && (
         <EditAttributeValueModal
           isOpen={showEditValue}
@@ -920,7 +901,6 @@ export default function AttributeManagement({ isOpen, onClose }: AttributeManage
         />
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirmation && deleteItem && (
         <DeleteConfirmationModal
           isOpen={showDeleteConfirmation}
@@ -932,7 +912,6 @@ export default function AttributeManagement({ isOpen, onClose }: AttributeManage
         />
       )}
 
-      {/* Create Attribute Modal */}
       {showCreateAttribute && currentProductTypeId && (
         <CreateAttributeModal
           isOpen={showCreateAttribute}
@@ -953,14 +932,14 @@ export default function AttributeManagement({ isOpen, onClose }: AttributeManage
         />
       )}
 
-      {/* Bulk Import Modal */}
       {showBulkImport && (
         <BulkImportModal
           isOpen={showBulkImport}
           onClose={() => setShowBulkImport(false)}
           onImport={handleBulkImport}
         />
-      )}
+      )} 
+      */}
     </div>
   );
 } 

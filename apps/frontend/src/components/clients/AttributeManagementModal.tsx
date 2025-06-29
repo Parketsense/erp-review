@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { attributesApi } from '../../services/attributesApi';
-import { Attribute, AttributeValue } from '../../types/attribute';
+import { AttributeType, AttributeValue } from '../../types/attribute';
 
 interface AttributeManagementModalProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ interface ProductTypeData {
   nameBg: string;
   nameEn: string;
   icon: string;
-  attributes: Attribute[];
+  attributes: AttributeType[];
   totalValues: number;
 }
 

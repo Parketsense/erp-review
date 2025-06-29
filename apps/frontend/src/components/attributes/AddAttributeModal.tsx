@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import AttributeValueForm from './AttributeValueForm';
-import ValuePreview from './ValuePreview';
+// import AttributeValueForm from './AttributeValueForm';
+// import ValuePreview from './ValuePreview';
 
 export interface AttributeValue {
   id?: string;
@@ -177,17 +177,64 @@ const AddAttributeModal: React.FC<AddAttributeModalProps> = ({
               </div>
 
               {/* Form */}
-              <AttributeValueForm
-                formData={formData}
-                onInputChange={handleInputChange}
-                onCopyToEn={handleCopyToEn}
-                onCopyToBg={handleCopyToBg}
-                manufacturers={manufacturers}
-                currentManufacturer=""
-              />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Име на български
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nameBg}
+                    onChange={(e) => handleInputChange('nameBg', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    placeholder="Въведете име на български..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Име на английски
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nameEn}
+                    onChange={(e) => handleInputChange('nameEn', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    placeholder="Въведете име на английски..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Производител
+                  </label>
+                  <select
+                    value={formData.manufacturerId}
+                    onChange={(e) => handleInputChange('manufacturerId', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Универсална стойност</option>
+                    {manufacturers.map(manufacturer => (
+                      <option key={manufacturer.id} value={manufacturer.id}>
+                        {manufacturer.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
               {/* Preview */}
-              <ValuePreview formData={formData} />
+              <div className="mt-4 p-3 bg-gray-50 rounded border">
+                <div className="text-sm font-medium text-gray-700 mb-2">Преглед:</div>
+                <div className="text-sm text-gray-600">
+                  {formData.nameBg || 'Име на български'} / {formData.nameEn || 'Име на английски'}
+                  {formData.manufacturerId && (
+                    <span className="ml-2 text-blue-600">
+                      ({manufacturers.find(m => m.id === formData.manufacturerId)?.name})
+                    </span>
+                  )}
+                </div>
+              </div>
             </>
           )}
         </div>

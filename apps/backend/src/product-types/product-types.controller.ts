@@ -82,4 +82,28 @@ export class ProductTypesController {
       message: 'Product type deleted successfully'
     };
   }
+
+  @Get(':id/manufacturers')
+  async getManufacturers(@Param('id') id: string) {
+    const result = await this.productTypesService.getManufacturers(id);
+    
+    return {
+      success: true,
+      data: result
+    };
+  }
+
+  @Post(':id/manufacturers')
+  async updateManufacturers(
+    @Param('id') id: string,
+    @Body() body: { manufacturerIds: string[] }
+  ) {
+    const result = await this.productTypesService.updateManufacturers(id, body.manufacturerIds);
+    
+    return {
+      success: true,
+      data: result,
+      message: 'Manufacturers updated successfully'
+    };
+  }
 } 
