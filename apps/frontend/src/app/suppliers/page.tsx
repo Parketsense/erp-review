@@ -825,12 +825,12 @@ export default function SuppliersPage() {
                       <div className="flex-1">
                         <div className="flex items-start gap-4">
                           {/* Supplier Icon with Color */}
-                          <div 
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
-                            style={{ backgroundColor: supplier.colorCode || '#16a34a' }}
-                          >
-                            {supplier.displayName.charAt(0)}
-                          </div>
+                                                     <div 
+                             className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
+                             style={{ backgroundColor: supplier.colorCode || '#16a34a' }}
+                           >
+                             {supplier.displayName?.charAt(0) || 'S'}
+                           </div>
 
                           <div className="flex-1">
                             {/* Name and Code */}

@@ -894,7 +894,7 @@ export default function ManufacturersPage() {
                             className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
                             style={{ backgroundColor: manufacturer.colorCode || '#6c757d' }}
                           >
-                            {manufacturer.displayName.charAt(0)}
+                            {manufacturer.displayName?.charAt(0) || 'M'}
                           </div>
 
                           <div className="flex-1">
