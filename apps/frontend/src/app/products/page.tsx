@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Package, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Factory, Tag, Eye, Image, FileText, Calendar, Power, EyeOff } from 'lucide-react';
+import { Package, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Factory, Tag, Eye, Image, FileText, Calendar, Power, EyeOff, Archive, RotateCcw } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -95,19 +95,19 @@ export default function ProductsPage() {
   };
 
   const handleToggleActive = async (productId: string, currentStatus: boolean) => {
-    const action = currentStatus ? 'деактивирате' : 'активирате';
+    const action = currentStatus ? 'архивирате' : 'активирате';
     if (!confirm(`Сигурни ли сте, че искате да ${action} този продукт?`)) {
       return;
     }
     
     try {
-      showLoading(`${currentStatus ? 'Деактивиране' : 'Активиране'}...`);
+      showLoading(`${currentStatus ? 'Архивиране' : 'Активиране'}...`);
       await apiClient.patch(`/products/${productId}/toggle-active`);
       await loadProducts();
       setDropdownOpen(null);
     } catch (error) {
       console.error('Error toggling product status:', error);
-      alert(`Грешка при ${currentStatus ? 'деактивирането' : 'активирането'} на продукта`);
+      alert(`Грешка при ${currentStatus ? 'архивирането' : 'активирането'} на продукта`);
     } finally {
       hideLoading();
     }
@@ -182,7 +182,7 @@ export default function ProductsPage() {
                   <p className="text-gray-600 text-sm font-medium">Общо продукти</p>
                   <p className="text-2xl font-bold text-gray-900">{activeProducts.length}</p>
                   {showInactive && inactiveProducts.length > 0 && (
-                    <p className="text-sm text-gray-500">+{inactiveProducts.length} неактивни</p>
+                    <p className="text-sm text-gray-500">+{inactiveProducts.length} архивирани</p>
                   )}
                 </div>
               </div>
@@ -249,10 +249,10 @@ export default function ProductsPage() {
                       ? 'bg-blue-600 text-white border-blue-600' 
                       : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                   }`}
-                  title={showInactive ? 'Скрий деактивираните' : 'Покажи деактивираните'}
+                  title={showInactive ? 'Скрий архивираните' : 'Покажи архивираните'}
                 >
                   <EyeOff className="w-5 h-5" />
-                  {showInactive ? 'Скрий деактивирани' : 'Покажи деактивирани'}
+                  {showInactive ? 'Скрий архивирани' : 'Покажи архивирани'}
                 </button>
               </div>
               
@@ -332,8 +332,8 @@ export default function ProductsPage() {
                               </h4>
                               {!product.isActive && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                                  <Power className="w-3 h-3" />
-                                  Деактивиран
+                                  <Archive className="w-3 h-3" />
+                                  Архивиран
                                 </span>
                               )}
                               <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
@@ -426,8 +426,17 @@ export default function ProductsPage() {
                                 onClick={() => handleToggleActive(product.id, product.isActive)}
                                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
                               >
-                                <Power className="w-4 h-4" />
-                                {product.isActive ? 'Деактивирай' : 'Активирай'}
+                                {product.isActive ? (
+                                  <>
+                                    <Archive className="w-4 h-4" />
+                                    Архивирай
+                                  </>
+                                ) : (
+                                  <>
+                                    <RotateCcw className="w-4 h-4" />
+                                    Активирай
+                                  </>
+                                )}
                               </button>
                               <button
                                 onClick={() => handleDeleteProduct(product.id)}
