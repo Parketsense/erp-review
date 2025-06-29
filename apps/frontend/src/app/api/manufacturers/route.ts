@@ -1,6 +1,13 @@
 export async function GET(request: Request) {
   try {
-    const response = await fetch('http://localhost:4000/api/manufacturers', {
+    // Extract URL parameters from the request
+    const url = new URL(request.url);
+    const searchParams = url.searchParams;
+    
+    // Forward all URL parameters to the backend
+    const backendUrl = `http://localhost:4000/api/manufacturers${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    
+    const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
