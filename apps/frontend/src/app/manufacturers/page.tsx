@@ -620,25 +620,33 @@ export default function ManufacturersPage() {
       console.log('Loading manufacturers with params:', params);
       
       const response = await apiClient.get(`/manufacturers${params}`);
-      console.log('API Response:', response);
+      console.log('Raw API Response:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', response ? Object.keys(response) : 'null');
       
-      // Handle API response correctly - the response is wrapped in { data: {...}, success: true, timestamp: ... }
+      // Try different ways to extract the data
       let manufacturersData = [];
-      if (response && response.data && response.data.data && Array.isArray(response.data.data)) {
-        // Response format: { data: { data: [...] }, success: true, timestamp: ... }
+      
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        // Format: { data: { data: [...] }, success: true, timestamp: ... }
         manufacturersData = response.data.data;
-      } else if (response && response.data && Array.isArray(response.data)) {
-        // Response format: { data: [...] }
+        console.log('Using response.data.data format');
+      } else if (response?.data && Array.isArray(response.data)) {
+        // Format: { data: [...] }
         manufacturersData = response.data;
-      } else if (response && Array.isArray(response)) {
-        // Response format: [...]
+        console.log('Using response.data format');
+      } else if (Array.isArray(response)) {
+        // Format: [...]
         manufacturersData = response;
+        console.log('Using direct array format');
       } else {
-        console.warn('Unexpected API response format:', response);
+        console.warn('Unable to extract manufacturers array from response:', response);
         manufacturersData = [];
       }
       
-      console.log('Processed manufacturers data:', manufacturersData);
+      console.log('Final manufacturers data:', manufacturersData);
+      console.log('Manufacturers count:', manufacturersData.length);
+      
       setManufacturers(manufacturersData);
       setFilteredManufacturers(manufacturersData);
     } catch (error) {

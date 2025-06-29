@@ -593,25 +593,33 @@ export default function SuppliersPage() {
       console.log('Loading suppliers with params:', params);
       
       const response = await apiClient.get(`/suppliers${params}`);
-      console.log('API Response:', response);
+      console.log('Raw API Response:', response);
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', response ? Object.keys(response) : 'null');
       
-      // Handle API response correctly - the response is wrapped in { data: {...}, success: true, timestamp: ... }
+      // Try different ways to extract the data
       let suppliersData = [];
-      if (response && response.data && response.data.data && Array.isArray(response.data.data)) {
-        // Response format: { data: { data: [...] }, success: true, timestamp: ... }
+      
+      if (response?.data?.data && Array.isArray(response.data.data)) {
+        // Format: { data: { data: [...] }, success: true, timestamp: ... }
         suppliersData = response.data.data;
-      } else if (response && response.data && Array.isArray(response.data)) {
-        // Response format: { data: [...] }
+        console.log('Using response.data.data format');
+      } else if (response?.data && Array.isArray(response.data)) {
+        // Format: { data: [...] }
         suppliersData = response.data;
-      } else if (response && Array.isArray(response)) {
-        // Response format: [...]
+        console.log('Using response.data format');
+      } else if (Array.isArray(response)) {
+        // Format: [...]
         suppliersData = response;
+        console.log('Using direct array format');
       } else {
-        console.warn('Unexpected API response format:', response);
+        console.warn('Unable to extract suppliers array from response:', response);
         suppliersData = [];
       }
       
-      console.log('Processed suppliers data:', suppliersData);
+      console.log('Final suppliers data:', suppliersData);
+      console.log('Suppliers count:', suppliersData.length);
+      
       setSuppliers(suppliersData);
       setFilteredSuppliers(suppliersData);
     } catch (error) {
