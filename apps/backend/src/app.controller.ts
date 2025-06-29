@@ -84,7 +84,7 @@ export class AppController {
       let createdCount = 0;
       let updatedCount = 0;
       let skippedCount = 0;
-      const errors = [];
+      const errors: string[] = [];
 
       for (const manufacturer of manufacturers) {
         try {
