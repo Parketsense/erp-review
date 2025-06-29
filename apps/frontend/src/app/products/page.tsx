@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Package, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Factory, Tag, Eye, Image, FileText, Calendar, Power } from 'lucide-react';
+import { Package, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Factory, Tag, Eye, Image, FileText, Calendar, Power, EyeOff } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -29,6 +29,7 @@ interface Product {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showInactive, setShowInactive] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const { showLoading, hideLoading } = useLoading('products');
@@ -36,7 +37,8 @@ export default function ProductsPage() {
   const loadProducts = async () => {
     try {
       showLoading('Зареждане на продукти...');
-      const response = await apiClient.get('/products');
+      const params = showInactive ? '?includeInactive=true' : '';
+      const response = await apiClient.get(`/products${params}`);
       console.log('🔍 Products API response:', response);
       
       // Handle the API response structure correctly
@@ -113,7 +115,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [showInactive]);
 
   const filteredProducts = products.filter(product => {
     const name = product.name || '';
@@ -135,8 +137,10 @@ export default function ProductsPage() {
   ));
 
   const totalProducts = products.length;
-  const withMediaCount = products.filter(p => p.mediaFiles && p.mediaFiles.length > 0).length;
-  const withAttributesCount = products.filter(p => p.attributes && Object.keys(p.attributes).length > 0).length;
+  const activeProducts = products.filter(p => p.isActive !== false);
+  const inactiveProducts = products.filter(p => p.isActive === false);
+  const withMediaCount = activeProducts.filter(p => p.mediaFiles && p.mediaFiles.length > 0).length;
+  const withAttributesCount = activeProducts.filter(p => p.attributes && Object.keys(p.attributes).length > 0).length;
 
   return (
     <ErrorBoundary>
@@ -176,7 +180,10 @@ export default function ProductsPage() {
                 </div>
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Общо продукти</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalProducts}</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeProducts.length}</p>
+                  {showInactive && inactiveProducts.length > 0 && (
+                    <p className="text-sm text-gray-500">+{inactiveProducts.length} неактивни</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -221,17 +228,32 @@ export default function ProductsPage() {
           {/* Search and Add */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Търси по име, код, производител..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex-1 max-w-md">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Търси по име, код, производител..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
                 </div>
+                
+                <button
+                  onClick={() => setShowInactive(!showInactive)}
+                  className={`px-4 py-3 rounded-lg flex items-center gap-2 border transition-colors ${
+                    showInactive 
+                      ? 'bg-blue-600 text-white border-blue-600' 
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                  title={showInactive ? 'Скрий деактивираните' : 'Покажи деактивираните'}
+                >
+                  <EyeOff className="w-5 h-5" />
+                  {showInactive ? 'Скрий деактивирани' : 'Покажи деактивирани'}
+                </button>
               </div>
               
               <button 
@@ -293,21 +315,27 @@ export default function ProductsPage() {
             ) : (
               <div className="divide-y divide-gray-200">
                 {filteredProducts.map((product) => (
-                  <div key={product.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div key={product.id} className={`p-6 hover:bg-gray-50 transition-colors ${!product.isActive ? 'opacity-60' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-start gap-4">
                           {/* Product Icon */}
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                          <div className={`w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-lg ${!product.isActive ? 'grayscale' : ''}`}>
                             {product.name?.charAt(0) || 'P'}
                           </div>
 
                           <div className="flex-1">
                             {/* Name and Code */}
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
                               <h4 className="text-lg font-semibold text-gray-900">
                                 {product.name}
                               </h4>
+                              {!product.isActive && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                                  <Power className="w-3 h-3" />
+                                  Деактивиран
+                                </span>
+                              )}
                               <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                                 <Tag className="w-3 h-3" />
                                 {product.code}

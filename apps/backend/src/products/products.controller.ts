@@ -107,6 +107,7 @@ export class ProductsController {
     @Query('category') category?: string,
     @Query('inStock') inStock?: string,
     @Query('isFeatured') isFeatured?: string,
+    @Query('includeInactive') includeInactive?: string,
   ) {
     return this.productsService.findAll({
       page: page ? parseInt(page, 10) : undefined,
@@ -115,6 +116,7 @@ export class ProductsController {
       category,
       inStock: inStock === 'true' ? true : inStock === 'false' ? false : undefined,
       isFeatured: isFeatured === 'true' ? true : isFeatured === 'false' ? false : undefined,
+      includeInactive: includeInactive === 'true',
     });
   }
 

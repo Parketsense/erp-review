@@ -102,6 +102,7 @@ export class ProductsService {
     category?: string;
     inStock?: boolean;
     isFeatured?: boolean;
+    includeInactive?: boolean;
   } = {}) {
     const page = options.page || 1;
     const limit = options.limit || 10;
@@ -118,7 +119,11 @@ export class ProductsService {
     }
 
     if (options.isFeatured !== undefined) where.isRecommended = options.isFeatured;
-    where.isActive = true; // Always show active products
+    
+    // Include inactive products only if explicitly requested
+    if (!options.includeInactive) {
+      where.isActive = true;
+    }
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({

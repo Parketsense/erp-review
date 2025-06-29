@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Factory, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X, Package, Power } from 'lucide-react';
+import { Factory, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X, Package, Power, EyeOff } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -606,6 +606,7 @@ export default function ManufacturersPage() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [filteredManufacturers, setFilteredManufacturers] = useState<Manufacturer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showInactive, setShowInactive] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
@@ -614,7 +615,8 @@ export default function ManufacturersPage() {
   const loadManufacturers = async () => {
     try {
       showLoading();
-      const data = await apiClient.get('/manufacturers');
+      const params = showInactive ? '?includeInactive=true' : '';
+      const data = await apiClient.get(`/manufacturers${params}`);
       setManufacturers(data.data || []);
       setFilteredManufacturers(data.data || []);
     } catch (error) {
@@ -626,7 +628,7 @@ export default function ManufacturersPage() {
 
   useEffect(() => {
     loadManufacturers();
-  }, []);
+  }, [showInactive]);
 
   useEffect(() => {
     const filtered = manufacturers.filter(manufacturer => 
@@ -744,9 +746,10 @@ export default function ManufacturersPage() {
 
   // Calculate statistics
   const totalManufacturers = manufacturers.length;
-  const activeManufacturers = manufacturers.filter(m => m.isActive !== false).length;
-  const withDiscountCount = manufacturers.filter(m => m.discount > 0).length;
-  const totalProducts = manufacturers.reduce((sum, m) => sum + (m._count?.products || 0), 0);
+  const activeManufacturers = manufacturers.filter(m => m.isActive !== false);
+  const inactiveManufacturers = manufacturers.filter(m => m.isActive === false);
+  const withDiscountCount = activeManufacturers.filter(m => m.discount > 0).length;
+  const totalProducts = activeManufacturers.reduce((sum, m) => sum + (m._count?.products || 0), 0);
 
   return (
     <ErrorBoundary>
@@ -786,7 +789,10 @@ export default function ManufacturersPage() {
                 </div>
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Общо производители</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalManufacturers}</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeManufacturers.length}</p>
+                  {showInactive && inactiveManufacturers.length > 0 && (
+                    <p className="text-sm text-gray-500">+{inactiveManufacturers.length} неактивни</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -798,7 +804,7 @@ export default function ManufacturersPage() {
                 </div>
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Активни</p>
-                  <p className="text-2xl font-bold text-gray-900">{activeManufacturers}</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeManufacturers.length}</p>
                 </div>
               </div>
             </div>
@@ -831,17 +837,32 @@ export default function ManufacturersPage() {
           {/* Search and Add */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex-1 max-w-md">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Търси по име, код, мейл..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex-1 max-w-md">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Търси по име, код, мейл..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
                 </div>
+                
+                <button
+                  onClick={() => setShowInactive(!showInactive)}
+                  className={`px-4 py-3 rounded-lg flex items-center gap-2 border transition-colors ${
+                    showInactive 
+                      ? 'bg-blue-600 text-white border-blue-600' 
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                  title={showInactive ? 'Скрий деактивираните' : 'Покажи деактивираните'}
+                >
+                  <EyeOff className="w-5 h-5" />
+                  {showInactive ? 'Скрий деактивирани' : 'Покажи деактивирани'}
+                </button>
               </div>
               
               <button
@@ -903,13 +924,13 @@ export default function ManufacturersPage() {
             ) : (
               <div className="divide-y divide-gray-200">
                 {filteredManufacturers.map((manufacturer) => (
-                  <div key={manufacturer.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div key={manufacturer.id} className={`p-6 hover:bg-gray-50 transition-colors ${!manufacturer.isActive ? 'opacity-60' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-start gap-4">
                           {/* Manufacturer Icon with Color */}
                           <div 
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
+                            className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg ${!manufacturer.isActive ? 'grayscale' : ''}`}
                             style={{ backgroundColor: manufacturer.colorCode || '#6c757d' }}
                           >
                             {manufacturer.displayName?.charAt(0) || 'M'}
@@ -917,10 +938,16 @@ export default function ManufacturersPage() {
 
                           <div className="flex-1">
                             {/* Name and Code */}
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
                               <h4 className="text-lg font-semibold text-gray-900">
                                 {manufacturer.displayName}
                               </h4>
+                              {!manufacturer.isActive && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                                  <Power className="w-3 h-3" />
+                                  Деактивиран
+                                </span>
+                              )}
                               {manufacturer.code && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                                   {manufacturer.code}

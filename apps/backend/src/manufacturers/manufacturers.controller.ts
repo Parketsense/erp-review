@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ManufacturersService } from './manufacturers.service';
 import { CreateManufacturerDto } from '../types/attribute.types';
@@ -15,14 +16,10 @@ export class ManufacturersController {
   constructor(private readonly manufacturersService: ManufacturersService) {}
 
   @Get()
-  async findAll() {
-    const manufacturers = await this.manufacturersService.findAll();
-    
-    return {
-      success: true,
-      data: manufacturers,
-      total: manufacturers.length
-    };
+  findAll(@Query('includeInactive') includeInactive?: string) {
+    return this.manufacturersService.findAll({
+      includeInactive: includeInactive === 'true',
+    });
   }
 
   @Get(':id')

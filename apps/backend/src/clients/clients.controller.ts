@@ -32,6 +32,7 @@ export class ClientsController {
     @Query('search') search?: string,
     @Query('hasCompany') hasCompany?: string,
     @Query('isArchitect') isArchitect?: string,
+    @Query('includeInactive') includeInactive?: string,
   ) {
     return this.clientsService.findAll({
       page: page ? parseInt(page, 10) : undefined,
@@ -39,6 +40,7 @@ export class ClientsController {
       search,
       hasCompany: hasCompany === 'true' ? true : hasCompany === 'false' ? false : undefined,
       isArchitect: isArchitect === 'true' ? true : isArchitect === 'false' ? false : undefined,
+      includeInactive: includeInactive === 'true',
     });
   }
 

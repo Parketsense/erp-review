@@ -6,11 +6,20 @@ import { Supplier, CreateSupplierDto } from '../types/attribute.types';
 export class SuppliersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(): Promise<Supplier[]> {
-    return this.prisma.supplier.findMany({
-      where: { isActive: true },
+  async findAll(options: { includeInactive?: boolean } = {}): Promise<{ data: Supplier[] }> {
+    const where: any = {};
+    
+    // Include inactive suppliers only if explicitly requested
+    if (!options.includeInactive) {
+      where.isActive = true;
+    }
+
+    const suppliers = await this.prisma.supplier.findMany({
+      where,
       orderBy: { displayName: 'asc' }
     }) as any;
+
+    return { data: suppliers };
   }
 
   async findOne(id: string): Promise<Supplier> {

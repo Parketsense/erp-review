@@ -62,6 +62,7 @@ export class ClientsService {
     search?: string;
     hasCompany?: boolean;
     isArchitect?: boolean;
+    includeInactive?: boolean;
   } = {}) {
     const page = options.page || 1;
     const limit = options.limit || 50; // Увеличаваме лимита за по-добро потребителско изживяване
@@ -87,8 +88,10 @@ export class ClientsService {
       where.isArchitect = options.isArchitect;
     }
 
-    // Always show active clients
-    where.isActive = true;
+    // Include inactive clients only if explicitly requested
+    if (!options.includeInactive) {
+      where.isActive = true;
+    }
 
     const [clients, total] = await Promise.all([
       this.prisma.client.findMany({
