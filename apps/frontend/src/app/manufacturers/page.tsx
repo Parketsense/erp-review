@@ -618,10 +618,19 @@ export default function ManufacturersPage() {
       const params = showInactive ? '?includeInactive=true' : '';
       const response = await apiClient.get(`/manufacturers${params}`);
       
-      // Handle new API structure { data: [] }
-      const manufacturersData = response.data ? response : { data: response };
-      setManufacturers(manufacturersData.data);
-      setFilteredManufacturers(manufacturersData.data);
+      // Handle new API structure { data: [] } with safe fallback
+      let manufacturersData = [];
+      if (response && response.data && Array.isArray(response.data)) {
+        manufacturersData = response.data;
+      } else if (response && Array.isArray(response)) {
+        manufacturersData = response;
+      } else {
+        console.warn('Unexpected API response format:', response);
+        manufacturersData = [];
+      }
+      
+      setManufacturers(manufacturersData);
+      setFilteredManufacturers(manufacturersData);
     } catch (error) {
       console.error('Error loading manufacturers:', error);
       setManufacturers([]);
@@ -635,15 +644,24 @@ export default function ManufacturersPage() {
     loadManufacturers();
   }, [showInactive]);
 
-  useEffect(() => {
-    const filtered = manufacturers.filter(manufacturer => 
-      manufacturer.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      manufacturer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (manufacturer.code && manufacturer.code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (manufacturer.contactEmail && manufacturer.contactEmail.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    setFilteredManufacturers(filtered);
-  }, [searchTerm, manufacturers]);
+  const filteredManufacturersList = React.useMemo(() => {
+    if (!Array.isArray(filteredManufacturers)) {
+      return [];
+    }
+    
+    return filteredManufacturers.filter(manufacturer => {
+      const searchLower = searchTerm.toLowerCase();
+      return manufacturer.displayName?.toLowerCase().includes(searchLower) ||
+             manufacturer.name?.toLowerCase().includes(searchLower);
+    });
+  }, [filteredManufacturers, searchTerm]);
+
+  // Calculate statistics with safe array checks
+  const totalManufacturers = Array.isArray(manufacturers) ? manufacturers.length : 0;
+  const activeManufacturers = Array.isArray(manufacturers) ? manufacturers.filter(m => m.isActive !== false) : [];
+  const inactiveManufacturers = Array.isArray(manufacturers) ? manufacturers.filter(m => m.isActive === false) : [];
+  const withDiscountCount = activeManufacturers.filter(m => m.discount > 0).length;
+  const totalProducts = activeManufacturers.reduce((sum, m) => sum + (m._count?.products || 0), 0);
 
   const handleSave = async (manufacturerData: Partial<Manufacturer> & { addAsSupplier?: boolean }) => {
     try {
@@ -748,13 +766,6 @@ export default function ManufacturersPage() {
     setSelectedManufacturer(null);
     setShowModal(true);
   };
-
-  // Calculate statistics
-  const totalManufacturers = manufacturers.length;
-  const activeManufacturers = manufacturers.filter(m => m.isActive !== false);
-  const inactiveManufacturers = manufacturers.filter(m => m.isActive === false);
-  const withDiscountCount = activeManufacturers.filter(m => m.discount > 0).length;
-  const totalProducts = activeManufacturers.reduce((sum, m) => sum + (m._count?.products || 0), 0);
 
   return (
     <ErrorBoundary>
@@ -882,7 +893,7 @@ export default function ManufacturersPage() {
             {searchTerm && (
               <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-blue-800 text-sm">
-                  Намерени {filteredManufacturers.length} от {totalManufacturers} производители
+                  Намерени {filteredManufacturersList.length} от {totalManufacturers} производители
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
@@ -900,11 +911,11 @@ export default function ManufacturersPage() {
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900">
-                Списък производители ({filteredManufacturers.length})
+                Списък производители ({filteredManufacturersList.length})
               </h3>
             </div>
 
-            {filteredManufacturers.length === 0 ? (
+            {filteredManufacturersList.length === 0 ? (
               <div className="p-12 text-center">
                 <Factory className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-gray-900 mb-2">
@@ -928,7 +939,7 @@ export default function ManufacturersPage() {
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
-                {filteredManufacturers.map((manufacturer) => (
+                {filteredManufacturersList.map((manufacturer) => (
                   <div key={manufacturer.id} className={`p-6 hover:bg-gray-50 transition-colors ${!manufacturer.isActive ? 'opacity-60' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

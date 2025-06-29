@@ -77,6 +77,10 @@ export class AppController {
       const manufacturers = manufacturersResponse.data;
       console.log(`📊 Found ${manufacturers.length} manufacturers to migrate`);
       
+      // Вземи съществуващите доставчици
+      const existingSuppliersResponse = await this.suppliersService.findAll();
+      const existingSuppliers = existingSuppliersResponse.data;
+      
       let createdCount = 0;
       let updatedCount = 0;
       let skippedCount = 0;
@@ -84,6 +88,11 @@ export class AppController {
 
       for (const manufacturer of manufacturers) {
         try {
+          // Check if supplier already exists
+          const existingSupplier = existingSuppliers.find((s: any) =>
+            s.name === manufacturer.name || s.displayName === manufacturer.displayName
+          );
+
           const supplierData = {
             name: manufacturer.name,
             displayName: manufacturer.displayName,
@@ -102,49 +111,42 @@ export class AppController {
             isActive: manufacturer.isActive !== false,
           };
 
-          // Провери дали вече съществува в suppliers
-          const existingSuppliersResponse = await this.suppliersService.findAll();
-          const existingSuppliers = existingSuppliersResponse.data;
-          const existingSupplier = existingSuppliers.find((s: any) =>
-            s.name === manufacturer.name || s.displayName === manufacturer.displayName
-          );
-
           if (existingSupplier) {
-            // Актуализирай съществуващия
+            // Update existing supplier
             await this.suppliersService.update(existingSupplier.id, supplierData);
             updatedCount++;
-            console.log(`✅ Updated supplier: ${manufacturer.displayName}`);
+            console.log(`✅ Updated supplier: ${supplierData.displayName}`);
           } else {
-            // Създай нов
+            // Create new supplier
             await this.suppliersService.create(supplierData);
             createdCount++;
-            console.log(`🆕 Created new supplier: ${manufacturer.displayName}`);
+            console.log(`✨ Created supplier: ${supplierData.displayName}`);
           }
         } catch (error) {
-          console.error(`❌ Error migrating manufacturer ${manufacturer.displayName}:`, error.message);
-          errors.push({ manufacturer: manufacturer.displayName, error: error.message });
+          console.error(`❌ Error processing ${manufacturer.displayName}:`, error.message);
+          errors.push(`${manufacturer.displayName}: ${error.message}`);
           skippedCount++;
         }
       }
 
       return {
         success: true,
-        message: 'Migration completed successfully',
-        stats: {
+        message: '🎉 Migration completed successfully!',
+        statistics: {
           totalManufacturers: manufacturers.length,
           created: createdCount,
           updated: updatedCount,
           skipped: skippedCount,
-          errors: errors.length
+          errors: errors.length,
         },
-        errors
+        errors: errors,
       };
     } catch (error) {
-      console.error('❌ Migration failed:', error);
+      console.error('💥 Migration failed:', error);
       return {
         success: false,
         message: 'Migration failed',
-        error: error.message
+        error: error.message,
       };
     }
   }

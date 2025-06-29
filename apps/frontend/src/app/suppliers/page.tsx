@@ -592,10 +592,19 @@ export default function SuppliersPage() {
       const params = showInactive ? '?includeInactive=true' : '';
       const response = await apiClient.get(`/suppliers${params}`);
       
-      // Handle new API structure { data: [] }
-      const suppliersData = response.data ? response : { data: response };
-      setSuppliers(suppliersData.data);
-      setFilteredSuppliers(suppliersData.data);
+      // Handle new API structure { data: [] } with safe fallback
+      let suppliersData = [];
+      if (response && response.data && Array.isArray(response.data)) {
+        suppliersData = response.data;
+      } else if (response && Array.isArray(response)) {
+        suppliersData = response;
+      } else {
+        console.warn('Unexpected API response format:', response);
+        suppliersData = [];
+      }
+      
+      setSuppliers(suppliersData);
+      setFilteredSuppliers(suppliersData);
     } catch (error) {
       console.error('Error loading suppliers:', error);
       setSuppliers([]);
@@ -609,15 +618,26 @@ export default function SuppliersPage() {
     loadSuppliers();
   }, [showInactive]);
 
-  useEffect(() => {
-    const filtered = suppliers.filter(supplier => 
-      supplier.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (supplier.code && supplier.code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (supplier.contactEmail && supplier.contactEmail.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-    setFilteredSuppliers(filtered);
-  }, [searchTerm, suppliers]);
+  const filteredSuppliersList = React.useMemo(() => {
+    if (!Array.isArray(filteredSuppliers)) {
+      return [];
+    }
+    
+    return filteredSuppliers.filter(supplier => {
+      const searchLower = searchTerm.toLowerCase();
+      return supplier.displayName?.toLowerCase().includes(searchLower) ||
+             supplier.name?.toLowerCase().includes(searchLower);
+    });
+  }, [filteredSuppliers, searchTerm]);
+
+  // Calculate statistics with safe array checks
+  const totalSuppliers = Array.isArray(suppliers) ? suppliers.length : 0;
+  const activeSuppliers = Array.isArray(suppliers) ? suppliers.filter(s => s.isActive !== false) : [];
+  const inactiveSuppliers = Array.isArray(suppliers) ? suppliers.filter(s => s.isActive === false) : [];
+  const withDiscountCount = activeSuppliers.filter(s => s.discount > 0).length;
+  const averageDiscount = activeSuppliers.length > 0 
+    ? (activeSuppliers.reduce((sum, s) => sum + s.discount, 0) / activeSuppliers.length).toFixed(1)
+    : '0';
 
   const handleSave = async (supplierData: Partial<Supplier>) => {
     try {
@@ -681,15 +701,6 @@ export default function SuppliersPage() {
     setSelectedSupplier(null);
     setShowModal(true);
   };
-
-  // Calculate statistics
-  const totalSuppliers = suppliers.length;
-  const activeSuppliers = suppliers.filter(s => s.isActive !== false);
-  const inactiveSuppliers = suppliers.filter(s => s.isActive === false);
-  const withDiscountCount = activeSuppliers.filter(s => s.discount > 0).length;
-  const averageDiscount = activeSuppliers.length > 0 
-    ? (activeSuppliers.reduce((sum, s) => sum + s.discount, 0) / activeSuppliers.length).toFixed(1)
-    : '0';
 
   return (
     <ErrorBoundary>
@@ -817,7 +828,7 @@ export default function SuppliersPage() {
             {searchTerm && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800 text-sm">
-                  Намерени {filteredSuppliers.length} от {totalSuppliers} доставчици
+                  Намерени {filteredSuppliersList.length} от {totalSuppliers} доставчици
                   {searchTerm && (
                     <button
                       onClick={() => setSearchTerm('')}
@@ -835,11 +846,11 @@ export default function SuppliersPage() {
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900">
-                Списък доставчици ({filteredSuppliers.length})
+                Списък доставчици ({filteredSuppliersList.length})
               </h3>
             </div>
 
-            {filteredSuppliers.length === 0 ? (
+            {filteredSuppliersList.length === 0 ? (
               <div className="p-12 text-center">
                 <Truck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-gray-900 mb-2">
@@ -863,7 +874,7 @@ export default function SuppliersPage() {
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
-                {filteredSuppliers.map((supplier) => (
+                {filteredSuppliersList.map((supplier) => (
                   <div key={supplier.id} className={`p-6 hover:bg-gray-50 transition-colors ${!supplier.isActive ? 'opacity-60' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
