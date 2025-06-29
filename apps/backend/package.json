@@ -24,6 +24,9 @@
     "db:reset": "prisma migrate reset --force",
     "db:studio": "prisma studio",
     "db:seed": "ts-node prisma/seed.ts",
+    "db:backup": "node scripts/db-backup.js",
+    "db:restore": "node scripts/db-restore.js",
+    "db:backup:list": "node scripts/db-backup.js list",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

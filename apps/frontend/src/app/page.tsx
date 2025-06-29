@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Users, Package, Settings, Factory, Truck } from 'lucide-react';
+import { Users, Package, Settings, Factory, Truck, FolderOpen, HardHat } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -22,7 +22,7 @@ export default function HomePage() {
         </div>
 
         {/* Navigation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {/* Clients */}
           <Link href="/clients">
             <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer border">
@@ -34,6 +34,36 @@ export default function HomePage() {
               </h3>
               <p className="text-gray-600 text-center text-sm">
                 Управление на клиенти
+              </p>
+            </div>
+          </Link>
+
+          {/* Architects */}
+          <Link href="/architects">
+            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer border">
+              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mb-4 mx-auto">
+                <HardHat className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">
+                Архитекти
+              </h3>
+              <p className="text-gray-600 text-center text-sm">
+                Управление на архитекти
+              </p>
+            </div>
+          </Link>
+
+          {/* Projects */}
+          <Link href="/projects">
+            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer border">
+              <div className="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-lg mb-4 mx-auto">
+                <FolderOpen className="w-6 h-6 text-indigo-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">
+                Проекти
+              </h3>
+              <p className="text-gray-600 text-center text-sm">
+                Управление на проекти
               </p>
             </div>
           </Link>

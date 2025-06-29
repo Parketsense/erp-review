@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Loading attribute values for:', { productTypeId, manufacturerId });
 
     // First get all attributes for the product type
-    const attributesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api'}/product-types/${productTypeId}/attributes`);
+    const attributesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4003/api'}/product-types/${productTypeId}/attributes`);
     const attributesData = await attributesResponse.json();
 
     if (!attributesData.success || !attributesData.data.attributes) {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const allAttributeValues = [];
     
     for (const attribute of attributes) {
-      const valuesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api'}/attribute-values?attributeTypeId=${attribute.id}&manufacturerId=${manufacturerId}`);
+      const valuesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4003/api'}/attribute-values?attributeTypeId=${attribute.id}&manufacturerId=${manufacturerId}`);
       const valuesData = await valuesResponse.json();
       
       if (valuesData.success && valuesData.data) {

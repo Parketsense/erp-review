@@ -4,7 +4,7 @@ export async function GET(request: Request) {
     const attributeTypeId = searchParams.get('attributeTypeId');
     const manufacturerId = searchParams.get('manufacturerId');
 
-    let url = 'http://localhost:4000/api/attribute-values';
+    let url = 'http://localhost:4003/api/attribute-values';
     const params = new URLSearchParams();
     
     if (attributeTypeId) {
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    const response = await fetch('http://localhost:4000/api/attribute-values', {
+    const response = await fetch('http://localhost:4003/api/attribute-values', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

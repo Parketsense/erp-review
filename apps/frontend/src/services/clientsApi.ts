@@ -1,6 +1,5 @@
 import { Client, ClientsResponse, ClientStats, CreateClientDto } from '../types/client';
-
-const API_BASE_URL = 'http://localhost:4000/api';
+import { API_BASE_URL } from '../lib/api';
 
 class ClientsApiService {
   async getClients(params?: {

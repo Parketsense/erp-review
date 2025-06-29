@@ -1,6 +1,6 @@
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const response = await fetch(`http://localhost:4000/api/attribute-values/${params.id}`, {
+    const response = await fetch(`http://localhost:4003/api/attribute-values/${params.id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   try {
     const body = await request.json();
     
-    const response = await fetch(`http://localhost:4000/api/attribute-values/${params.id}`, {
+    const response = await fetch(`http://localhost:4003/api/attribute-values/${params.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
-    const response = await fetch(`http://localhost:4000/api/attribute-values/${params.id}`, {
+    const response = await fetch(`http://localhost:4003/api/attribute-values/${params.id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

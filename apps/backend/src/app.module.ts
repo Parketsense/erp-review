@@ -15,6 +15,8 @@ import { SuppliersModule } from './suppliers/suppliers.module';
 import { ContactsModule } from './contacts/contacts.module';
 import { AttributeValuesModule } from './attribute-values/attribute-values.module';
 import { AttributesModule } from './attributes/attributes.module';
+import { ProjectsModule } from './projects/projects.module';
+// import { ProjectPhasesModule } from './project-phases/project-phases.module';
 
 @Module({
   imports: [
@@ -34,6 +36,10 @@ import { AttributesModule } from './attributes/attributes.module';
     ContactsModule,
     AttributeValuesModule,
     AttributesModule,
+    
+    // Projects module
+    ProjectsModule,
+    // ProjectPhasesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -70,13 +70,14 @@ export class ClientsService {
     const where: any = {};
 
     if (options.search) {
+      // For SQLite, we'll load more data and let frontend do case-insensitive filtering
       where.OR = [
-        { firstName: { contains: options.search, mode: 'insensitive' } },
-        { lastName: { contains: options.search, mode: 'insensitive' } },
-        { email: { contains: options.search, mode: 'insensitive' } },
-        { phone: { contains: options.search, mode: 'insensitive' } },
-        { companyName: { contains: options.search, mode: 'insensitive' } },
-        { eikBulstat: { contains: options.search, mode: 'insensitive' } },
+        { firstName: { contains: options.search } },
+        { lastName: { contains: options.search } },
+        { email: { contains: options.search } },
+        { phone: { contains: options.search } },
+        { companyName: { contains: options.search } },
+        { eikBulstat: { contains: options.search } },
       ];
     }
 

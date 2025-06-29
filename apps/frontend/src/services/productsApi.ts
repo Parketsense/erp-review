@@ -1,6 +1,8 @@
 import { ProductsResponse, ProductStats, Product, CreateProductDto } from '../types/product';
 
-const BASE_URL = 'http://localhost:4000/api';
+import { API_BASE_URL } from '../lib/api';
+
+const BASE_URL = API_BASE_URL;
 
 export const productsApi = {
   // Get all products with optional filters

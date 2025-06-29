@@ -61,6 +61,10 @@ model Client {
   updatedById       String?
   updatedBy         User?    @relation("ClientUpdatedBy", fields: [updatedById], references: [id])
   createdBy         User?    @relation("ClientCreatedBy", fields: [createdById], references: [id])
+  
+  // Projects relations
+  projects          Project[] @relation("ClientProjects")
+  architectProjects Project[] @relation("ArchitectProjects")
 
   @@map("clients")
 }
@@ -96,6 +100,7 @@ model Product {
   createdById     String?
   updatedById     String?
   attributeValues ProductAttributeValue[]
+  roomProducts    RoomProduct[]           // Products in project rooms
   updatedBy       User?                   @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
   createdBy       User?                   @relation("ProductCreatedBy", fields: [createdById], references: [id])
   manufacturer    Manufacturer            @relation(fields: [manufacturerId], references: [id])
@@ -282,4 +287,269 @@ model ProductTypeManufacturer {
 
   @@unique([productTypeId, manufacturerId])
   @@map("product_type_manufacturers")
+}
+
+// ===== PROJECTS MODULE MODELS =====
+
+model Project {
+  id                      String            @id @default(uuid())
+  clientId                String
+  
+  // Basic Information
+  name                    String
+  projectType             String            // apartment, house, office, commercial, other
+  address                 String?
+  description             String?
+  city                    String            @default("София")
+  
+  // Project Details
+  totalArea               Float?
+  roomsCount              Int?
+  floorsCount             Int?
+  estimatedBudget         Float?
+  
+  // Timeline
+  startDate               DateTime?
+  expectedCompletionDate  DateTime?
+  
+  // Architect Information
+  architectType           String            @default("none") // none, client, external
+  architectId             String?
+  architectName           String?
+  architectCommission     Float?            @default(0)
+  architectPhone          String?
+  architectEmail          String?
+  
+  // Status
+  status                  String            @default("draft") // draft, active, completed, archived
+  
+  // Timestamps
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  deletedAt               DateTime?
+  
+  // Relations
+  client                  Client            @relation("ClientProjects", fields: [clientId], references: [id], onDelete: Restrict)
+  architect               Client?           @relation("ArchitectProjects", fields: [architectId], references: [id])
+  contacts                ProjectContact[]
+  phases                  ProjectPhase[]
+  offers                  Offer[]
+
+  @@map("projects")
+}
+
+model ProjectContact {
+  id              String    @id @default(uuid())
+  projectId       String
+  
+  // Contact Information
+  name            String
+  phone           String?
+  email           String?
+  role            String    @default("other") // owner, spouse, architect, accountant, builder, designer, other
+  
+  // Permissions
+  receivesOffers  Boolean   @default(false)
+  receivesInvoices Boolean  @default(false)
+  receivesUpdates Boolean   @default(false)
+  isPrimary       Boolean   @default(false)
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_contacts")
+}
+
+model ProjectPhase {
+  id          String         @id @default(uuid())
+  projectId   String
+  
+  // Phase Information
+  name        String
+  description String?
+  phaseOrder  Int            @default(1)
+  
+  // Status
+  status      String         @default("created") // created, quoted, won, lost, archived
+  
+  // Timestamps
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  // Relations
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  variants    PhaseVariant[]
+  offers      Offer[]
+
+  @@unique([projectId, phaseOrder])
+  @@map("project_phases")
+}
+
+model PhaseVariant {
+  id                  String        @id @default(uuid())
+  phaseId             String
+  
+  // Variant Information
+  name                String
+  description         String?
+  variantOrder        Int           @default(1)
+  
+  // Personnel
+  designer            String?
+  architect           String?
+  architectCommission Float?        @default(0)
+  
+  // Settings
+  includeInOffer      Boolean       @default(true)
+  discountEnabled     Boolean       @default(true)
+  variantDiscount     Float?        @default(0)
+  
+  // Timestamps
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  
+  // Relations
+  phase               ProjectPhase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  rooms               VariantRoom[]
+
+  @@unique([phaseId, variantOrder])
+  @@map("phase_variants")
+}
+
+model VariantRoom {
+  id              String        @id @default(uuid())
+  variantId       String
+  
+  // Room Information
+  name            String
+  area            Float?
+  
+  // Pricing Settings
+  discount        Float?        @default(0)
+  discountEnabled Boolean       @default(true)
+  wastePercent    Float?        @default(10)
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  variant         PhaseVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  products        RoomProduct[]
+  images          RoomImage[]
+
+  @@map("variant_rooms")
+}
+
+model RoomProduct {
+  id              String      @id @default(uuid())
+  roomId          String
+  productId       String
+  
+  // Quantities and Prices
+  quantity        Float
+  unitPrice       Float
+  
+  // Discounts
+  discount        Float?      @default(0)
+  discountEnabled Boolean     @default(true)
+  
+  // Waste
+  wastePercent    Float?      @default(10)
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  room            VariantRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  product         Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("room_products")
+}
+
+model RoomImage {
+  id            String      @id @default(uuid())
+  roomId        String
+  
+  // File Information
+  filename      String
+  originalName  String?
+  filePath      String
+  fileSize      Int?
+  mimeType      String?
+  
+  // Image Metadata
+  width         Int?
+  height        Int?
+  caption       String?
+  
+  // Timestamps
+  uploadedAt    DateTime    @default(now())
+  
+  // Relations
+  room          VariantRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("room_images")
+}
+
+model Offer {
+  id            String         @id @default(uuid())
+  projectId     String
+  phaseId       String?
+  
+  // Offer Details
+  offerNumber   String         @unique
+  subject       String?
+  validUntil    DateTime?
+  
+  // Conditions
+  conditions    Json?          // Array of condition strings
+  
+  // Email Template
+  emailSubject  String?
+  emailBody     String?
+  
+  // Status
+  status        String         @default("draft") // draft, sent, viewed, accepted, rejected
+  
+  // Sending History
+  sentCount     Int            @default(0)
+  lastSentAt    DateTime?
+  lastSentTo    String?
+  
+  // Timestamps
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  // Relations
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase         ProjectPhase?  @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  history       OfferHistory[]
+
+  @@map("offers")
+}
+
+model OfferHistory {
+  id              String    @id @default(uuid())
+  offerId         String
+  
+  // History Details
+  version         Int
+  action          String    // created, sent, viewed, downloaded
+  recipientEmail  String?
+  
+  // Snapshot Data
+  snapshotData    Json?
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@map("offer_history")
 }

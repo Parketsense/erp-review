@@ -37,8 +37,8 @@ export const APP_CONFIG = {
 
 // API Configuration
 export const API_CONFIG = {
-  baseUrl: getEnvVar('NEXT_PUBLIC_API_URL', 'http://localhost:4000/api'),
-  backendUrl: getEnvVar('NEXT_PUBLIC_BACKEND_URL', 'http://localhost:4000'),
+  baseUrl: getEnvVar('NEXT_PUBLIC_API_URL', 'http://localhost:4003/api'),
+  backendUrl: getEnvVar('NEXT_PUBLIC_BACKEND_URL', 'http://localhost:4003'),
   timeout: getEnvNumber('NEXT_PUBLIC_API_TIMEOUT', 30000),
   requestTimeout: getEnvNumber('NEXT_PUBLIC_REQUEST_TIMEOUT', 10000),
 } as const;
