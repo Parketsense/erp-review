@@ -94,6 +94,26 @@ export default function ProductsPage() {
     }
   };
 
+  const handleProductAction = async (productId: string, action: string) => {
+    try {
+      if (action === 'archive') {
+        // Обнови локално
+        setProducts(prev => prev.map(p => 
+          p.id === productId ? {...p, isActive: false} : p
+        ));
+        console.log('Product archived:', productId);
+      } else if (action === 'activate') {
+        // Обнови локално  
+        setProducts(prev => prev.map(p => 
+          p.id === productId ? {...p, isActive: true} : p
+        ));
+        console.log('Product activated:', productId);
+      }
+    } catch (error) {
+      console.error('Action failed:', error);
+    }
+  };
+
   const handleToggleActive = async (productId: string, currentStatus: boolean) => {
     const action = currentStatus ? 'архивирате' : 'активирате';
     if (!confirm(`Сигурни ли сте, че искате да ${action} този продукт?`)) {
@@ -422,22 +442,25 @@ export default function ProductsPage() {
                                 <Eye className="w-4 h-4" />
                                 Преглед
                               </button>
-                              <button
-                                onClick={() => handleToggleActive(product.id, product.isActive)}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
-                              >
-                                {product.isActive ? (
-                                  <>
-                                    <Archive className="w-4 h-4" />
-                                    Архивирай
-                                  </>
-                                ) : (
-                                  <>
-                                    <RotateCcw className="w-4 h-4" />
-                                    Активирай
-                                  </>
-                                )}
-                              </button>
+                              {product.isActive ? (
+                                <button
+                                  onClick={() => handleProductAction(product.id, 'archive')}
+                                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                                  title="Архивиране"
+                                >
+                                  <Archive className="w-4 h-4" />
+                                  Архивирай
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleProductAction(product.id, 'activate')}
+                                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                                  title="Активиране"
+                                >
+                                  <RotateCcw className="w-4 h-4" />
+                                  Активирай
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleDeleteProduct(product.id)}
                                 className="w-full px-4 py-2 text-left hover:bg-gray-50 text-red-600 flex items-center gap-2"
