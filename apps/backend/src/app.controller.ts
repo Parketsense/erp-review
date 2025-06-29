@@ -73,7 +73,8 @@ export class AppController {
       console.log('🔄 Starting migration of manufacturers to suppliers...');
       
       // Вземи всички производители
-      const manufacturers = await this.manufacturersService.findAll();
+      const manufacturersResponse = await this.manufacturersService.findAll();
+      const manufacturers = manufacturersResponse.data;
       console.log(`📊 Found ${manufacturers.length} manufacturers to migrate`);
       
       let createdCount = 0;
@@ -88,44 +89,48 @@ export class AppController {
             displayName: manufacturer.displayName,
             code: manufacturer.code,
             website: manufacturer.website,
-            description: manufacturer.description,
+            email: (manufacturer as any).email || '',
+            phone: (manufacturer as any).phone || '',
             address: manufacturer.address,
-            contactName: manufacturer.contactName,
-            contactEmail: manufacturer.contactEmail,
-            contactPhone: manufacturer.contactPhone,
+            city: (manufacturer as any).city || '',
+            country: (manufacturer as any).country || 'Bulgaria',
+            postalCode: (manufacturer as any).postalCode || '',
+            vatNumber: (manufacturer as any).vatNumber || '',
+            discount: manufacturer.discount || 0,
+            notes: (manufacturer as any).notes || '',
             colorCode: manufacturer.colorCode,
-            discount: manufacturer.discount,
+            isActive: manufacturer.isActive !== false,
           };
 
-          // Проверки дали доставчик вече съществува
-          const existingSuppliers = await this.suppliersService.findAll();
-          const existingSupplier = existingSuppliers.find(s => 
-            s.name === manufacturer.name || 
-            (manufacturer.code && s.code === manufacturer.code)
+          // Провери дали вече съществува в suppliers
+          const existingSuppliersResponse = await this.suppliersService.findAll();
+          const existingSuppliers = existingSuppliersResponse.data;
+          const existingSupplier = existingSuppliers.find((s: any) =>
+            s.name === manufacturer.name || s.displayName === manufacturer.displayName
           );
 
           if (existingSupplier) {
-            // Обнови съществуващия доставчик
+            // Актуализирай съществуващия
             await this.suppliersService.update(existingSupplier.id, supplierData);
             updatedCount++;
-            console.log(`✅ Updated supplier: ${manufacturer.name}`);
+            console.log(`✅ Updated supplier: ${manufacturer.displayName}`);
           } else {
-            // Създай нов доставчик
+            // Създай нов
             await this.suppliersService.create(supplierData);
             createdCount++;
-            console.log(`🆕 Created supplier: ${manufacturer.name}`);
+            console.log(`🆕 Created new supplier: ${manufacturer.displayName}`);
           }
         } catch (error) {
-          console.error(`❌ Error migrating manufacturer ${manufacturer.name}:`, error.message);
-          errors.push({ manufacturer: manufacturer.name, error: error.message });
+          console.error(`❌ Error migrating manufacturer ${manufacturer.displayName}:`, error.message);
+          errors.push({ manufacturer: manufacturer.displayName, error: error.message });
           skippedCount++;
         }
       }
 
-      const result = {
+      return {
         success: true,
-        message: 'Migration completed',
-        statistics: {
+        message: 'Migration completed successfully',
+        stats: {
           totalManufacturers: manufacturers.length,
           created: createdCount,
           updated: updatedCount,
@@ -134,9 +139,6 @@ export class AppController {
         },
         errors
       };
-
-      console.log('✅ Migration completed:', result.statistics);
-      return result;
     } catch (error) {
       console.error('❌ Migration failed:', error);
       return {

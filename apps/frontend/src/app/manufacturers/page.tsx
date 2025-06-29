@@ -616,11 +616,16 @@ export default function ManufacturersPage() {
     try {
       showLoading();
       const params = showInactive ? '?includeInactive=true' : '';
-      const data = await apiClient.get(`/manufacturers${params}`);
-      setManufacturers(data.data || []);
-      setFilteredManufacturers(data.data || []);
+      const response = await apiClient.get(`/manufacturers${params}`);
+      
+      // Handle new API structure { data: [] }
+      const manufacturersData = response.data ? response : { data: response };
+      setManufacturers(manufacturersData.data);
+      setFilteredManufacturers(manufacturersData.data);
     } catch (error) {
-      console.error('Грешка при зареждане на производители:', error);
+      console.error('Error loading manufacturers:', error);
+      setManufacturers([]);
+      setFilteredManufacturers([]);
     } finally {
       hideLoading();
     }

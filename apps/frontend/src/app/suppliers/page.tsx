@@ -590,11 +590,16 @@ export default function SuppliersPage() {
     try {
       showLoading();
       const params = showInactive ? '?includeInactive=true' : '';
-      const data = await apiClient.get(`/suppliers${params}`);
-      setSuppliers(data.data || []);
-      setFilteredSuppliers(data.data || []);
+      const response = await apiClient.get(`/suppliers${params}`);
+      
+      // Handle new API structure { data: [] }
+      const suppliersData = response.data ? response : { data: response };
+      setSuppliers(suppliersData.data);
+      setFilteredSuppliers(suppliersData.data);
     } catch (error) {
-      console.error('Грешка при зареждане на доставчици:', error);
+      console.error('Error loading suppliers:', error);
+      setSuppliers([]);
+      setFilteredSuppliers([]);
     } finally {
       hideLoading();
     }
