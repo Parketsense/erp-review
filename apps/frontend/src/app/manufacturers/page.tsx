@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Factory, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X } from 'lucide-react';
+import { Factory, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Mail, MapPin, Globe, Percent, Users, X, Package } from 'lucide-react';
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
@@ -724,175 +724,298 @@ export default function ManufacturersPage() {
     setShowModal(true);
   };
 
+  // Calculate statistics
+  const totalManufacturers = manufacturers.length;
+  const activeManufacturers = manufacturers.filter(m => m.isActive !== false).length;
+  const withDiscountCount = manufacturers.filter(m => m.discount > 0).length;
+  const totalProducts = manufacturers.reduce((sum, m) => sum + (m._count?.products || 0), 0);
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div className="flex items-center">
-                <Link href="/" className="mr-4">
-                  <ArrowLeft className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+        {/* Header */}
+        <div className="bg-gray-900 text-white">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Link href="/">
+                  <button className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
                 </Link>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <Factory className="h-6 w-6 text-blue-600" />
-                    Производители
-                  </h1>
-                  <p className="text-sm text-gray-600">Управление на производители и доставчици</p>
-                </div>
+                <div className="text-xl font-bold tracking-wide">PARKETSENSE</div>
               </div>
-              <button
-                onClick={handleNewManufacturer}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Нов производител
-              </button>
+              <div className="text-sm text-gray-300">
+                Система за управление на производители
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Търси по име, код, мейл..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+        <div className="container mx-auto px-4 py-8">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-light text-gray-900 mb-2">Производители</h1>
+            <p className="text-gray-600">Управление на производители и доставчици</p>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Factory className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Общо производители</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalManufacturers}</p>
+                </div>
               </div>
-              <div className="text-sm text-gray-600">
-                {filteredManufacturers.length} от {manufacturers.length} производители
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Активни</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeManufacturers}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Percent className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">С отстъпка</p>
+                  <p className="text-2xl font-bold text-gray-900">{withDiscountCount}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <Package className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-medium">Общо продукти</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalProducts}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredManufacturers.map((manufacturer) => (
-              <div key={manufacturer.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow relative">
-                <div className="absolute top-4 right-4">
-                  <button
-                    onClick={() => setDropdownOpen(dropdownOpen === manufacturer.id ? null : manufacturer.id)}
-                    className="text-gray-400 hover:text-gray-600 p-1"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
-                  {dropdownOpen === manufacturer.id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                      <button
-                        onClick={() => handleEdit(manufacturer)}
-                        className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Редактиране
-                      </button>
-                      <button
-                        onClick={() => handleDelete(manufacturer.id)}
-                        className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Изтриване
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pr-8">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div 
-                      className="w-4 h-4 rounded-full flex-shrink-0" 
-                      style={{ backgroundColor: manufacturer.colorCode || '#6c757d' }}
-                    ></div>
-                    <h3 className="font-semibold text-gray-900 truncate">{manufacturer.displayName}</h3>
-                  </div>
-                  
-                  {manufacturer.code && (
-                    <p className="text-sm text-gray-600 mb-2">Код: {manufacturer.code}</p>
-                  )}
-                  
-                  {manufacturer.discount > 0 && (
-                    <div className="flex items-center gap-1 text-sm text-green-600 mb-2">
-                      <Percent className="h-3 w-3" />
-                      Отстъпка: {manufacturer.discount}%
-                    </div>
-                  )}
-                  
-                  {manufacturer.description && (
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{manufacturer.description}</p>
-                  )}
-
-                  <div className="space-y-1">
-                    {manufacturer.address && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <MapPin className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{manufacturer.address}</span>
-                      </div>
-                    )}
-                    {manufacturer.contactEmail && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Mail className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{manufacturer.contactEmail}</span>
-                      </div>
-                    )}
-                    {manufacturer.contactPhone && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Phone className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{manufacturer.contactPhone}</span>
-                      </div>
-                    )}
-                    {manufacturer.website && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Globe className="h-3 w-3 flex-shrink-0" />
-                        <a 
-                          href={manufacturer.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="truncate hover:text-blue-600"
-                        >
-                          {manufacturer.website.replace(/^https?:\/\//, '')}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  {manufacturer._count && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Продукти: {manufacturer._count.products}</span>
-                        <span>Атрибути: {manufacturer._count.attributeValues}</span>
-                      </div>
-                    </div>
-                  )}
+          {/* Search and Add */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Търси по име, код, мейл..."
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
-            ))}
+              
+              <button
+                onClick={handleNewManufacturer}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors font-medium"
+              >
+                <Plus className="w-5 h-5" />
+                Нов производител
+              </button>
+            </div>
+
+            {searchTerm && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-blue-800 text-sm">
+                  Намерени {filteredManufacturers.length} от {totalManufacturers} производители
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="ml-2 text-blue-600 underline hover:text-blue-800"
+                    >
+                      Изчисти търсенето
+                    </button>
+                  )}
+                </p>
+              </div>
+            )}
           </div>
 
-          {filteredManufacturers.length === 0 && (
-            <div className="text-center py-12">
-              <Factory className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Няма производители</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {searchTerm ? 'Не са намерени производители с този критерий.' : 'Започнете като добавите първия производител.'}
-              </p>
-              {!searchTerm && (
-                <div className="mt-6">
+          {/* Manufacturers List */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Списък производители ({filteredManufacturers.length})
+              </h3>
+            </div>
+
+            {filteredManufacturers.length === 0 ? (
+              <div className="p-12 text-center">
+                <Factory className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">
+                  {searchTerm ? 'Няма намерени производители' : 'Няма производители'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {searchTerm 
+                    ? 'Опитайте с различни ключови думи за търсене'
+                    : 'Добавете първия си производител за да започнете'
+                  }
+                </p>
+                {!searchTerm && (
                   <button
                     onClick={handleNewManufacturer}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors mx-auto"
                   >
-                    <Plus className="h-4 w-4" />
-                    Нов производител
+                    <Plus className="w-5 h-5" />
+                    Добави производител
                   </button>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200">
+                {filteredManufacturers.map((manufacturer) => (
+                  <div key={manufacturer.id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-start gap-4">
+                          {/* Manufacturer Icon with Color */}
+                          <div 
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg"
+                            style={{ backgroundColor: manufacturer.colorCode || '#6c757d' }}
+                          >
+                            {manufacturer.displayName.charAt(0)}
+                          </div>
+
+                          <div className="flex-1">
+                            {/* Name and Code */}
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="text-lg font-semibold text-gray-900">
+                                {manufacturer.displayName}
+                              </h4>
+                              {manufacturer.code && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                  {manufacturer.code}
+                                </span>
+                              )}
+                              {manufacturer.discount > 0 && (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                  <Percent className="w-3 h-3" />
+                                  {manufacturer.discount}% отстъпка
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Description */}
+                            {manufacturer.description && (
+                              <div className="mb-3 text-sm text-gray-600 line-clamp-2">
+                                {manufacturer.description}
+                              </div>
+                            )}
+
+                            {/* Contact Info */}
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                              {manufacturer.address && (
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4" />
+                                  <span>{manufacturer.address}</span>
+                                </div>
+                              )}
+                              {manufacturer.contactEmail && (
+                                <div className="flex items-center gap-1">
+                                  <Mail className="w-4 h-4" />
+                                  <span>{manufacturer.contactEmail}</span>
+                                </div>
+                              )}
+                              {manufacturer.contactPhone && (
+                                <div className="flex items-center gap-1">
+                                  <Phone className="w-4 h-4" />
+                                  <span>{manufacturer.contactPhone}</span>
+                                </div>
+                              )}
+                              {manufacturer.website && (
+                                <div className="flex items-center gap-1">
+                                  <Globe className="w-4 h-4" />
+                                  <a 
+                                    href={manufacturer.website} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800"
+                                  >
+                                    {manufacturer.website.replace(/^https?:\/\//, '')}
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Statistics */}
+                            {manufacturer._count && (
+                              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                                <div className="flex items-center gap-1">
+                                  <Package className="w-4 h-4" />
+                                  <span>{manufacturer._count.products} продукта</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Factory className="w-4 h-4" />
+                                  <span>{manufacturer._count.attributeValues} атрибута</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Creation Info */}
+                            <div className="mt-3 text-xs text-gray-500">
+                              Създаден на {new Date(manufacturer.createdAt).toLocaleDateString('bg-BG')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 relative ml-4">
+                        <button 
+                          onClick={() => setDropdownOpen(dropdownOpen === manufacturer.id ? null : manufacturer.id)}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                        
+                        {dropdownOpen === manufacturer.id && (
+                          <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-40">
+                            <div className="py-1">
+                              <button
+                                onClick={() => handleEdit(manufacturer)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Редактирай
+                              </button>
+                              <button
+                                onClick={() => handleDelete(manufacturer.id)}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 text-red-600 flex items-center gap-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Изтрий
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <ManufacturerModal
@@ -904,6 +1027,14 @@ export default function ManufacturersPage() {
           }}
           onSave={handleSave}
         />
+
+        {/* Click outside to close dropdown */}
+        {dropdownOpen && (
+          <div 
+            className="fixed inset-0 z-0" 
+            onClick={() => setDropdownOpen(null)}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );
