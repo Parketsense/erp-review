@@ -2,16 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { CreateClientDto, Client } from '../../types/client';
-import { X, User, Building2, Briefcase, AlertCircle, Info, CheckCircle } from 'lucide-react';
+import { X, User, Building2, Briefcase, AlertCircle, Info, CheckCircle, FolderPlus } from 'lucide-react';
 
 interface ClientModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (client: CreateClientDto) => Promise<void>;
   initialData?: Client | null;
+  onCreateProject?: (client: Client) => void;
 }
 
-export default function ClientModal({ isOpen, onClose, onSave, initialData }: ClientModalProps) {
+export default function ClientModal({ isOpen, onClose, onSave, initialData, onCreateProject }: ClientModalProps) {
   // Local form state interface for better type safety
   interface FormData {
     firstName: string;
@@ -585,6 +586,18 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData }: Cl
             </button>
             
             <div className="flex gap-3">
+              {isEditMode && onCreateProject && initialData && (
+                <button
+                  type="button"
+                  onClick={() => onCreateProject(initialData)}
+                  disabled={loading}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <FolderPlus className="w-4 h-4" />
+                  Създай проект
+                </button>
+              )}
+              
               <button
                 type="submit"
                 disabled={loading}

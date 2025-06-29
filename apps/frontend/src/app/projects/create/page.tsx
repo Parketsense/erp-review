@@ -144,6 +144,59 @@ export default function CreateProjectPage() {
     return () => clearTimeout(debounceTimer);
   }, [architectSearchTerm, projectData.architectType]);
 
+  // Initialize with URL params for pre-selected client
+  useEffect(() => {
+    // Check for URL parameters to pre-populate client data
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get('clientId');
+    const clientName = urlParams.get('clientName');
+    const clientPhone = urlParams.get('clientPhone');
+    const clientEmail = urlParams.get('clientEmail');
+    const isArchitect = urlParams.get('isArchitect') === 'true';
+    const architectCommission = urlParams.get('architectCommission');
+    
+    if (clientId && clientName) {
+      // Create a client object from URL params
+      const preSelectedClient = {
+        id: clientId,
+        firstName: clientName.split(' ')[0] || '',
+        lastName: clientName.split(' ').slice(1).join(' ') || '',
+        phone: clientPhone || '',
+        email: clientEmail || '',
+        isArchitect: isArchitect,
+        commissionPercent: architectCommission ? parseInt(architectCommission) : 10,
+        hasCompany: false,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Auto-select the client
+      setSelectedClient(preSelectedClient as any);
+      setProjectData(prev => ({
+        ...prev,
+        clientId: clientId,
+        ...(isArchitect ? {
+          architectType: 'client' as const,
+          architectId: clientId,
+          architectName: clientName,
+          architectCommission: architectCommission ? parseInt(architectCommission) : 10
+        } : {})
+      }));
+      
+      // Auto-fill first contact
+      setContacts(prev => [{
+        ...prev[0],
+        name: clientName,
+        phone: clientPhone || '',
+        email: clientEmail || ''
+      }]);
+      
+      // Clear URL params to keep clean URL
+      window.history.replaceState({}, '', '/projects/create');
+    }
+  }, []);
+
   // Client selection handler
   const handleClientSelect = (client: Client) => {
     setSelectedClient(client);
@@ -298,8 +351,9 @@ export default function CreateProjectPage() {
         email: newClient.email || ''
       }]);
 
-      // Reload clients list to include the new client for future searches
-      setClients(prev => [newClient, ...prev]);
+      // Force reload clients list from server to ensure it includes the new client
+      // Add the new client immediately to the search results
+      setClients(prev => [newClient, ...prev.filter(c => c.id !== newClient.id)]);
       
     } catch (error) {
       console.error('Error creating client:', error);

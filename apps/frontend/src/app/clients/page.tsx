@@ -99,6 +99,26 @@ export default function ClientsPage() {
     setIsModalOpen(true);
   };
 
+  const handleCreateProject = (client: Client) => {
+    // Close the modal and navigate to project creation with client pre-selected
+    setIsModalOpen(false);
+    setEditingClient(null);
+    
+    // Navigate to project creation with client data in URL params
+    const params = new URLSearchParams({
+      clientId: client.id,
+      clientName: `${client.firstName} ${client.lastName}`,
+      clientPhone: client.phone || '',
+      clientEmail: client.email || '',
+      ...(client.isArchitect ? {
+        isArchitect: 'true',
+        architectCommission: client.commissionPercent?.toString() || '10'
+      } : {})
+    });
+    
+    window.location.href = `/projects/create?${params.toString()}`;
+  };
+
   useEffect(() => {
     loadClients();
   }, [showInactive]);
@@ -235,12 +255,13 @@ export default function ClientsPage() {
               </div>
               
               <div className="flex gap-3">
-                <Link href="/projects/create">
-                  <button className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors font-medium">
-                    <Plus className="w-5 h-5" />
-                    Нов проект
-                  </button>
-                </Link>
+                <button 
+                  onClick={openCreateModal}
+                  className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors font-medium"
+                >
+                  <Plus className="w-5 h-5" />
+                  Нов проект
+                </button>
                 <button 
                   onClick={openCreateModal}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors font-medium"
@@ -442,6 +463,7 @@ export default function ClientsPage() {
           setEditingClient(null);
         }}
         onSave={handleSaveClient}
+        onCreateProject={handleCreateProject}
       />
 
       {/* Click outside to close dropdown */}
