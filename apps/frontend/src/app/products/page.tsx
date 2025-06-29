@@ -279,7 +279,7 @@ export default function ProductsPage() {
                         <div className="flex items-start gap-4">
                           {/* Product Icon */}
                           <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                            {product.name.charAt(0)}
+                            {product.name?.charAt(0) || 'P'}
                           </div>
 
                           <div className="flex-1">
