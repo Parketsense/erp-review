@@ -115,8 +115,8 @@ export default function CreateProjectPage() {
 
       setArchitectLoading(true);
       try {
-        // Use architectsApi for better architect search
-        const foundArchitects = await architectsApi.searchArchitects(architectSearchTerm, 50);
+        // Load more architects for better search results
+        const foundArchitects = await architectsApi.searchArchitects('', 200); // Get all architects first
         
         // Client-side case-insensitive filtering for better results
         const filteredArchitects = foundArchitects.filter(architect => {
@@ -124,13 +124,14 @@ export default function CreateProjectPage() {
           return (
             architect.firstName.toLowerCase().includes(searchLower) ||
             architect.lastName.toLowerCase().includes(searchLower) ||
+            `${architect.firstName} ${architect.lastName}`.toLowerCase().includes(searchLower) ||
             architect.email?.toLowerCase().includes(searchLower) ||
             architect.phone?.toLowerCase().includes(searchLower) ||
             architect.companyName?.toLowerCase().includes(searchLower)
           );
         });
         
-        setArchitects(filteredArchitects);
+        setArchitects(filteredArchitects.slice(0, 10)); // Limit to 10 results for display
       } catch (error) {
         console.error('Error loading architects:', error);
         setArchitects([]);
@@ -296,6 +297,10 @@ export default function CreateProjectPage() {
         phone: newClient.phone || '',
         email: newClient.email || ''
       }]);
+
+      // Reload clients list to include the new client for future searches
+      setClients(prev => [newClient, ...prev]);
+      
     } catch (error) {
       console.error('Error creating client:', error);
       throw error; // Re-throw so modal shows error
