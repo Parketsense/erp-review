@@ -6,7 +6,8 @@ import { Factory, Plus, Search, ArrowLeft, Edit, Trash2, MoreVertical, Phone, Ma
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { useLoading } from '../../components/LoadingProvider';
 import { apiClient } from '../../lib/api';
-import { contactsApi, CreateContactRequest } from '../../services/contactsApi';
+// Temporarily commenting out contactsApi import to debug the main issue
+// import { contactsApi, CreateContactRequest } from '../../services/contactsApi';
 
 interface Manufacturer {
   id: string;
@@ -120,8 +121,8 @@ function ManufacturerModal({ isOpen, manufacturer, onClose, onSave }: Manufactur
 
   const loadContacts = async (manufacturerId: string) => {
     try {
-      const manufacturerContacts = await contactsApi.getManufacturerContacts(manufacturerId);
-      setContacts(manufacturerContacts);
+      // const manufacturerContacts = await contactsApi.getManufacturerContacts(manufacturerId);
+      // setContacts(manufacturerContacts);
     } catch (error) {
       console.error('Грешка при зареждане на контакти:', error);
     }
@@ -164,7 +165,7 @@ function ManufacturerModal({ isOpen, manufacturer, onClose, onSave }: Manufactur
     if (!confirm('Сигурни ли сте, че искате да изтриете този контакт?')) return;
     
     try {
-      await contactsApi.deleteContact(contactId);
+      // await contactsApi.deleteContact(contactId);
       setContacts(contacts.filter(c => c.id !== contactId));
     } catch (error) {
       console.error('Грешка при изтриване на контакт:', error);
@@ -177,17 +178,17 @@ function ManufacturerModal({ isOpen, manufacturer, onClose, onSave }: Manufactur
     try {
       if (editingContact) {
         // Update existing contact
-        const updatedContact = await contactsApi.updateContact(editingContact.id, contactFormData);
-        setContacts(contacts.map(c => c.id === editingContact.id ? updatedContact : c));
+        // const updatedContact = await contactsApi.updateContact(editingContact.id, contactFormData);
+        // setContacts(contacts.map(c => c.id === editingContact.id ? updatedContact : c));
       } else {
         // Create new contact (only if we have a manufacturer ID)
         if (manufacturer?.id) {
-          const newContactData: CreateContactRequest = {
-            ...contactFormData,
-            manufacturerId: manufacturer.id,
-          };
-          const newContact = await contactsApi.createContact(newContactData);
-          setContacts([...contacts, newContact]);
+          // const newContactData: CreateContactRequest = {
+          //   ...contactFormData,
+          //   manufacturerId: manufacturer.id,
+          // };
+          // const newContact = await contactsApi.createContact(newContactData);
+          // setContacts([...contacts, newContact]);
         }
       }
       
@@ -200,7 +201,7 @@ function ManufacturerModal({ isOpen, manufacturer, onClose, onSave }: Manufactur
 
   const handleSetPrimaryContact = async (contactId: string) => {
     try {
-      await contactsApi.setPrimaryContact(contactId);
+      // await contactsApi.setPrimaryContact(contactId);
       // Reload contacts to update primary status
       if (manufacturer?.id) {
         await loadContacts(manufacturer.id);
@@ -616,19 +617,25 @@ export default function ManufacturersPage() {
     try {
       showLoading();
       const params = showInactive ? '?includeInactive=true' : '';
-      const response = await apiClient.get(`/manufacturers${params}`);
+      console.log('Loading manufacturers with params:', params);
       
-      // Handle new API structure { data: [] } with safe fallback
+      const response = await apiClient.get(`/manufacturers${params}`);
+      console.log('API Response:', response);
+      
+      // Handle API response correctly
       let manufacturersData = [];
       if (response && response.data && Array.isArray(response.data)) {
+        // Response format: { data: [...] }
         manufacturersData = response.data;
       } else if (response && Array.isArray(response)) {
+        // Response format: [...]
         manufacturersData = response;
       } else {
         console.warn('Unexpected API response format:', response);
         manufacturersData = [];
       }
       
+      console.log('Processed manufacturers data:', manufacturersData);
       setManufacturers(manufacturersData);
       setFilteredManufacturers(manufacturersData);
     } catch (error) {

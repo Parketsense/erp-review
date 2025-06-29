@@ -590,19 +590,25 @@ export default function SuppliersPage() {
     try {
       showLoading();
       const params = showInactive ? '?includeInactive=true' : '';
-      const response = await apiClient.get(`/suppliers${params}`);
+      console.log('Loading suppliers with params:', params);
       
-      // Handle new API structure { data: [] } with safe fallback
+      const response = await apiClient.get(`/suppliers${params}`);
+      console.log('API Response:', response);
+      
+      // Handle API response correctly
       let suppliersData = [];
       if (response && response.data && Array.isArray(response.data)) {
+        // Response format: { data: [...] }
         suppliersData = response.data;
       } else if (response && Array.isArray(response)) {
+        // Response format: [...]
         suppliersData = response;
       } else {
         console.warn('Unexpected API response format:', response);
         suppliersData = [];
       }
       
+      console.log('Processed suppliers data:', suppliersData);
       setSuppliers(suppliersData);
       setFilteredSuppliers(suppliersData);
     } catch (error) {
