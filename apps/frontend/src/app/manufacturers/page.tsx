@@ -622,9 +622,12 @@ export default function ManufacturersPage() {
       const response = await apiClient.get(`/manufacturers${params}`);
       console.log('API Response:', response);
       
-      // Handle API response correctly
+      // Handle API response correctly - the response is wrapped in { data: {...}, success: true, timestamp: ... }
       let manufacturersData = [];
-      if (response && response.data && Array.isArray(response.data)) {
+      if (response && response.data && response.data.data && Array.isArray(response.data.data)) {
+        // Response format: { data: { data: [...] }, success: true, timestamp: ... }
+        manufacturersData = response.data.data;
+      } else if (response && response.data && Array.isArray(response.data)) {
         // Response format: { data: [...] }
         manufacturersData = response.data;
       } else if (response && Array.isArray(response)) {
