@@ -1,4 +1,11 @@
 import { API_BASE_URL } from '../lib/api';
+import type { 
+  Project, 
+  ProjectsResponse, 
+  CreateProjectDto, 
+  ApiResponse, 
+  ProjectStats 
+} from '../types/project';
 
 export interface ProjectContact {
   id: number;
@@ -12,58 +19,14 @@ export interface ProjectContact {
   isPrimary: boolean;
 }
 
-export interface CreateProjectDto {
-  clientId: string;
-  name: string;
-  projectType: 'apartment' | 'house' | 'office' | 'commercial' | 'other';
-  address?: string;
-  description?: string;
-  city?: string;
-  architectType: 'none' | 'client' | 'external';
-  architectId?: string;
-  architectName?: string;
-  architectCommission?: number;
-  architectPhone?: string;
-  architectEmail?: string;
-  contacts: ProjectContact[];
-}
-
-export interface Project {
-  id: string;
-  clientId: string;
-  name: string;
-  projectType: 'apartment' | 'house' | 'office' | 'commercial' | 'other';
-  address?: string;
-  description?: string;
-  city?: string;
-  architectType: 'none' | 'client' | 'external';
-  architectId?: string;
-  architectName?: string;
-  architectCommission?: number;
-  architectPhone?: string;
-  architectEmail?: string;
-  contacts: ProjectContact[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProjectsResponse {
-  data: Project[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
-
 class ProjectsApiService {
   async getProjects(params?: {
     page?: number;
     limit?: number;
     search?: string;
     clientId?: string;
+    projectType?: string;
+    status?: string;
   }): Promise<ProjectsResponse> {
     const searchParams = new URLSearchParams();
     
@@ -71,15 +34,18 @@ class ProjectsApiService {
     if (params?.limit) searchParams.append('limit', params.limit.toString());
     if (params?.search) searchParams.append('search', params.search);
     if (params?.clientId) searchParams.append('clientId', params.clientId);
+    if (params?.projectType) searchParams.append('projectType', params.projectType);
+    if (params?.status) searchParams.append('status', params.status);
 
     const url = `${API_BASE_URL}/projects${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
     
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error('Failed to fetch projects');
+      throw new Error(`Failed to fetch projects: ${response.statusText}`);
     }
     
-    return response.json();
+    const result = await response.json();
+    return result; // Backend returns { success, data, pagination }
   }
 
   async createProject(project: CreateProjectDto): Promise<Project> {
@@ -93,20 +59,21 @@ class ProjectsApiService {
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Failed to create project');
+      throw new Error(errorData?.message || `Failed to create project: ${response.statusText}`);
     }
     
-    const result = await response.json();
-    return result.data; // Backend returns { success, data, message }
+    const result: ApiResponse<Project> = await response.json();
+    return result.data;
   }
 
   async getProjectById(id: string): Promise<Project> {
     const response = await fetch(`${API_BASE_URL}/projects/${id}`);
     if (!response.ok) {
-      throw new Error('Failed to fetch project');
+      throw new Error(`Failed to fetch project: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<Project> = await response.json();
+    return result.data;
   }
 
   async updateProject(id: string, project: Partial<CreateProjectDto>): Promise<Project> {
@@ -119,10 +86,44 @@ class ProjectsApiService {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to update project');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || `Failed to update project: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<Project> = await response.json();
+    return result.data;
+  }
+
+  async updateProjectStatus(id: string, status: string): Promise<Project> {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || `Failed to update project status: ${response.statusText}`);
+    }
+    
+    const result: ApiResponse<Project> = await response.json();
+    return result.data;
+  }
+
+  async toggleProjectActive(id: string): Promise<Project> {
+    const response = await fetch(`${API_BASE_URL}/projects/${id}/toggle-active`, {
+      method: 'PATCH',
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || `Failed to toggle project status: ${response.statusText}`);
+    }
+    
+    const result: ApiResponse<Project> = await response.json();
+    return result.data;
   }
 
   async deleteProject(id: string): Promise<void> {
@@ -131,28 +132,33 @@ class ProjectsApiService {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to delete project');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || `Failed to delete project: ${response.statusText}`);
     }
   }
 
-  async getProjectStats() {
+  async getProjectStats(): Promise<ProjectStats> {
     const response = await fetch(`${API_BASE_URL}/projects/stats`);
     if (!response.ok) {
-      throw new Error('Failed to fetch project stats');
+      throw new Error(`Failed to fetch project stats: ${response.statusText}`);
     }
     
-    return response.json();
+    const result: ApiResponse<ProjectStats> = await response.json();
+    return result.data;
   }
 
   async getProjectsByClient(clientId: string): Promise<Project[]> {
-    const response = await fetch(`${API_BASE_URL}/projects?clientId=${clientId}`);
+    const response = await fetch(`${API_BASE_URL}/projects/client/${clientId}`);
     if (!response.ok) {
-      throw new Error('Failed to fetch client projects');
+      throw new Error(`Failed to fetch client projects: ${response.statusText}`);
     }
     
-    const data = await response.json();
-    return data.data || [];
+    const result: ApiResponse<Project[]> = await response.json();
+    return result.data;
   }
 }
 
-export const projectsApi = new ProjectsApiService(); 
+export const projectsApi = new ProjectsApiService();
+
+// Re-export types for convenience
+export type { Project, CreateProjectDto, ProjectsResponse, ProjectStats } from '../types/project'; 

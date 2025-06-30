@@ -1,86 +1,40 @@
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const response = await fetch(`http://localhost:4003/api/attribute-values/${params.id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+import { NextRequest, NextResponse } from 'next/server';
 
-    if (!response.ok) {
-      const error = await response.text();
-      return Response.json(
-        { success: false, message: `Backend error: ${error}` },
-        { status: response.status }
-      );
-    }
+export const dynamic = 'force-dynamic';
 
-    const data = await response.json();
-    return Response.json(data);
-  } catch (error) {
-    console.error('Frontend API error:', error);
-    return Response.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const res = await fetch(`http://localhost:4003/api/attribute-values/${id}`);
+  const data = await res.json();
+  return NextResponse.json(data, { status: res.status });
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const body = await request.json();
-    
-    const response = await fetch(`http://localhost:4003/api/attribute-values/${params.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      return Response.json(
-        { success: false, message: `Backend error: ${error}` },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    return Response.json(data);
-  } catch (error) {
-    console.error('Frontend API error:', error);
-    return Response.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const body = await request.json();
+  const res = await fetch(`http://localhost:4003/api/attribute-values/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  return NextResponse.json(data, { status: res.status });
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const response = await fetch(`http://localhost:4003/api/attribute-values/${params.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      return Response.json(
-        { success: false, message: `Backend error: ${error}` },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    return Response.json(data);
-  } catch (error) {
-    console.error('Frontend API error:', error);
-    return Response.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const res = await fetch(`http://localhost:4003/api/attribute-values/${id}`, {
+    method: 'DELETE',
+  });
+  const data = await res.json();
+  return NextResponse.json(data, { status: res.status });
 } 

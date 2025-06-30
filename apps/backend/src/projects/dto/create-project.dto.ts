@@ -48,8 +48,9 @@ export class CreateProjectDto {
   @IsString()
   description?: string;
 
+  @IsOptional()
   @IsString()
-  city: string;
+  city?: string;
 
   @IsOptional()
   @IsNumber()
@@ -98,10 +99,16 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   architectEmail?: string;
+
+  // Project status
+  @IsOptional()
+  @IsEnum(['draft', 'active', 'completed', 'archived'])
+  status?: 'draft' | 'active' | 'completed' | 'archived';
   
   // Contacts
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ContactDto)
-  contacts: ContactDto[];
+  contacts?: ContactDto[];
 } 

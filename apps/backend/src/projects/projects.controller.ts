@@ -28,6 +28,7 @@ export class ProjectsController {
     @Query('search') search?: string,
     @Query('clientId') clientId?: string,
     @Query('projectType') projectType?: string,
+    @Query('status') status?: string,
   ) {
     return this.projectsService.findAll({
       page: page ? parseInt(page, 10) : undefined,
@@ -35,12 +36,18 @@ export class ProjectsController {
       search,
       clientId,
       projectType,
+      status,
     });
   }
 
   @Get('stats')
   getStats() {
     return this.projectsService.getStats();
+  }
+
+  @Get('client/:clientId')
+  getProjectsByClient(@Param('clientId') clientId: string) {
+    return this.projectsService.getProjectsByClient(clientId);
   }
 
   @Get(':id')
@@ -53,13 +60,21 @@ export class ProjectsController {
     return this.projectsService.update(id, updateProjectDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(id);
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string, 
+    @Body('status') status: string
+  ) {
+    return this.projectsService.updateStatus(id, status);
   }
 
   @Patch(':id/toggle-active')
   toggleActive(@Param('id') id: string) {
     return this.projectsService.toggleActive(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.projectsService.remove(id);
   }
 } 

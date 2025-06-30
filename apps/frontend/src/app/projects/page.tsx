@@ -8,7 +8,6 @@ import { clientsApi } from '@/services/clientsApi';
 
 interface ProjectWithClient extends Project {
   clientName?: string;
-  status?: 'active' | 'completed' | 'paused' | 'draft';
 }
 
 export default function ProjectsPage() {
@@ -16,34 +15,46 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProjects, setFilteredProjects] = useState<ProjectWithClient[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    completed: 0,
+    draft: 0,
+    withArchitect: 0
+  });
 
   // Load projects from backend
   useEffect(() => {
     const loadProjects = async () => {
       try {
         setLoading(true);
-        const response: ProjectsResponse = await projectsApi.getProjects();
         
-        // Enrich projects with client names
-        const enrichedProjects = await Promise.all(
-          response.data.map(async (project) => {
-            try {
-              const client = await clientsApi.getClientById(project.clientId);
-              return {
-                ...project,
-                clientName: client ? `${client.firstName} ${client.lastName}` : 'Неизвестен клиент',
-                status: 'active' as const // Default status since backend doesn't return it yet
-              };
-            } catch (error) {
-              console.error('Error loading client for project:', project.id, error);
-              return {
-                ...project,
-                clientName: 'Неизвестен клиент',
-                status: 'active' as const
-              };
-            }
-          })
-        );
+        // Load projects and stats in parallel
+        const [projectsResponse, statsResponse] = await Promise.all([
+          projectsApi.getProjects({ limit: 100 }),
+          projectsApi.getProjectStats()
+        ]);
+        
+        // Set stats
+        setStats({
+          total: statsResponse.total,
+          active: statsResponse.active,
+          completed: statsResponse.completed,
+          draft: statsResponse.draft,
+          withArchitect: statsResponse.withArchitect
+        });
+        
+        // Enrich projects with client names if needed
+        const enrichedProjects = projectsResponse.data.map(project => {
+          const clientName = project.client 
+            ? `${project.client.firstName} ${project.client.lastName}` 
+            : 'Неизвестен клиент';
+            
+          return {
+            ...project,
+            clientName
+          };
+        });
         
         setProjects(enrichedProjects);
         setFilteredProjects(enrichedProjects);
@@ -71,7 +82,9 @@ export default function ProjectsPage() {
       project.name.toLowerCase().includes(searchLower) ||
       project.clientName?.toLowerCase().includes(searchLower) ||
       project.address?.toLowerCase().includes(searchLower) ||
-      project.projectType.toLowerCase().includes(searchLower)
+      project.projectType.toLowerCase().includes(searchLower) ||
+      project.city?.toLowerCase().includes(searchLower) ||
+      project.description?.toLowerCase().includes(searchLower)
     );
     setFilteredProjects(filtered);
   }, [searchTerm, projects]);
@@ -96,6 +109,26 @@ export default function ProjectsPage() {
       other: 'Друго'
     };
     return types[type as keyof typeof types] || 'Неизвестен';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statuses = {
+      draft: 'Чернова',
+      active: 'Активен',
+      completed: 'Завършен',
+      archived: 'Архивиран'
+    };
+    return statuses[status as keyof typeof statuses] || 'Неизвестен';
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-yellow-100 text-yellow-800';
+      case 'archived': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -132,15 +165,15 @@ export default function ProjectsPage() {
         </div>
 
         {/* Stats Cards */}
-        {!loading && projects.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-white rounded-lg shadow-sm p-4">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-blue-100">
                   <FolderOpen className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{projects.length}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{stats.total}</h3>
                   <p className="text-sm text-gray-500">Общо проекти</p>
                 </div>
               </div>
@@ -152,9 +185,7 @@ export default function ProjectsPage() {
                   <Calendar className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {projects.filter(p => p.status === 'active').length}
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{stats.active}</h3>
                   <p className="text-sm text-gray-500">Активни</p>
                 </div>
               </div>
@@ -162,14 +193,24 @@ export default function ProjectsPage() {
 
             <div className="bg-white rounded-lg shadow-sm p-4">
               <div className="flex items-center">
-                <div className="p-3 rounded-full bg-yellow-100">
-                  <User className="w-6 h-6 text-yellow-600" />
+                <div className="p-3 rounded-full bg-blue-100">
+                  <Archive className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {projects.filter(p => p.architectType === 'external' || p.architectType === 'client').length}
-                  </h3>
-                  <p className="text-sm text-gray-500">С архитект</p>
+                  <h3 className="text-lg font-semibold text-gray-900">{stats.completed}</h3>
+                  <p className="text-sm text-gray-500">Завършени</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-yellow-100">
+                  <Building className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold text-gray-900">{stats.draft}</h3>
+                  <p className="text-sm text-gray-500">Чернови</p>
                 </div>
               </div>
             </div>
@@ -177,13 +218,11 @@ export default function ProjectsPage() {
             <div className="bg-white rounded-lg shadow-sm p-4">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-purple-100">
-                  <Archive className="w-6 h-6 text-purple-600" />
+                  <User className="w-6 h-6 text-purple-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {projects.filter(p => p.status === 'completed').length}
-                  </h3>
-                  <p className="text-sm text-gray-500">Завършени</p>
+                  <h3 className="text-lg font-semibold text-gray-900">{stats.withArchitect}</h3>
+                  <p className="text-sm text-gray-500">С архитект</p>
                 </div>
               </div>
             </div>
@@ -265,21 +304,25 @@ export default function ProjectsPage() {
                       </div>
                       
                       <div className="ml-4 flex flex-col items-end space-y-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          project.status === 'active' ? 'bg-green-100 text-green-800' :
-                          project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                          project.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {project.status === 'active' ? 'Активен' :
-                           project.status === 'completed' ? 'Завършен' :
-                           project.status === 'draft' ? 'Чернова' : 'Неизвестен'}
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                          {getStatusLabel(project.status)}
                         </span>
                         
                         {project.architectType !== 'none' && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                             С архитект
                           </span>
+                        )}
+
+                        {project._count && (
+                          <div className="text-xs text-gray-500 space-y-1">
+                            {project._count.phases > 0 && (
+                              <div>Фази: {project._count.phases}</div>
+                            )}
+                            {project._count.offers > 0 && (
+                              <div>Оферти: {project._count.offers}</div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>

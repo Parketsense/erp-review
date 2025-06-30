@@ -17,7 +17,7 @@ export interface Project {
   projectType: 'apartment' | 'house' | 'office' | 'commercial' | 'other';
   address?: string;
   description?: string;
-  city: string;
+  city?: string;
   totalArea?: number;
   roomsCount?: number;
   floorsCount?: number;
@@ -32,29 +32,44 @@ export interface Project {
   architectPhone?: string;
   architectEmail?: string;
   // Status and metadata
-  status: 'draft' | 'active' | 'completed' | 'cancelled';
-  isActive: boolean;
+  status: 'draft' | 'active' | 'completed' | 'archived';
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
+  deletedAt?: string;
   contacts: Contact[];
-  // Relations
-  client: {
+  // Relations (as returned by backend with includes)
+  client?: {
     id: string;
     firstName: string;
     lastName: string;
-    phone?: string;
-    email?: string;
-    hasCompany: boolean;
     companyName?: string;
+    hasCompany: boolean;
     isArchitect: boolean;
-    commissionPercent?: number;
+  };
+  architect?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    companyName?: string;
+  };
+  // Counts from backend
+  _count?: {
+    phases: number;
+    offers: number;
   };
 }
 
-export interface ProjectsResponse {
-  data: Project[];
-  meta: {
+// Backend API response format
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
     total: number;
     page: number;
     limit: number;
@@ -62,12 +77,29 @@ export interface ProjectsResponse {
   };
 }
 
+export interface ProjectsResponse extends PaginatedResponse<Project> {}
+
 export interface ProjectStats {
   total: number;
   active: number;
   completed: number;
-  drafts: number;
+  draft: number;
+  withArchitect: number;
   thisMonth: number;
+  thisYear: number;
+  byType: {
+    apartment: number;
+    house: number;
+    office: number;
+    commercial: number;
+    other: number;
+  };
+  byStatus: {
+    active: number;
+    completed: number;
+    draft: number;
+    archived: number;
+  };
 }
 
 export interface CreateProjectDto {
@@ -90,8 +122,10 @@ export interface CreateProjectDto {
   architectCommission?: number;
   architectPhone?: string;
   architectEmail?: string;
+  // Project status
+  status?: 'draft' | 'active' | 'completed' | 'archived';
   // Contacts
-  contacts: Contact[];
+  contacts?: Contact[];
 }
 
 export interface ProjectType {
@@ -116,4 +150,11 @@ export const CONTACT_ROLES = [
   'Строител',
   'Дизайнер',
   'Друго'
+];
+
+export const PROJECT_STATUSES = [
+  { value: 'draft', label: 'Чернова', color: 'yellow' },
+  { value: 'active', label: 'Активен', color: 'green' },
+  { value: 'completed', label: 'Завършен', color: 'blue' },
+  { value: 'archived', label: 'Архивиран', color: 'gray' }
 ]; 
