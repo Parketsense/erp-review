@@ -1,19 +1,22 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Phase, PhaseStats, CreatePhaseDto } from '../../types/phase';
+import { useRouter } from 'next/navigation';
+import { Phase, PhaseStats, CreatePhaseDto, UpdatePhaseDto } from '../../types/phase';
 import { phasesApi } from '../../services/phasesApi';
 import { projectsApi, Project } from '../../services/projectsApi';
 import PhaseCreateModal from './PhaseCreateModal';
 import PhaseEditModal from './PhaseEditModal';
-import { Plus, Edit2, Trash2, Eye, FileText, CheckCircle, Clock, AlertCircle, DollarSign } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, FileText, CheckCircle, Clock, AlertCircle, DollarSign, ArrowLeft } from 'lucide-react';
 
 interface PhasesListProps {
   projectId: string;
   projectName?: string;
+  onPhaseUpdated?: () => void;
 }
 
-export default function PhasesList({ projectId }: PhasesListProps) {
+export default function PhasesList({ projectId, projectName, onPhaseUpdated }: PhasesListProps) {
+  const router = useRouter();
   const [phases, setPhases] = useState<Phase[]>([]);
   const [project, setProject] = useState<Project | null>(null);
   const [stats, setStats] = useState<PhaseStats | null>(null);
@@ -23,9 +26,9 @@ export default function PhasesList({ projectId }: PhasesListProps) {
   const [filters, setFilters] = useState({
     status: undefined as string | undefined,
   });
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingPhase, setEditingPhase] = useState<Phase | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -72,32 +75,47 @@ export default function PhasesList({ projectId }: PhasesListProps) {
   }, [projectId, searchTerm, filters.status]);
 
   const handleCreatePhase = async (phaseData: CreatePhaseDto) => {
-    await phasesApi.createPhase(projectId, phaseData);
-    await loadData();
-  };
-
-  const handleEditPhase = (phase: Phase) => {
-    setEditingPhase(phase);
-    setIsEditModalOpen(true);
-  };
-
-  const handleUpdatePhase = async (phaseData: CreatePhaseDto) => {
-    if (editingPhase) {
-      await phasesApi.updatePhase(editingPhase.id, phaseData);
+    try {
+      await phasesApi.createPhase(projectId, phaseData);
+      setShowCreateModal(false);
       await loadData();
-      setEditingPhase(null);
+      onPhaseUpdated?.();
+    } catch (err) {
+      console.error('Failed to create phase:', err);
+      alert('Грешка при създаване на фаза. Моля опитайте отново.');
+    }
+  };
+
+  const handleUpdatePhase = async (phaseData: UpdatePhaseDto) => {
+    if (!selectedPhase) return;
+    
+    try {
+      await phasesApi.updatePhase(selectedPhase.id, phaseData);
+      setShowEditModal(false);
+      setSelectedPhase(null);
+      await loadData();
+      onPhaseUpdated?.();
+    } catch (err) {
+      console.error('Failed to update phase:', err);
+      alert('Грешка при обновяване на фаза. Моля опитайте отново.');
     }
   };
 
   const handleDeletePhase = async (phaseId: string) => {
-    if (confirm('Сигурни ли сте, че искате да изтриете тази фаза?')) {
+    if (confirm('Сигурни ли сте, че искате да изтриете тази фаза? Всички варианти в нея също ще бъдат изтрити.')) {
       try {
         await phasesApi.deletePhase(phaseId);
         await loadData();
+        onPhaseUpdated?.();
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Грешка при изтриване');
+        console.error('Failed to delete phase:', err);
+        alert('Грешка при изтриване на фаза. Моля опитайте отново.');
       }
     }
+  };
+
+  const handlePhaseClick = (phaseId: string) => {
+    router.push(`/projects/${projectId}/phases/${phaseId}/variants`);
   };
 
   useEffect(() => {
@@ -174,35 +192,52 @@ export default function PhasesList({ projectId }: PhasesListProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {project?.name || 'Зареждане...'}
-                </h1>
-                {project && (
-                  <div className="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
-                    <div className="mt-2 flex items-center text-sm text-gray-500">
-                      <span>Проект: {project.id}</span>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => router.push(`/projects`)}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Назад
+                </button>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {project?.name || ''}
+                  </h1>
+                  {project && (
+                    <div className="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
+                      <div className="mt-2 flex items-center text-sm text-gray-500">
+                        <span>Проект: {project.id}</span>
+                      </div>
+                      {project.address && (
+                        <div className="mt-2 flex items-center text-sm text-gray-500">
+                          <span>Адрес: {project.address}</span>
+                        </div>
+                      )}
+                      {project.city && (
+                        <div className="mt-2 flex items-center text-sm text-gray-500">
+                          <span>Град: {project.city}</span>
+                        </div>
+                      )}
                     </div>
-                    {project.address && (
-                      <div className="mt-2 flex items-center text-sm text-gray-500">
-                        <span>Адрес: {project.address}</span>
-                      </div>
-                    )}
-                    {project.city && (
-                      <div className="mt-2 flex items-center text-sm text-gray-500">
-                        <span>Град: {project.city}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Нова фаза
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Редактирай проект
+                </button>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Нова фаза
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -318,11 +353,14 @@ export default function PhasesList({ projectId }: PhasesListProps) {
               
               return (
                 <li key={phase.id}>
-                  <div className="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
+                  <div 
+                    className="px-4 py-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handlePhaseClick(phase.id)}
+                  >
                     <div className="flex items-center min-w-0 flex-1">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                          <h4 className="text-sm font-medium text-gray-900 truncate hover:text-blue-600">
                             {phase.name}
                           </h4>
                           <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.className}`}>
@@ -343,20 +381,30 @@ export default function PhasesList({ projectId }: PhasesListProps) {
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
                       <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
                         className="inline-flex items-center p-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         title="Преглед"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleEditPhase(phase)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPhase(phase);
+                          setShowEditModal(true);
+                        }}
                         className="inline-flex items-center p-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         title="Редактиране"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeletePhase(phase.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePhase(phase.id);
+                        }}
                         className="inline-flex items-center p-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                         title="Изтриване"
                       >
@@ -379,7 +427,7 @@ export default function PhasesList({ projectId }: PhasesListProps) {
             </p>
             <div className="mt-6">
               <button
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={() => setShowCreateModal(true)}
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -391,21 +439,23 @@ export default function PhasesList({ projectId }: PhasesListProps) {
       </div>
       
       <PhaseCreateModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
         onSave={handleCreatePhase}
         projectId={projectId}
       />
 
-      <PhaseEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingPhase(null);
-        }}
-        onSave={handleUpdatePhase}
-        initialData={editingPhase}
-      />
+              {selectedPhase && (
+          <PhaseEditModal
+            isOpen={showEditModal}
+            onClose={() => {
+              setShowEditModal(false);
+              setSelectedPhase(null);
+            }}
+            onSave={handleUpdatePhase}
+            initialData={selectedPhase}
+          />
+        )}
     </div>
   );
 } 

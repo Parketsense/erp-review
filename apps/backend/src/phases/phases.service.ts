@@ -17,6 +17,20 @@ export class PhasesService {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
+    // Ако е зададен architectId, проверяваме дали архитектът съществува
+    if (createPhaseDto.architectId) {
+      const architect = await this.prisma.client.findUnique({
+        where: { 
+          id: createPhaseDto.architectId,
+          isArchitect: true // Проверяваме че е действително архитект
+        },
+      });
+
+      if (!architect) {
+        throw new NotFoundException(`Architect with ID ${createPhaseDto.architectId} not found`);
+      }
+    }
+
     // Ако не е зададен phaseOrder, намираме следващия
     let phaseOrder = createPhaseDto.phaseOrder;
     if (!phaseOrder) {
@@ -41,23 +55,45 @@ export class PhasesService {
       throw new BadRequestException(`Phase with order ${phaseOrder} already exists for this project`);
     }
 
-    return this.prisma.projectPhase.create({
-      data: {
-        projectId,
-        name: createPhaseDto.name,
-        description: createPhaseDto.description,
-        phaseOrder,
-        status: createPhaseDto.status || 'created',
-      },
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-          },
+    // Създаваме фазата и първоначален вариант ако е зададен архитект
+    return this.prisma.$transaction(async (prisma) => {
+      // Създаваме фазата
+      const createdPhase = await prisma.projectPhase.create({
+        data: {
+          projectId,
+          name: createPhaseDto.name,
+          description: createPhaseDto.description,
+          phaseOrder,
+          status: createPhaseDto.status || 'created',
         },
-        variants: true,
-      },
+      });
+
+      // Ако е зададен архитект, създаваме първоначален вариант
+      if (createPhaseDto.architectId) {
+        await prisma.phaseVariant.create({
+          data: {
+            phaseId: createdPhase.id,
+            name: `${createPhaseDto.name} - Вариант 1`,
+            description: 'Автоматично създаден първоначален вариант',
+            architect: createPhaseDto.architectId,
+            variantOrder: 1,
+          },
+        });
+      }
+
+      // Връщаме фазата с включените relations
+      return prisma.projectPhase.findUnique({
+        where: { id: createdPhase.id },
+        include: {
+          project: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          variants: true,
+        },
+      });
     });
   }
 

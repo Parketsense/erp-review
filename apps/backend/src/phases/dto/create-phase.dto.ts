@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsIn, Min } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsIn, Min, IsUUID } from 'class-validator';
 
 export class CreatePhaseDto {
   @IsString()
@@ -16,4 +16,8 @@ export class CreatePhaseDto {
   @IsOptional()
   @IsIn(['created', 'quoted', 'won', 'lost', 'archived'])
   status?: string;
+
+  @IsOptional()
+  @IsUUID()
+  architectId?: string;
 } 

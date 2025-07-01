@@ -56,6 +56,7 @@ export interface CreatePhaseDto {
   description?: string;
   status?: 'created' | 'quoted' | 'won' | 'lost' | 'archived';
   phaseOrder?: number;
+  architectId?: string;
 }
 
 export interface CreatePhaseVariantDto {

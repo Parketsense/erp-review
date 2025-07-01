@@ -2,7 +2,7 @@
 
 import React, { use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Edit, Calendar, MapPin } from 'lucide-react';
+import PhasesList from '../../../components/phases/PhasesList';
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -12,84 +12,6 @@ interface ProjectDetailPageProps {
 
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const { id } = use(params);
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/projects"
-                className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 mr-1" />
-                Назад
-              </Link>
-              <div className="h-4 border-l border-gray-300"></div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Проект #{id}</h1>
-                <p className="text-gray-600 mt-1">Детайли за проекта</p>
-              </div>
-            </div>
-            <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
-              <Edit className="w-4 h-4 mr-2" />
-              Редактирай
-            </button>
-          </div>
-        </div>
-
-        {/* Project Navigation */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link
-            href={`/projects/${id}/phases`}
-            className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow border-l-4 border-blue-500"
-          >
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-8 h-8 text-blue-500" />
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Фази</h3>
-                <p className="text-gray-600">Управление на фазите на проекта</p>
-              </div>
-            </div>
-          </Link>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-gray-300 opacity-50">
-            <div className="flex items-center space-x-3">
-              <MapPin className="w-8 h-8 text-gray-400" />
-              <div>
-                <h3 className="text-lg font-semibold text-gray-600">Варианти</h3>
-                <p className="text-gray-500">Скоро ще бъде налично</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-gray-300 opacity-50">
-            <div className="flex items-center space-x-3">
-              <Edit className="w-8 h-8 text-gray-400" />
-              <div>
-                <h3 className="text-lg font-semibold text-gray-600">Оферти</h3>
-                <p className="text-gray-500">Скоро ще бъде налично</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Placeholder */}
-        <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Проект #{id}</h2>
-          <p className="text-gray-500 mb-6">
-            Детайлната информация за проекта ще бъде развита след като се завърши Backend API за проекти.
-          </p>
-          <p className="text-sm text-gray-400 mb-4">
-            Междувременно можете да управлявате фазите на проекта чрез бутона по-горе.
-          </p>
-          <div className="text-sm text-gray-400">
-            ID: {id}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  
+  return <PhasesList projectId={id} />;
 } 
