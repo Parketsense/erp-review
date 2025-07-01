@@ -3,17 +3,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Phase, PhaseStats, CreatePhaseDto } from '../../types/phase';
 import { phasesApi } from '../../services/phasesApi';
+import { projectsApi, Project } from '../../services/projectsApi';
 import PhaseCreateModal from './PhaseCreateModal';
 import PhaseEditModal from './PhaseEditModal';
-import { Calendar, Settings, Edit, Trash2, ArrowUp, ArrowDown, CheckCircle, XCircle, Pause, Play, FileText } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, FileText, CheckCircle, Clock, AlertCircle, DollarSign } from 'lucide-react';
 
 interface PhasesListProps {
   projectId: string;
   projectName?: string;
 }
 
-export default function PhasesList({ projectId, projectName }: PhasesListProps) {
+export default function PhasesList({ projectId }: PhasesListProps) {
   const [phases, setPhases] = useState<Phase[]>([]);
+  const [project, setProject] = useState<Project | null>(null);
   const [stats, setStats] = useState<PhaseStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,13 +29,22 @@ export default function PhasesList({ projectId, projectName }: PhasesListProps) 
 
   const loadData = useCallback(async () => {
     try {
+      console.log('PhasesList: Starting data load for project:', projectId);
       setLoading(true);
       setError(null);
       
-      const [phasesResponse, statsResponse] = await Promise.all([
+      console.log('PhasesList: Making API calls...');
+      const [phasesResponse, statsResponse, projectResponse] = await Promise.all([
         phasesApi.getPhasesByProject(projectId),
-        phasesApi.getPhaseStats()
+        phasesApi.getPhaseStats(),
+        projectsApi.getProjectById(projectId)
       ]);
+      
+      console.log('PhasesList: API responses received:', {
+        phases: phasesResponse,
+        stats: statsResponse,
+        project: projectResponse
+      });
       
       let filteredPhases = phasesResponse;
       
@@ -50,7 +61,10 @@ export default function PhasesList({ projectId, projectName }: PhasesListProps) 
       
       setPhases(filteredPhases);
       setStats(statsResponse);
+      setProject(projectResponse);
+      console.log('PhasesList: Data loaded successfully');
     } catch (err) {
+      console.error('PhasesList: Error loading data:', err);
       setError(err instanceof Error ? err.message : 'Възникна грешка');
     } finally {
       setLoading(false);
@@ -86,291 +100,292 @@ export default function PhasesList({ projectId, projectName }: PhasesListProps) 
     }
   };
 
-  const handleReorderPhase = async (phaseId: string, direction: 'up' | 'down') => {
-    const currentPhase = phases.find(p => p.id === phaseId);
-    if (!currentPhase) return;
-
-    const newOrder = direction === 'up' ? currentPhase.phaseOrder - 1 : currentPhase.phaseOrder + 1;
-    const phaseAtNewOrder = phases.find(p => p.phaseOrder === newOrder);
-    
-    if (!phaseAtNewOrder) return;
-
-    try {
-      await phasesApi.reorderPhases(projectId, [
-        { id: currentPhase.id, phaseOrder: newOrder },
-        { id: phaseAtNewOrder.id, phaseOrder: currentPhase.phaseOrder }
-      ]);
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Грешка при пренареждане');
-    }
-  };
-
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('bg-BG');
-  };
-
-  const getStatusIcon = (status: string) => {
+  const getStatusInfo = (status: string) => {
     switch (status) {
-      case 'created': return <Pause className="w-4 h-4 text-gray-500" />;
-      case 'quoted': return <FileText className="w-4 h-4 text-blue-500" />;
-      case 'won': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'lost': return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'archived': return <Settings className="w-4 h-4 text-gray-400" />;
-      default: return <Pause className="w-4 h-4 text-gray-500" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'created': return 'Създадена';
-      case 'quoted': return 'Офертирана';
-      case 'won': return 'Спечелена';
-      case 'lost': return 'Загубена';
-      case 'archived': return 'Архивирана';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'created': return 'bg-gray-100 text-gray-700';
-      case 'quoted': return 'bg-blue-100 text-blue-700';
-      case 'won': return 'bg-green-100 text-green-700';
-      case 'lost': return 'bg-red-100 text-red-700';
-      case 'archived': return 'bg-gray-100 text-gray-500';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'created':
+        return {
+          label: 'Създадена',
+          icon: Clock,
+          className: 'bg-blue-100 text-blue-800 border-blue-200'
+        };
+      case 'quoted':
+        return {
+          label: 'Оферирано',
+          icon: FileText,
+          className: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        };
+      case 'won':
+        return {
+          label: 'Спечелена',
+          icon: CheckCircle,
+          className: 'bg-green-100 text-green-800 border-green-200'
+        };
+      case 'lost':
+        return {
+          label: 'Загубена',
+          icon: AlertCircle,
+          className: 'bg-red-100 text-red-800 border-red-200'
+        };
+      case 'archived':
+        return {
+          label: 'Архивирана',
+          icon: AlertCircle,
+          className: 'bg-gray-100 text-gray-800 border-gray-200'
+        };
+      default:
+        return {
+          label: 'Неизвестен',
+          icon: AlertCircle,
+          className: 'bg-gray-100 text-gray-800 border-gray-200'
+        };
     }
   };
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="spinner"></div>
-        <div>Зареждане на фази...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Зареждане на фази...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="loading">
-        <div className="status-error">Грешка: {error}</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 text-lg">Грешка: {error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-light text-gray-900">
-            Фази на проект
-          </h1>
-          {projectName && (
-            <p className="text-gray-600 mt-1">{projectName}</p>
-          )}
-        </div>
-        <button 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="btn-add"
-          style={{ width: 'auto', padding: '12px 24px', borderRadius: '4px' }}
-        >
-          + Нова фаза
-        </button>
-      </div>
-
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-          <div className="card">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.total}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Общо фази
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-gray-600">
-              {stats.byStatus.created || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Създадени
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.byStatus.quoted || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Офертирани
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.byStatus.won || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Спечелени
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.byStatus.lost || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Загубени
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="text-2xl font-bold text-gray-500">
-              {stats.byStatus.archived || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Архивирани
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Search and Filters */}
-      <div className="card">
-        <div className="flex gap-4 items-center">
-          <input
-            type="text"
-            placeholder="Търсене по име или описание..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="form-input flex-1"
-          />
-          <select
-            value={filters.status || 'all'}
-            onChange={(e) => setFilters(prev => ({
-              ...prev,
-              status: e.target.value === 'all' ? undefined : e.target.value
-            }))}
-            className="form-select"
-          >
-            <option value="all">Статус: Всички</option>
-            <option value="created">Създадени</option>
-            <option value="quoted">Офертирани</option>
-            <option value="won">Спечелени</option>
-            <option value="lost">Загубени</option>
-            <option value="archived">Архивирани</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Phases Table */}
-      <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th style={{ width: '40px' }}>Ред</th>
-              <th>Фаза</th>
-              <th>Статус</th>
-              <th>Дати</th>
-              <th style={{ textAlign: 'center', width: '120px' }}>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {phases.map((phase) => (
-              <tr key={phase.id}>
-                <td className="text-center text-gray-600 font-mono">
-                  {phase.phaseOrder}
-                </td>
-                <td>
-                  <div>
-                    <div className="font-medium">{phase.name}</div>
-                    {phase.description && (
-                      <div className="text-sm text-gray-600 mt-1">
-                        {phase.description}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header с проектна информация */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {project?.name || 'Зареждане...'}
+                </h1>
+                {project && (
+                  <div className="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
+                    <div className="mt-2 flex items-center text-sm text-gray-500">
+                      <span>Проект: {project.id}</span>
+                    </div>
+                    {project.address && (
+                      <div className="mt-2 flex items-center text-sm text-gray-500">
+                        <span>Адрес: {project.address}</span>
+                      </div>
+                    )}
+                    {project.city && (
+                      <div className="mt-2 flex items-center text-sm text-gray-500">
+                        <span>Град: {project.city}</span>
                       </div>
                     )}
                   </div>
-                </td>
-                <td>
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(phase.status)}`}>
-                    {getStatusIcon(phase.status)}
-                    {getStatusText(phase.status)}
-                  </span>
-                </td>
-                <td>
-                  <div className="text-sm">
-                    <div>Създадена: {formatDate(phase.createdAt)}</div>
-                    <div>Обновена: {formatDate(phase.updatedAt)}</div>
+                )}
+              </div>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Нова фаза
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Главно съдържание */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Статистики */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-white" />
                   </div>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <div className="flex justify-center gap-1">
-                    <button
-                      onClick={() => handleReorderPhase(phase.id, 'up')}
-                      disabled={phase.phaseOrder === 1}
-                      className="btn-secondary p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Преместване нагоре"
-                    >
-                      <ArrowUp className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleReorderPhase(phase.id, 'down')}
-                      disabled={phase.phaseOrder === phases.length}
-                      className="btn-secondary p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Преместване надолу"
-                    >
-                      <ArrowDown className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleEditPhase(phase)}
-                      className="btn-secondary p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Редактирай фаза"
-                    >
-                      <Edit className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleDeletePhase(phase.id)}
-                      className="btn-danger p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Изтрий фаза"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Общо фази
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {phases.length}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-white" />
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Спечелени
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {phases.filter(p => p.status === 'won').length}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      В процес
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {phases.filter(p => p.status !== 'won' && p.status !== 'lost' && p.status !== 'archived').length}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">лв</span>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Обща стойност
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      0.00 лв
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Списък с фази */}
+        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Фази на проекта
+            </h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              Управление на етапите от развитието на проекта
+            </p>
+          </div>
+          <ul className="divide-y divide-gray-200">
+            {phases.map((phase) => {
+              const statusInfo = getStatusInfo(phase.status);
+              const StatusIcon = statusInfo.icon;
+              
+              return (
+                <li key={phase.id}>
+                  <div className="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
+                    <div className="flex items-center min-w-0 flex-1">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center">
+                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                            {phase.name}
+                          </h4>
+                          <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusInfo.className}`}>
+                            <StatusIcon className="w-3 h-3 mr-1" />
+                            {statusInfo.label}
+                          </span>
+                        </div>
+                        {phase.description && (
+                          <p className="mt-1 text-sm text-gray-500 truncate">
+                            {phase.description}
+                          </p>
+                        )}
+                        <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
+                          <span>Създадена: {new Date(phase.createdAt).toLocaleDateString('bg-BG')}</span>
+                          <span>Ред: {phase.phaseOrder}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <button
+                        className="inline-flex items-center p-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        title="Преглед"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleEditPhase(phase)}
+                        className="inline-flex items-center p-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        title="Редактиране"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePhase(phase.id)}
+                        className="inline-flex items-center p-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        title="Изтриване"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
         {phases.length === 0 && (
-          <div className="text-center py-8">
-            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <div className="text-lg font-medium text-gray-900 mb-2">
-              Няма добавени фази
+          <div className="text-center py-12">
+            <Clock className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Няма създадени фази</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Започнете чрез създаване на първата фаза на проекта.
+            </p>
+            <div className="mt-6">
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Създай фаза
+              </button>
             </div>
-            <div className="text-gray-600 mb-4">
-              Започнете с добавяне на първата фаза от проекта
-            </div>
-            <button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="btn-add"
-            >
-              + Нова фаза
-            </button>
           </div>
         )}
       </div>

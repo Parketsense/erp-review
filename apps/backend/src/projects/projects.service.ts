@@ -202,33 +202,6 @@ export class ProjectsService {
           orderBy: { createdAt: 'asc' },
         },
         phases: {
-          include: {
-            variants: {
-              include: {
-                rooms: {
-                  include: {
-                    products: {
-                      include: {
-                        product: {
-                          select: {
-                            id: true,
-                            code: true,
-                            nameBg: true,
-                            nameEn: true,
-                            unit: true,
-                            costBgn: true,
-                            saleBgn: true,
-                          },
-                        },
-                      },
-                    },
-                    images: true,
-                  },
-                },
-              },
-              orderBy: { variantOrder: 'asc' },
-            },
-          },
           orderBy: { phaseOrder: 'asc' },
         },
       },
