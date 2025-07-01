@@ -1,16 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Edit, Calendar, MapPin } from 'lucide-react';
 
 interface ProjectDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
+  const { id } = use(params);
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -27,7 +28,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
               </Link>
               <div className="h-4 border-l border-gray-300"></div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Проект #{params.id}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Проект #{id}</h1>
                 <p className="text-gray-600 mt-1">Детайли за проекта</p>
               </div>
             </div>
@@ -46,7 +47,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
             Тази страница ще бъде развита след като се завърши Backend API за проекти.
           </p>
           <div className="text-sm text-gray-400">
-            ID: {params.id}
+            ID: {id}
           </div>
         </div>
       </div>

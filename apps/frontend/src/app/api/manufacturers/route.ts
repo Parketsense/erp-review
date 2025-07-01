@@ -5,7 +5,7 @@ export async function GET(request: Request) {
     const searchParams = url.searchParams;
     
     // Forward all URL parameters to the backend
-        const backendUrl = `http://localhost:4003/api/manufacturers${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+        const backendUrl = `http://localhost:4000/api/manufacturers${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
 
     const response = await fetch(backendUrl, {
       method: 'GET',
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    const response = await fetch('http://localhost:4003/api/manufacturers', {
+    const response = await fetch('http://localhost:4000/api/manufacturers', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

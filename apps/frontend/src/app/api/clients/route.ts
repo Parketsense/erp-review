@@ -3,7 +3,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive');
     
-    let url = 'http://localhost:4003/api/clients';
+    let url = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/clients`;
     if (includeInactive) {
       url += `?includeInactive=${includeInactive}`;
     }

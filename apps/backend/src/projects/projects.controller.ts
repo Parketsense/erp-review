@@ -43,6 +43,11 @@ export class ProjectsController {
     return this.projectsService.getStats();
   }
 
+  @Get('client/:clientId')
+  findByClient(@Param('clientId') clientId: string) {
+    return this.projectsService.findAll({ clientId });
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);
@@ -51,6 +56,11 @@ export class ProjectsController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectsService.update(id, updateProjectDto);
+  }
+
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: string, @Body() body: { status: 'draft' | 'active' | 'completed' | 'archived' }) {
+    return this.projectsService.update(id, { status: body.status });
   }
 
   @Delete(':id')

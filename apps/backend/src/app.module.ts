@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthMiddleware } from './common/auth.middleware';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -16,12 +17,13 @@ import { ContactsModule } from './contacts/contacts.module';
 import { AttributeValuesModule } from './attribute-values/attribute-values.module';
 import { AttributesModule } from './attributes/attributes.module';
 import { ProjectsModule } from './projects/projects.module';
-// import { ProjectPhasesModule } from './project-phases/project-phases.module';
+import { PhasesModule } from './phases/phases.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
     PrismaModule,
     UsersModule,
@@ -39,9 +41,15 @@ import { ProjectsModule } from './projects/projects.module';
     
     // Projects module
     ProjectsModule,
-    // ProjectPhasesModule,
+    PhasesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes('*');
+  }
+}

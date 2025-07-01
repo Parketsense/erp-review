@@ -5,7 +5,7 @@ export async function PATCH(
   try {
     const { id } = params;
     
-    const response = await fetch(`http://localhost:4003/api/suppliers/${id}/toggle-active`, {
+    const response = await fetch(`http://localhost:4000/api/suppliers/${id}/toggle-active`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
