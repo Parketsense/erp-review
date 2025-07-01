@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateProjectDto } from './dto/create-project.dto';
+import { CreateProjectDto, CreateProjectContactDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
@@ -31,30 +31,66 @@ export class ProjectsService {
       }
     }
 
-    const project = await this.prisma.project.create({
-      data: createProjectDto,
-      include: {
-        client: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            hasCompany: true,
-            companyName: true,
+    // Извличаме контактите от DTO
+    const { contacts, ...projectData } = createProjectDto;
+
+    // Създаваме проекта с контактите в транзакция
+    const project = await this.prisma.$transaction(async (prisma) => {
+      // Създаваме проекта
+      const newProject = await prisma.project.create({
+        data: projectData,
+      });
+
+      // Създаваме контактите ако има такива
+      if (contacts && contacts.length > 0) {
+        // Проверяваме че само един контакт е primary
+        const primaryContacts = contacts.filter(c => c.isPrimary);
+        if (primaryContacts.length > 1) {
+          throw new BadRequestException('Only one contact can be primary');
+        }
+
+        // Ако няма primary контакт, правим първия primary
+        if (primaryContacts.length === 0 && contacts.length > 0) {
+          contacts[0].isPrimary = true;
+        }
+
+        await prisma.projectContact.createMany({
+          data: contacts.map(contact => ({
+            ...contact,
+            projectId: newProject.id,
+          })),
+        });
+      }
+
+      // Връщаме пълната информация за проекта
+      return prisma.project.findUnique({
+        where: { id: newProject.id },
+        include: {
+          client: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              hasCompany: true,
+              companyName: true,
+            },
+          },
+          architect: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              commissionPercent: true,
+            },
+          },
+          contacts: {
+            orderBy: { createdAt: 'asc' },
+          },
+          phases: {
+            orderBy: { phaseOrder: 'asc' },
           },
         },
-        architect: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            commissionPercent: true,
-          },
-        },
-        phases: {
-          orderBy: { phaseOrder: 'asc' },
-        },
-      },
+      });
     });
 
     return {
@@ -245,9 +281,12 @@ export class ProjectsService {
       }
     }
 
+    // Извличаме контактите от DTO ако има такива
+    const { contacts, ...projectData } = updateProjectDto;
+
     const project = await this.prisma.project.update({
       where: { id },
-      data: updateProjectDto,
+      data: projectData,
       include: {
         client: {
           select: {
@@ -264,6 +303,9 @@ export class ProjectsService {
             firstName: true,
             lastName: true,
           },
+        },
+        contacts: {
+          orderBy: { createdAt: 'asc' },
         },
         phases: {
           orderBy: { phaseOrder: 'asc' },
@@ -411,6 +453,229 @@ export class ProjectsService {
           return acc;
         }, {} as Record<string, number>),
       },
+    };
+  }
+
+  // Project Contacts methods
+  async getProjectContacts(projectId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { 
+        id: projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    const contacts = await this.prisma.projectContact.findMany({
+      where: { projectId },
+      orderBy: [
+        { isPrimary: 'desc' },
+        { createdAt: 'asc' },
+      ],
+    });
+
+    return {
+      success: true,
+      data: contacts,
+    };
+  }
+
+  async addProjectContact(projectId: string, contactDto: CreateProjectContactDto) {
+    const project = await this.prisma.project.findFirst({
+      where: { 
+        id: projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    // Проверяваме дали вече има 3 контакта (максимум)
+    const existingContacts = await this.prisma.projectContact.count({
+      where: { projectId },
+    });
+
+    if (existingContacts >= 3) {
+      throw new BadRequestException('Project can have maximum 3 contacts');
+    }
+
+    // Ако се опитва да направи контакт primary, махаме primary от други контакти
+    if (contactDto.isPrimary) {
+      await this.prisma.projectContact.updateMany({
+        where: { projectId },
+        data: { isPrimary: false },
+      });
+    }
+
+    // Ако няма други контакти, този става primary автоматично
+    if (existingContacts === 0) {
+      contactDto.isPrimary = true;
+    }
+
+    const contact = await this.prisma.projectContact.create({
+      data: {
+        ...contactDto,
+        projectId,
+      },
+    });
+
+    return {
+      success: true,
+      data: contact,
+      message: 'Contact added successfully',
+    };
+  }
+
+  async updateProjectContact(projectId: string, contactId: string, contactDto: Partial<CreateProjectContactDto>) {
+    const project = await this.prisma.project.findFirst({
+      where: { 
+        id: projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    const existingContact = await this.prisma.projectContact.findFirst({
+      where: { 
+        id: contactId,
+        projectId,
+      },
+    });
+
+    if (!existingContact) {
+      throw new NotFoundException(`Contact with ID ${contactId} not found in project ${projectId}`);
+    }
+
+    // Ако се опитва да направи контакт primary, махаме primary от други контакти
+    if (contactDto.isPrimary) {
+      await this.prisma.projectContact.updateMany({
+        where: { 
+          projectId,
+          id: { not: contactId },
+        },
+        data: { isPrimary: false },
+      });
+    }
+
+    const contact = await this.prisma.projectContact.update({
+      where: { id: contactId },
+      data: contactDto,
+    });
+
+    return {
+      success: true,
+      data: contact,
+      message: 'Contact updated successfully',
+    };
+  }
+
+  async removeProjectContact(projectId: string, contactId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { 
+        id: projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    const existingContact = await this.prisma.projectContact.findFirst({
+      where: { 
+        id: contactId,
+        projectId,
+      },
+    });
+
+    if (!existingContact) {
+      throw new NotFoundException(`Contact with ID ${contactId} not found in project ${projectId}`);
+    }
+
+    // Проверяваме дали има други контакти
+    const totalContacts = await this.prisma.projectContact.count({
+      where: { projectId },
+    });
+
+    if (totalContacts === 1) {
+      throw new BadRequestException('Project must have at least one contact');
+    }
+
+    // Ако триеме primary контакт, правим друг контакт primary
+    if (existingContact.isPrimary) {
+      const nextContact = await this.prisma.projectContact.findFirst({
+        where: { 
+          projectId,
+          id: { not: contactId },
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (nextContact) {
+        await this.prisma.projectContact.update({
+          where: { id: nextContact.id },
+          data: { isPrimary: true },
+        });
+      }
+    }
+
+    await this.prisma.projectContact.delete({
+      where: { id: contactId },
+    });
+
+    return {
+      success: true,
+      message: 'Contact removed successfully',
+    };
+  }
+
+  async setPrimaryContact(projectId: string, contactId: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { 
+        id: projectId,
+        deletedAt: null,
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    const contact = await this.prisma.projectContact.findFirst({
+      where: { 
+        id: contactId,
+        projectId,
+      },
+    });
+
+    if (!contact) {
+      throw new NotFoundException(`Contact with ID ${contactId} not found in project ${projectId}`);
+    }
+
+    // Махаме primary от всички контакти в проекта
+    await this.prisma.projectContact.updateMany({
+      where: { projectId },
+      data: { isPrimary: false },
+    });
+
+    // Правим този контакт primary
+    const updatedContact = await this.prisma.projectContact.update({
+      where: { id: contactId },
+      data: { isPrimary: true },
+    });
+
+    return {
+      success: true,
+      data: updatedContact,
+      message: 'Primary contact updated successfully',
     };
   }
 } 

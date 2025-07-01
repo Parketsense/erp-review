@@ -22,7 +22,8 @@ export default function ClientsPage() {
     try {
       showLoading('Зареждане на клиенти...');
       const params = showInactive ? '?includeInactive=true' : '';
-      const response = await apiClient.get(`/clients${params}`) as { data: Client[] };
+      const response = await apiClient.get(`/clients${params}`) as { success: boolean; data: Client[] };
+      console.log('Clients API response:', response); // Debug log
       setClients(response.data || []);
     } catch (error) {
       console.error('Error loading clients:', error);

@@ -25,7 +25,7 @@ export interface CreateProjectDto {
   architectCommission?: number;
   architectPhone?: string;
   architectEmail?: string;
-  contacts: ProjectContact[];
+  contacts?: ProjectContact[]; // Optional for now
 }
 
 export interface Project {

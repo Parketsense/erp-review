@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Plus, FolderOpen, ArrowLeft, Search, Calendar, User, Building, Archive } from 'lucide-react';
 import { projectsApi, Project, ProjectsResponse } from '@/services/projectsApi';
 import { clientsApi } from '@/services/clientsApi';
+import CreateProjectModal from '@/components/projects/CreateProjectModal';
 
 interface ProjectWithClient extends Project {
   clientName?: string;
@@ -16,6 +17,8 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredProjects, setFilteredProjects] = useState<ProjectWithClient[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
   // Load projects from backend
   useEffect(() => {
@@ -102,6 +105,45 @@ export default function ProjectsPage() {
     return new Date(dateString).toLocaleDateString('bg-BG');
   };
 
+  const handleCreateProject = async (projectData: any) => {
+    try {
+      setCreateLoading(true);
+      
+      // Create the project via API (contacts will be added later in full implementation)
+      const newProject = await projectsApi.createProject({
+        name: projectData.name,
+        clientId: projectData.clientId,
+        projectType: projectData.projectType,
+        address: projectData.address,
+        description: projectData.description,
+        city: 'София',
+        architectType: projectData.architectType,
+        architectName: projectData.architectName,
+        architectCommission: projectData.architectCommission
+      });
+
+      // Add to projects list
+      const enrichedProject = {
+        ...newProject,
+        clientName: 'Нов клиент', // Will be loaded properly on refresh
+        status: 'active' as const
+      };
+
+      setProjects(prev => [enrichedProject, ...prev]);
+      setFilteredProjects(prev => [enrichedProject, ...prev]);
+      setShowCreateModal(false);
+      
+      // Show success message
+      alert('Проектът е създаден успешно!');
+      
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Грешка при създаване на проект. Моля опитайте отново.');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -121,13 +163,13 @@ export default function ProjectsPage() {
                 <p className="text-gray-600 mt-1">Управление на проекти</p>
               </div>
             </div>
-            <Link
-              href="/projects/create"
+            <button
+              onClick={() => setShowCreateModal(true)}
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
             >
               <Plus className="w-4 h-4 mr-2" />
               Нов проект
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -298,13 +340,13 @@ export default function ProjectsPage() {
             <p className="text-gray-500 mb-6">
               Започнете да създавате проекти за да управлявате работата си по-ефективно.
             </p>
-            <Link
-              href="/projects/create"
+            <button
+              onClick={() => setShowCreateModal(true)}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
             >
               <Plus className="w-4 h-4 mr-2" />
               Създай първи проект
-            </Link>
+            </button>
           </div>
         )}
 
@@ -324,6 +366,13 @@ export default function ProjectsPage() {
             </button>
           </div>
         )}
+
+        {/* Create Project Modal */}
+        <CreateProjectModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSave={handleCreateProject}
+        />
       </div>
     </div>
   );

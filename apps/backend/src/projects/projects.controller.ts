@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
-import { CreateProjectDto } from './dto/create-project.dto';
+import { CreateProjectDto, CreateProjectContactDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Controller('projects')
@@ -71,5 +71,35 @@ export class ProjectsController {
   @Patch(':id/toggle-active')
   toggleActive(@Param('id') id: string) {
     return this.projectsService.toggleActive(id);
+  }
+
+  // Project Contacts endpoints
+  @Get(':id/contacts')
+  getProjectContacts(@Param('id') projectId: string) {
+    return this.projectsService.getProjectContacts(projectId);
+  }
+
+  @Post(':id/contacts')
+  addProjectContact(@Param('id') projectId: string, @Body() contactDto: CreateProjectContactDto) {
+    return this.projectsService.addProjectContact(projectId, contactDto);
+  }
+
+  @Patch(':id/contacts/:contactId')
+  updateProjectContact(
+    @Param('id') projectId: string,
+    @Param('contactId') contactId: string,
+    @Body() contactDto: Partial<CreateProjectContactDto>
+  ) {
+    return this.projectsService.updateProjectContact(projectId, contactId, contactDto);
+  }
+
+  @Delete(':id/contacts/:contactId')
+  removeProjectContact(@Param('id') projectId: string, @Param('contactId') contactId: string) {
+    return this.projectsService.removeProjectContact(projectId, contactId);
+  }
+
+  @Patch(':id/contacts/:contactId/set-primary')
+  setPrimaryContact(@Param('id') projectId: string, @Param('contactId') contactId: string) {
+    return this.projectsService.setPrimaryContact(projectId, contactId);
   }
 } 

@@ -1,4 +1,38 @@
-import { IsString, IsOptional, IsNumber, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsEnum, IsArray, ValidateNested, IsBoolean } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class CreateProjectContactDto {
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string = 'other';
+
+  @IsOptional()
+  @IsBoolean()
+  receivesOffers?: boolean = false;
+
+  @IsOptional()
+  @IsBoolean()
+  receivesInvoices?: boolean = false;
+
+  @IsOptional()
+  @IsBoolean()
+  receivesUpdates?: boolean = false;
+
+  @IsOptional()
+  @IsBoolean()
+  isPrimary?: boolean = false;
+}
 
 export class CreateProjectDto {
   @IsString()
@@ -72,4 +106,11 @@ export class CreateProjectDto {
   @IsOptional()
   @IsEnum(['draft', 'active', 'completed', 'archived'])
   status?: 'draft' | 'active' | 'completed' | 'archived';
+
+  // Project contacts
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProjectContactDto)
+  contacts?: CreateProjectContactDto[];
 } 
