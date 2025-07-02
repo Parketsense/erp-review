@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CreatePhaseDto } from '../../types/phase';
+import { Plus, X, Calendar, Users } from 'lucide-react';
+import { CreatePhaseDto, ProjectPhase } from '@/services/phasesApi';
 
 interface PhaseCreateModalProps {
   isOpen: boolean;
@@ -11,10 +12,11 @@ interface PhaseCreateModalProps {
 }
 
 export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }: PhaseCreateModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreatePhaseDto>({
     name: '',
     description: '',
-    status: 'created' as const,
+    includeArchitectCommission: false,
+    status: 'created',
   });
 
   const [loading, setLoading] = useState(false);
@@ -22,9 +24,11 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
 
   useEffect(() => {
     if (isOpen) {
+      // Reset form when modal opens
       setFormData({
         name: '',
         description: '',
+        includeArchitectCommission: false,
         status: 'created',
       });
       setErrors({});
@@ -32,13 +36,15 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
   }, [isOpen]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
+               type === 'number' ? Number(value) : value
     }));
 
+    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -49,6 +55,14 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
 
     if (!formData.name.trim()) {
       newErrors.name = 'Името на фазата е задължително';
+    }
+
+    if (formData.name.length > 100) {
+      newErrors.name = 'Името не може да бъде по-дълго от 100 символа';
+    }
+
+    if (formData.description && formData.description.length > 500) {
+      newErrors.description = 'Описанието не може да бъде по-дълго от 500 символа';
     }
 
     setErrors(newErrors);
@@ -66,8 +80,9 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
       setLoading(true);
       
       const phaseData: CreatePhaseDto = {
-        name: formData.name,
-        description: formData.description || undefined,
+        name: formData.name.trim(),
+        description: formData.description?.trim() || undefined,
+        includeArchitectCommission: formData.includeArchitectCommission,
         status: formData.status,
       };
 
@@ -75,8 +90,10 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
       onClose();
 
     } catch (error) {
-      console.error('Save error:', error);
-      setErrors({ submit: 'Грешка при запазването: ' + (error instanceof Error ? error.message : 'Неизвестна грешка') });
+      console.error('Error creating phase:', error);
+      setErrors({ 
+        submit: 'Грешка при създаване на фаза: ' + (error instanceof Error ? error.message : 'Неизвестна грешка') 
+      });
     } finally {
       setLoading(false);
     }
@@ -87,24 +104,35 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[95vh] overflow-y-auto">
+        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-light text-gray-900">Нова фаза</h2>
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Calendar className="w-5 h-5 text-blue-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900">Нова фаза</h2>
+          </div>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Error Message */}
         {errors.submit && (
           <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
-            {errors.submit}
+            <div className="flex items-center">
+              <span className="font-medium">Грешка:</span>
+              <span className="ml-2">{errors.submit}</span>
+            </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-6">
+            {/* Phase Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Име на фазата <span className="text-red-500">*</span>
@@ -114,16 +142,21 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                placeholder="Например: Проектиране, Изпълнение, Финализиране"
+                className={`w-full px-4 py-3 border rounded-lg transition-colors ${
+                  errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                } focus:outline-none focus:ring-2`}
+                placeholder="Например: Етаж 1 - Продажба, Етаж 2 - Монтаж"
+                maxLength={100}
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600">{errors.name}</p>
               )}
+              <p className="mt-1 text-sm text-gray-500">
+                {formData.name.length}/100 символа
+              </p>
             </div>
 
+            {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Описание
@@ -133,11 +166,21 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Подробно описание на дейностите във фазата"
+                className={`w-full px-4 py-3 border rounded-lg transition-colors ${
+                  errors.description ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                } focus:outline-none focus:ring-2`}
+                placeholder="Подробно описание на дейностите във фазата..."
+                maxLength={500}
               />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
+              <p className="mt-1 text-sm text-gray-500">
+                {(formData.description || '').length}/500 символа
+              </p>
             </div>
 
+            {/* Status */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Статус
@@ -149,28 +192,72 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="created">Създадена</option>
-                <option value="quoted">Офертирана</option>
+                <option value="quoted">Оферирана</option>
                 <option value="won">Спечелена</option>
                 <option value="lost">Загубена</option>
-                <option value="archived">Архивирана</option>
               </select>
             </div>
+
+            {/* Include Architect Commission */}
+            <div className="flex items-start space-x-3">
+              <input
+                type="checkbox"
+                name="includeArchitectCommission"
+                id="includeArchitectCommission"
+                checked={formData.includeArchitectCommission}
+                onChange={handleInputChange}
+                className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <div className="flex-1">
+                <label htmlFor="includeArchitectCommission" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Включи архитект комисионна
+                </label>
+                <p className="text-sm text-gray-500">
+                  Ако е избрано, комисионната за архитект ще се включи в тази фаза
+                </p>
+              </div>
+              <Users className="w-5 h-5 text-purple-500 mt-0.5" />
+            </div>
+
+            {/* Architect Commission Info */}
+            {formData.includeArchitectCommission && (
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Users className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-800">Архитект комисионна</span>
+                </div>
+                <p className="text-sm text-purple-700">
+                  Комисионната ще се изчисли автоматично на базата на общата стойност на фазата и процента определен в настройките на проекта.
+                </p>
+              </div>
+            )}
           </div>
 
+          {/* Footer */}
           <div className="flex items-center justify-between gap-4 p-6 border-t bg-gray-50">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Отказ
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? 'Запазване...' : 'Създай фаза'}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Създаване...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Създай фаза
+                </>
+              )}
             </button>
           </div>
         </form>

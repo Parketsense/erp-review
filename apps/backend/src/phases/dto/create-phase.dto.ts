@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsIn, Min } from 'class-validator';
+import { IsString, IsOptional, IsIn, IsBoolean } from 'class-validator';
 
 export class CreatePhaseDto {
   @IsString()
@@ -9,11 +9,10 @@ export class CreatePhaseDto {
   description?: string;
 
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  phaseOrder?: number;
-
-  @IsOptional()
   @IsIn(['created', 'quoted', 'won', 'lost', 'archived'])
   status?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  includeArchitectCommission?: boolean;
 } 

@@ -205,6 +205,22 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
     if (step === 1) {
       if (!projectData.clientId) newErrors.clientId = 'Изберете клиент';
       if (!projectData.name.trim()) newErrors.name = 'Въведете име на проект';
+      
+      // Validate architect fields
+      if (projectData.architectType === 'external' && !projectData.architectName.trim()) {
+        newErrors.architectName = 'Името на архитекта е задължително за външен архитект';
+      }
+      
+      if (projectData.architectType !== 'none' && projectData.architectCommission) {
+        const commission = projectData.architectCommission;
+        if (isNaN(commission) || commission < 0 || commission > 100) {
+          newErrors.architectCommission = 'Комисионната трябва да бъде между 0 и 100%';
+        }
+      }
+      
+      if (projectData.architectEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(projectData.architectEmail)) {
+        newErrors.architectEmail = 'Невалиден email адрес';
+      }
     }
     
     if (step === 2) {
@@ -474,6 +490,96 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                   onChange={(e) => setProjectData(prev => ({ ...prev, description: e.target.value }))}
                 />
               </div>
+
+              {/* Architect Type */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Архитект
+                </label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={projectData.architectType}
+                  onChange={(e) => setProjectData(prev => ({ ...prev, architectType: e.target.value }))}
+                >
+                  <option value="none">Няма архитект</option>
+                  <option value="client">Клиентът е архитект</option>
+                  <option value="external">Външен архитект</option>
+                </select>
+              </div>
+
+              {/* Architect Details */}
+              {projectData.architectType !== 'none' && (
+                <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-medium text-gray-900">Данни за архитект</h3>
+                  
+                  {projectData.architectType === 'external' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Име на архитект *
+                      </label>
+                      <input
+                        type="text"
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.architectName ? 'border-red-300' : 'border-gray-300'
+                        }`}
+                        placeholder="Въведете име на архитекта"
+                        value={projectData.architectName}
+                        onChange={(e) => setProjectData(prev => ({ ...prev, architectName: e.target.value }))}
+                      />
+                      {errors.architectName && <p className="text-red-500 text-sm mt-1">{errors.architectName}</p>}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Телефон
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="+359..."
+                        value={projectData.architectPhone}
+                        onChange={(e) => setProjectData(prev => ({ ...prev, architectPhone: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          errors.architectEmail ? 'border-red-300' : 'border-gray-300'
+                        }`}
+                        placeholder="email@example.com"
+                        value={projectData.architectEmail}
+                        onChange={(e) => setProjectData(prev => ({ ...prev, architectEmail: e.target.value }))}
+                      />
+                      {errors.architectEmail && <p className="text-red-500 text-sm mt-1">{errors.architectEmail}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Комисионна (%)
+                    </label>
+                    <input
+                      type="number"
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.architectCommission ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                      placeholder="0"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={projectData.architectCommission}
+                      onChange={(e) => setProjectData(prev => ({ ...prev, architectCommission: parseFloat(e.target.value) || 0 }))}
+                    />
+                    {errors.architectCommission && <p className="text-red-500 text-sm mt-1">{errors.architectCommission}</p>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -746,6 +852,59 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Architect Info */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 mb-3">Архитект</h3>
+                  
+                  {projectData.architectType === 'none' ? (
+                    <div className="text-center py-6">
+                      <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">Няма архитект</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Тип:</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          projectData.architectType === 'client' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                          {projectData.architectType === 'client' ? 'Клиентът' : 'Външен'}
+                        </span>
+                      </div>
+
+                      {projectData.architectName && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Име:</span>
+                          <span className="font-medium">{projectData.architectName}</span>
+                        </div>
+                      )}
+
+                      {projectData.architectPhone && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Телефон:</span>
+                          <span>{projectData.architectPhone}</span>
+                        </div>
+                      )}
+
+                      {projectData.architectEmail && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Email:</span>
+                          <span>{projectData.architectEmail}</span>
+                        </div>
+                      )}
+
+                      {projectData.architectCommission > 0 && (
+                        <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+                          <div className="flex justify-between">
+                            <span className="text-purple-700">Комисионна:</span>
+                            <span className="font-medium text-purple-900">{projectData.architectCommission}%</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Contacts Info */}

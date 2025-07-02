@@ -1,396 +1,340 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Phase, PhaseStats, CreatePhaseDto } from '../../types/phase';
-import { phasesApi } from '../../services/phasesApi';
-import PhaseCreateModal from './PhaseCreateModal';
-import PhaseEditModal from './PhaseEditModal';
-import { Calendar, Settings, Edit, Trash2, ArrowUp, ArrowDown, CheckCircle, XCircle, Pause, Play, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { 
+  Plus, 
+  Calendar, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  AlertCircle,
+  DollarSign,
+  Users,
+  Eye,
+  Edit,
+  Trash2,
+  GripVertical
+} from 'lucide-react';
+import { ProjectPhase } from '@/services/phasesApi';
 
 interface PhasesListProps {
   projectId: string;
-  projectName?: string;
+  phases: ProjectPhase[];
+  onCreatePhase: () => void;
+  onEditPhase: (phase: ProjectPhase) => void;
+  onDeletePhase: (phaseId: string) => void;
+  onReorderPhases?: (phases: ProjectPhase[]) => void;
+  loading?: boolean;
 }
 
-export default function PhasesList({ projectId, projectName }: PhasesListProps) {
-  const [phases, setPhases] = useState<Phase[]>([]);
-  const [stats, setStats] = useState<PhaseStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    status: undefined as string | undefined,
-  });
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingPhase, setEditingPhase] = useState<Phase | null>(null);
+export default function PhasesList({ 
+  projectId, 
+  phases, 
+  onCreatePhase, 
+  onEditPhase, 
+  onDeletePhase,
+  onReorderPhases,
+  loading = false 
+}: PhasesListProps) {
+  const [draggedPhase, setDraggedPhase] = useState<string | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [localPhases, setLocalPhases] = useState<ProjectPhase[]>(phases);
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const [phasesResponse, statsResponse] = await Promise.all([
-        phasesApi.getPhasesByProject(projectId),
-        phasesApi.getPhaseStats()
-      ]);
-      
-      let filteredPhases = phasesResponse;
-      
-      if (searchTerm) {
-        filteredPhases = filteredPhases.filter(phase => 
-          phase.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (phase.description && phase.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-      }
-      
-      if (filters.status) {
-        filteredPhases = filteredPhases.filter(phase => phase.status === filters.status);
-      }
-      
-      setPhases(filteredPhases);
-      setStats(statsResponse);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Възникна грешка');
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId, searchTerm, filters.status]);
+  // Update local phases when props change
+  React.useEffect(() => {
+    setLocalPhases(phases);
+  }, [phases]);
 
-  const handleCreatePhase = async (phaseData: CreatePhaseDto) => {
-    await phasesApi.createPhase(projectId, phaseData);
-    await loadData();
+  const handleDragStart = (e: React.DragEvent, phaseId: string) => {
+    setDraggedPhase(phaseId);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleEditPhase = (phase: Phase) => {
-    setEditingPhase(phase);
-    setIsEditModalOpen(true);
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
   };
 
-  const handleUpdatePhase = async (phaseData: CreatePhaseDto) => {
-    if (editingPhase) {
-      await phasesApi.updatePhase(editingPhase.id, phaseData);
-      await loadData();
-      setEditingPhase(null);
-    }
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
   };
 
-  const handleDeletePhase = async (phaseId: string) => {
-    if (confirm('Сигурни ли сте, че искате да изтриете тази фаза?')) {
-      try {
-        await phasesApi.deletePhase(phaseId);
-        await loadData();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Грешка при изтриване');
-      }
-    }
-  };
-
-  const handleReorderPhase = async (phaseId: string, direction: 'up' | 'down') => {
-    const currentPhase = phases.find(p => p.id === phaseId);
-    if (!currentPhase) return;
-
-    const newOrder = direction === 'up' ? currentPhase.phaseOrder - 1 : currentPhase.phaseOrder + 1;
-    const phaseAtNewOrder = phases.find(p => p.phaseOrder === newOrder);
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
     
-    if (!phaseAtNewOrder) return;
+    if (!draggedPhase) return;
 
-    try {
-      await phasesApi.reorderPhases(projectId, [
-        { id: currentPhase.id, phaseOrder: newOrder },
-        { id: phaseAtNewOrder.id, phaseOrder: currentPhase.phaseOrder }
-      ]);
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Грешка при пренареждане');
+    const draggedIndex = localPhases.findIndex(p => p && p.id === draggedPhase);
+    if (draggedIndex === -1 || draggedIndex === dropIndex) {
+      setDraggedPhase(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    // Create new array with reordered phases
+    const newPhases = [...localPhases];
+    const [draggedItem] = newPhases.splice(draggedIndex, 1);
+    newPhases.splice(dropIndex, 0, draggedItem);
+
+    // Update phase orders
+    const reorderedPhases = newPhases.map((phase, index) => ({
+      ...phase,
+      phaseOrder: index + 1
+    }));
+
+    setLocalPhases(reorderedPhases);
+    setDraggedPhase(null);
+    setDragOverIndex(null);
+
+    // Notify parent component
+    if (onReorderPhases) {
+      onReorderPhases(reorderedPhases);
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('bg-BG');
+  const handleDragEnd = () => {
+    setDraggedPhase(null);
+    setDragOverIndex(null);
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'created': return <Pause className="w-4 h-4 text-gray-500" />;
-      case 'quoted': return <FileText className="w-4 h-4 text-blue-500" />;
-      case 'won': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'lost': return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'archived': return <Settings className="w-4 h-4 text-gray-400" />;
-      default: return <Pause className="w-4 h-4 text-gray-500" />;
+      case 'created':
+        return <Clock className="w-4 h-4 text-gray-500" />;
+      case 'quoted':
+        return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+      case 'won':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'lost':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'created': return 'Създадена';
-      case 'quoted': return 'Офертирана';
-      case 'won': return 'Спечелена';
-      case 'lost': return 'Загубена';
-      case 'archived': return 'Архивирана';
-      default: return status;
-    }
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      created: 'Създадена',
+      quoted: 'Оферирана',
+      won: 'Спечелена',
+      lost: 'Загубена'
+    };
+    return labels[status as keyof typeof labels] || 'Неизвестно';
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'created': return 'bg-gray-100 text-gray-700';
-      case 'quoted': return 'bg-blue-100 text-blue-700';
-      case 'won': return 'bg-green-100 text-green-700';
-      case 'lost': return 'bg-red-100 text-red-700';
-      case 'archived': return 'bg-gray-100 text-gray-500';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'created':
+        return 'bg-gray-100 text-gray-800';
+      case 'quoted':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'won':
+        return 'bg-green-100 text-green-800';
+      case 'lost':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('bg-BG');
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('bg-BG', {
+      style: 'currency',
+      currency: 'BGN'
+    }).format(amount);
   };
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="spinner"></div>
-        <div>Зареждане на фази...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="loading">
-        <div className="status-error">Грешка: {error}</div>
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">Фази</h2>
+          <button
+            disabled
+            className="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Създай фаза
+          </button>
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="border rounded-lg p-4 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-light text-gray-900">
-            Фази на проект
-          </h1>
-          {projectName && (
-            <p className="text-gray-600 mt-1">{projectName}</p>
-          )}
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <Calendar className="w-6 h-6 text-blue-600" />
+          <h2 className="text-xl font-semibold text-gray-900">Фази</h2>
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {phases.length}
+          </span>
         </div>
-        <button 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="btn-add"
-          style={{ width: 'auto', padding: '12px 24px', borderRadius: '4px' }}
+        <button
+          onClick={onCreatePhase}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors"
         >
-          + Нова фаза
+          <Plus className="w-4 h-4 mr-2" />
+          Създай фаза
         </button>
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-          <div className="card">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.total}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Общо фази
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-gray-600">
-              {stats.byStatus.created || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Създадени
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-blue-600">
-              {stats.byStatus.quoted || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Офертирани
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-green-600">
-              {stats.byStatus.won || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Спечелени
-            </div>
-          </div>
-          
-          <div className="card">
-            <div className="text-2xl font-bold text-red-600">
-              {stats.byStatus.lost || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Загубени
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="text-2xl font-bold text-gray-500">
-              {stats.byStatus.archived || 0}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Архивирани
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Search and Filters */}
-      <div className="card">
-        <div className="flex gap-4 items-center">
-          <input
-            type="text"
-            placeholder="Търсене по име или описание..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="form-input flex-1"
-          />
-          <select
-            value={filters.status || 'all'}
-            onChange={(e) => setFilters(prev => ({
-              ...prev,
-              status: e.target.value === 'all' ? undefined : e.target.value
-            }))}
-            className="form-select"
+      {phases.length === 0 ? (
+        <div className="text-center py-12">
+          <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Няма фази</h3>
+          <p className="text-gray-500 mb-6">
+            Започнете да създавате фази за да организирате работата по проекта.
+          </p>
+          <button
+            onClick={onCreatePhase}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
           >
-            <option value="all">Статус: Всички</option>
-            <option value="created">Създадени</option>
-            <option value="quoted">Офертирани</option>
-            <option value="won">Спечелени</option>
-            <option value="lost">Загубени</option>
-            <option value="archived">Архивирани</option>
-          </select>
+            <Plus className="w-4 h-4 mr-2" />
+            Създай първа фаза
+          </button>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-4">
+          {localPhases.filter(phase => phase && phase.id).map((phase, index) => (
+            <div
+              key={phase.id}
+              className={`border rounded-lg p-4 transition-all ${
+                draggedPhase === phase.id ? 'opacity-50 scale-95' : 'hover:shadow-md'
+              } ${
+                dragOverIndex === index ? 'border-blue-400 bg-blue-50' : ''
+              }`}
+              draggable
+              onDragStart={(e) => handleDragStart(e, phase.id)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
+                    <h3 className="text-lg font-semibold text-gray-900">{phase.name}</h3>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(phase.status)}`}>
+                      {getStatusIcon(phase.status)}
+                      <span className="ml-1">{getStatusLabel(phase.status)}</span>
+                    </span>
+                    {phase.includeArchitectCommission && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <Users className="w-3 h-3 mr-1" />
+                        Архитект
+                      </span>
+                    )}
+                  </div>
 
-      {/* Phases Table */}
-      <div className="table-container">
-        <table className="table">
-          <thead>
-            <tr>
-              <th style={{ width: '40px' }}>Ред</th>
-              <th>Фаза</th>
-              <th>Статус</th>
-              <th>Дати</th>
-              <th style={{ textAlign: 'center', width: '120px' }}>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {phases.map((phase) => (
-              <tr key={phase.id}>
-                <td className="text-center text-gray-600 font-mono">
-                  {phase.phaseOrder}
-                </td>
-                <td>
-                  <div>
-                    <div className="font-medium">{phase.name}</div>
-                    {phase.description && (
-                      <div className="text-sm text-gray-600 mt-1">
-                        {phase.description}
+                  {phase.description && (
+                    <p className="text-gray-600 mb-3 text-sm">{phase.description}</p>
+                  )}
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="flex items-center text-gray-600">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      <span>Създадена: {formatDate(phase.createdAt)}</span>
+                    </div>
+                    
+                    <div className="flex items-center text-gray-600">
+                      <span className="font-medium">Ред: {phase.phaseOrder}</span>
+                    </div>
+
+                    {phase.variantsCount !== undefined && (
+                      <div className="flex items-center text-gray-600">
+                        <span>{phase.variantsCount} варианта</span>
+                      </div>
+                    )}
+
+                    {phase.totalValue !== undefined && (
+                      <div className="flex items-center text-gray-600">
+                        <DollarSign className="w-4 h-4 mr-1" />
+                        <span>{formatCurrency(phase.totalValue)}</span>
                       </div>
                     )}
                   </div>
-                </td>
-                <td>
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(phase.status)}`}>
-                    {getStatusIcon(phase.status)}
-                    {getStatusText(phase.status)}
-                  </span>
-                </td>
-                <td>
-                  <div className="text-sm">
-                    <div>Създадена: {formatDate(phase.createdAt)}</div>
-                    <div>Обновена: {formatDate(phase.updatedAt)}</div>
-                  </div>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <div className="flex justify-center gap-1">
-                    <button
-                      onClick={() => handleReorderPhase(phase.id, 'up')}
-                      disabled={phase.phaseOrder === 1}
-                      className="btn-secondary p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Преместване нагоре"
-                    >
-                      <ArrowUp className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleReorderPhase(phase.id, 'down')}
-                      disabled={phase.phaseOrder === phases.length}
-                      className="btn-secondary p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Преместване надолу"
-                    >
-                      <ArrowDown className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleEditPhase(phase)}
-                      className="btn-secondary p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Редактирай фаза"
-                    >
-                      <Edit className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleDeletePhase(phase.id)}
-                      className="btn-danger p-1"
-                      style={{ fontSize: '0.75rem' }}
-                      title="Изтрий фаза"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        
-        {phases.length === 0 && (
-          <div className="text-center py-8">
-            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <div className="text-lg font-medium text-gray-900 mb-2">
-              Няма добавени фази
-            </div>
-            <div className="text-gray-600 mb-4">
-              Започнете с добавяне на първата фаза от проекта
-            </div>
-            <button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="btn-add"
-            >
-              + Нова фаза
-            </button>
-          </div>
-        )}
-      </div>
-      
-      <PhaseCreateModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSave={handleCreatePhase}
-        projectId={projectId}
-      />
 
-      <PhaseEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingPhase(null);
-        }}
-        onSave={handleUpdatePhase}
-        initialData={editingPhase}
-      />
+                  {phase.includeArchitectCommission && (
+                    <div className="mt-3 p-3 bg-purple-50 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-purple-700 font-medium">Архитект комисионна:</span>
+                        <div className="flex items-center space-x-4">
+                          {phase.commissionDue !== undefined && (
+                            <span className="text-purple-900">
+                              Дължима: {formatCurrency(phase.commissionDue)}
+                            </span>
+                          )}
+                          {phase.commissionPaid !== undefined && (
+                            <span className="text-purple-900">
+                              Платена: {formatCurrency(phase.commissionPaid)}
+                            </span>
+                          )}
+                          {phase.paymentStatus && (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              phase.paymentStatus === 'unpaid' ? 'bg-red-100 text-red-800' :
+                              phase.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                              phase.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                              phase.paymentStatus === 'overpaid' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {phase.paymentStatus === 'unpaid' ? 'Неплатена' :
+                               phase.paymentStatus === 'partial' ? 'Частично' :
+                               phase.paymentStatus === 'paid' ? 'Платена' :
+                               phase.paymentStatus === 'overpaid' ? 'Надплатена' : 'Неизвестно'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-2 ml-4">
+                  <Link
+                    href={`/projects/${projectId}/phases/${phase.id}`}
+                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Преглед на фаза"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={() => onEditPhase(phase)}
+                    className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    title="Редактирай фаза"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDeletePhase(phase.id)}
+                    className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Изтрии фаза"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 } 

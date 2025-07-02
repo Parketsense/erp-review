@@ -8,7 +8,7 @@ export class PhasesService {
   constructor(private prisma: PrismaService) {}
 
   async create(projectId: string, createPhaseDto: CreatePhaseDto) {
-    // Проверяваме дали проектът съществува
+    // Check if project exists
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -17,37 +17,23 @@ export class PhasesService {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
-    // Ако не е зададен phaseOrder, намираме следващия
-    let phaseOrder = createPhaseDto.phaseOrder;
-    if (!phaseOrder) {
-      const lastPhase = await this.prisma.projectPhase.findFirst({
-        where: { projectId },
-        orderBy: { phaseOrder: 'desc' },
-      });
-      phaseOrder = lastPhase ? lastPhase.phaseOrder + 1 : 1;
-    }
-
-    // Проверяваме дали вече съществува фаза с този номер
-    const existingPhase = await this.prisma.projectPhase.findUnique({
-      where: {
-        projectId_phaseOrder: {
-          projectId,
-          phaseOrder,
-        },
-      },
+    // Get the next available phase order
+    const existingPhases = await this.prisma.projectPhase.findMany({
+      where: { projectId },
+      orderBy: { phaseOrder: 'desc' },
+      take: 1,
     });
 
-    if (existingPhase) {
-      throw new BadRequestException(`Phase with order ${phaseOrder} already exists for this project`);
-    }
+    const nextPhaseOrder = existingPhases.length > 0 ? existingPhases[0].phaseOrder + 1 : 1;
 
-    return this.prisma.projectPhase.create({
+    const phase = await this.prisma.projectPhase.create({
       data: {
         projectId,
         name: createPhaseDto.name,
         description: createPhaseDto.description,
-        phaseOrder,
+        phaseOrder: nextPhaseOrder,
         status: createPhaseDto.status || 'created',
+        includeArchitectCommission: createPhaseDto.includeArchitectCommission || false,
       },
       include: {
         project: {
@@ -59,10 +45,16 @@ export class PhasesService {
         variants: true,
       },
     });
+
+    return {
+      success: true,
+      data: phase,
+      message: 'Phase created successfully',
+    };
   }
 
   async findAll() {
-    return this.prisma.projectPhase.findMany({
+    const phases = await this.prisma.projectPhase.findMany({
       include: {
         project: {
           select: {
@@ -84,6 +76,12 @@ export class PhasesService {
         { phaseOrder: 'asc' },
       ],
     });
+
+    return {
+      success: true,
+      data: phases,
+      message: 'Phases retrieved successfully',
+    };
   }
 
   async findByProject(projectId: string) {
@@ -95,7 +93,7 @@ export class PhasesService {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
-    return this.prisma.projectPhase.findMany({
+    const phases = await this.prisma.projectPhase.findMany({
       where: { projectId },
       include: {
         variants: {
@@ -121,6 +119,12 @@ export class PhasesService {
       },
       orderBy: { phaseOrder: 'asc' },
     });
+
+    return {
+      success: true,
+      data: phases,
+      message: 'Phases retrieved successfully',
+    };
   }
 
   async getStats() {
@@ -132,12 +136,18 @@ export class PhasesService {
       }),
     ]);
 
-    return {
+    const stats = {
       total: totalPhases,
       byStatus: statusStats.reduce((acc, stat) => {
         acc[stat.status] = stat._count;
         return acc;
       }, {} as Record<string, number>),
+    };
+
+    return {
+      success: true,
+      data: stats,
+      message: 'Phase stats retrieved successfully',
     };
   }
 
@@ -179,7 +189,11 @@ export class PhasesService {
       throw new NotFoundException(`Phase with ID ${id} not found`);
     }
 
-    return phase;
+    return {
+      success: true,
+      data: phase,
+      message: 'Phase retrieved successfully',
+    };
   }
 
   async update(id: string, updatePhaseDto: UpdatePhaseDto) {
@@ -207,7 +221,7 @@ export class PhasesService {
       }
     }
 
-    return this.prisma.projectPhase.update({
+    const updatedPhase = await this.prisma.projectPhase.update({
       where: { id },
       data: updatePhaseDto,
       include: {
@@ -220,9 +234,16 @@ export class PhasesService {
         variants: true,
       },
     });
+
+    return {
+      success: true,
+      data: updatedPhase,
+      message: 'Phase updated successfully',
+    };
   }
 
-  async reorderPhases(projectId: string, phaseOrders: { id: string; phaseOrder: number }[]) {
+  async reorderPhases(projectId: string, phaseOrders: { phaseId: string; newOrder: number }[]) {
+    // Check if project exists
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -231,37 +252,30 @@ export class PhasesService {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
-    // Проверяваме дали всички фази принадлежат на проекта
-    const phaseIds = phaseOrders.map(p => p.id);
-    const phases = await this.prisma.projectPhase.findMany({
-      where: { 
-        id: { in: phaseIds },
-        projectId 
-      },
+    // Update all phases in a transaction using temporary values to avoid constraint conflicts
+    await this.prisma.$transaction(async (prisma) => {
+      // First pass: Set all phases to temporary negative values to avoid conflicts
+      for (let i = 0; i < phaseOrders.length; i++) {
+        const { phaseId } = phaseOrders[i];
+        await prisma.projectPhase.update({
+          where: { id: phaseId },
+          data: { phaseOrder: -(i + 1000) }, // Use negative numbers to avoid conflicts
+        });
+      }
+
+      // Second pass: Set the actual new orders
+      for (const { phaseId, newOrder } of phaseOrders) {
+        await prisma.projectPhase.update({
+          where: { id: phaseId },
+          data: { phaseOrder: newOrder },
+        });
+      }
     });
 
-    if (phases.length !== phaseIds.length) {
-      throw new BadRequestException('Some phases do not belong to this project');
-    }
-
-    // Проверяваме дали всички номера са уникални
-    const orders = phaseOrders.map(p => p.phaseOrder);
-    const uniqueOrders = new Set(orders);
-    if (uniqueOrders.size !== orders.length) {
-      throw new BadRequestException('Phase orders must be unique');
-    }
-
-    // Изпълняваме промените в транзакция
-    return this.prisma.$transaction(async (prisma) => {
-      const updates = phaseOrders.map(({ id, phaseOrder }) =>
-        prisma.projectPhase.update({
-          where: { id },
-          data: { phaseOrder },
-        })
-      );
-      
-      return Promise.all(updates);
-    });
+    return {
+      success: true,
+      message: 'Phases reordered successfully',
+    };
   }
 
   async remove(id: string) {
@@ -290,8 +304,14 @@ export class PhasesService {
       throw new BadRequestException('Cannot delete phase with variants that contain rooms and products');
     }
 
-    return this.prisma.projectPhase.delete({
+    const deletedPhase = await this.prisma.projectPhase.delete({
       where: { id },
     });
+
+    return {
+      success: true,
+      data: deletedPhase,
+      message: 'Phase deleted successfully',
+    };
   }
 } 

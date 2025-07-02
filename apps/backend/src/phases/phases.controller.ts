@@ -52,7 +52,7 @@ export class PhasesController {
   @Put('project/:projectId/reorder')
   reorderPhases(
     @Param('projectId') projectId: string,
-    @Body() reorderData: { phases: { id: string; phaseOrder: number }[] },
+    @Body() reorderData: { phases: { phaseId: string; newOrder: number }[] },
   ) {
     return this.phasesService.reorderPhases(projectId, reorderData.phases);
   }

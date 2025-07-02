@@ -42,7 +42,8 @@ class ClientsApiService {
       throw new Error('Failed to fetch client');
     }
     
-    return response.json();
+    const result = await response.json();
+    return result.data;
   }
 
   async createClient(client: CreateClientDto): Promise<Client> {

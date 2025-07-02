@@ -36,6 +36,10 @@ export interface Project {
   address?: string;
   description?: string;
   city?: string;
+  totalArea?: number;
+  roomsCount?: number;
+  floorsCount?: number;
+  estimatedBudget?: number;
   architectType: 'none' | 'client' | 'external';
   architectId?: string;
   architectName?: string;
@@ -43,6 +47,14 @@ export interface Project {
   architectPhone?: string;
   architectEmail?: string;
   contacts: ProjectContact[];
+  client?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address?: string;
+  };
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -79,7 +91,17 @@ class ProjectsApiService {
       throw new Error('Failed to fetch projects');
     }
     
-    return response.json();
+    const result = await response.json();
+    // Backend returns { success, data, pagination }
+    return {
+      data: result.data || [],
+      meta: {
+        total: result.pagination?.total || 0,
+        page: result.pagination?.page || 1,
+        limit: result.pagination?.limit || 50,
+        totalPages: result.pagination?.totalPages || 1,
+      },
+    };
   }
 
   async createProject(project: CreateProjectDto): Promise<Project> {
@@ -106,7 +128,8 @@ class ProjectsApiService {
       throw new Error('Failed to fetch project');
     }
     
-    return response.json();
+    const result = await response.json();
+    return result.data; // Backend returns { success, data }
   }
 
   async updateProject(id: string, project: Partial<CreateProjectDto>): Promise<Project> {
@@ -122,7 +145,8 @@ class ProjectsApiService {
       throw new Error('Failed to update project');
     }
     
-    return response.json();
+    const result = await response.json();
+    return result.data; // Backend returns { success, data, message }
   }
 
   async deleteProject(id: string): Promise<void> {

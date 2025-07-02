@@ -372,6 +372,9 @@ model ProjectPhase {
   description String?
   phaseOrder  Int            @default(1)
   
+  // Architect Commission Settings
+  includeArchitectCommission Boolean @default(false)
+  
   // Status
   status      String         @default("created") // created, quoted, won, lost, archived
   
