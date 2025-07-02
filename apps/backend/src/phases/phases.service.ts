@@ -95,28 +95,6 @@ export class PhasesService {
 
     const phases = await this.prisma.projectPhase.findMany({
       where: { projectId },
-      include: {
-        variants: {
-          include: {
-            rooms: {
-              include: {
-                products: {
-                  include: {
-                    product: {
-                      select: {
-                        id: true,
-                        code: true,
-                        nameBg: true,
-                        nameEn: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
       orderBy: { phaseOrder: 'asc' },
     });
 
