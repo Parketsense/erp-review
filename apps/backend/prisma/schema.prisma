@@ -375,6 +375,10 @@ model ProjectPhase {
   // Architect Commission Settings
   includeArchitectCommission Boolean @default(false)
   
+  // Discount Settings
+  discountEnabled     Boolean       @default(false)
+  phaseDiscount       Float?        @default(0)
+  
   // Status
   status      String         @default("created") // created, quoted, won, lost, archived
   

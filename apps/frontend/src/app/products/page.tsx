@@ -67,7 +67,7 @@ export default function ProductsPage() {
       showLoading('Зареждане на продукти...');
       const params = showInactive ? '?includeInactive=true' : '';
       
-      const response = await apiClient.get(`/products${params}`);
+      const response = await apiClient.get(`/products${params}`) as any;
       
       if (response.success && response.data) {
         const transformedProducts = response.data.map((product: any) => ({
@@ -92,11 +92,13 @@ export default function ProductsPage() {
   const handleCreateProduct = async (productData: any) => {
     try {
       showLoading('Създаване на продукт...');
-      const response = await apiClient.post('/products', productData);
+      const response = await apiClient.post('/products', productData) as any;
       
       if (response.success) {
         // Reload products list
         await loadProducts();
+        // Close modal after successful creation
+        setShowCreateModal(false);
         alert('Продуктът беше създаден успешно!');
       } else {
         throw new Error(response.message || 'Грешка при създаването');
@@ -104,6 +106,7 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('Error creating product:', error);
       alert('Възникна грешка при създаването на продукта');
+      throw error; // Re-throw to be caught by modal error handling
     } finally {
       hideLoading();
     }
@@ -135,7 +138,7 @@ export default function ProductsPage() {
     try {
       showLoading(`${action === 'archive' ? 'Архивиране' : 'Активиране'}...`);
       
-      await apiClient.patch(`/products/${productId}/toggle-active`);
+      await apiClient.patch(`/products/${productId}/toggle-active`) as any;
       await loadProducts();
       
       setDropdownOpen(null);
@@ -155,7 +158,7 @@ export default function ProductsPage() {
     
     try {
       showLoading(`${currentStatus ? 'Архивиране' : 'Активиране'}...`);
-      await apiClient.patch(`/products/${productId}/toggle-active`);
+      await apiClient.patch(`/products/${productId}/toggle-active`) as any;
       await loadProducts();
       setDropdownOpen(null);
     } catch (error) {
@@ -206,7 +209,7 @@ export default function ProductsPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link href="/">
-                  <button className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
+                  <button className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors" title="Към началната страница">
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                 </Link>

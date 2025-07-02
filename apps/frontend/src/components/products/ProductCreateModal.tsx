@@ -218,7 +218,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 interface ProductCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (productData: any) => void;
+  onSave: (productData: any) => Promise<void>;
 }
 
 const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose, onSave }) => {
@@ -729,7 +729,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
     return filtered;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validation - only check for user-input required fields
     const requiredFields = ['productTypeId', 'manufacturerId'];
     const missing = requiredFields.filter(field => !formData[field as keyof typeof formData]);
@@ -779,15 +779,27 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
       textures: formData.textures.map(file => file.url),
       videoUrl: formData.videoUrl || undefined,
       // Convert attributes object to array format expected by backend
-      attributes: Object.entries(formData.attributes).map(([attributeTypeId, value]) => ({
-        attributeTypeId,
-        customValue: value,
-        attributeValueId: value // This might need adjustment based on whether it's a predefined value or custom
-      })).filter(attr => attr.customValue)
+      attributes: Object.entries(formData.attributes).map(([attributeTypeId, value]) => {
+        // Check if value is a UUID (predefined value) or custom text
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+        
+        return {
+          attributeTypeId,
+          attributeValueId: isUUID ? value : undefined,
+          customValue: !isUUID ? value : undefined
+        };
+      }).filter(attr => attr.attributeValueId || attr.customValue)
     };
 
     console.log('💾 Saving product data:', productData);
-    onSave(productData);
+    
+    try {
+      await onSave(productData);
+      console.log('✅ Product saved successfully');
+    } catch (error) {
+      console.error('❌ Error saving product:', error);
+      showNotification('Грешка при създаване на продукта: ' + (error as Error).message, 'error');
+    }
   };
 
   // Function to open add value modal
@@ -932,10 +944,22 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-gray-800 text-white px-5 py-4 flex items-center justify-between">
-          <h1 className="text-base font-medium !text-white">Създаване на продукт</h1>
+        <div className="bg-gray-800 text-white px-5 py-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                onClose();
+                window.location.href = '/';
+              }}
+              className="text-white hover:bg-white hover:bg-opacity-10 p-2 rounded text-sm flex items-center gap-2 transition-colors"
+              title="Към началната страница"
+            >
+              🏠 Начало
+            </button>
+            <h1 className="text-base font-medium !text-white">Създаване на продукт</h1>
+          </div>
           <button 
             onClick={onClose}
             className="text-white hover:bg-white hover:bg-opacity-10 p-1 rounded text-lg leading-none w-7 h-7 flex items-center justify-center"
@@ -945,7 +969,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Content */}
-        <div className="p-5 max-h-[80vh] overflow-y-auto">
+        <div className="p-5 flex-1 overflow-y-auto">
           {/* Names Section */}
           <div className="bg-gray-50 border border-gray-200 rounded-md p-5 mb-5">
             <div className="flex items-center justify-between mb-4">
@@ -1436,7 +1460,7 @@ const ProductCreateModal: React.FC<ProductCreateModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 border-t border-gray-200 px-5 py-4 flex items-center justify-between">
+        <div className="bg-gray-50 border-t border-gray-200 px-5 py-4 flex items-center justify-between flex-shrink-0">
           <div className="text-xs text-gray-500">
             Всички полета с * са задължителни
           </div>

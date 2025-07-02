@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Edit, X, Calendar, Users, Save } from 'lucide-react';
+import { Edit, X, Calendar, Users, Save, Percent } from 'lucide-react';
 import { CreatePhaseDto, ProjectPhase, UpdatePhaseDto } from '@/services/phasesApi';
 
 interface PhaseEditModalProps {
@@ -12,10 +12,12 @@ interface PhaseEditModalProps {
 }
 
 export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }: PhaseEditModalProps) {
-  const [formData, setFormData] = useState<CreatePhaseDto>({
+  const [formData, setFormData] = useState<UpdatePhaseDto>({
     name: '',
     description: '',
     includeArchitectCommission: false,
+    discountEnabled: false,
+    phaseDiscount: 0,
     status: 'created',
     phaseOrder: 1,
   });
@@ -32,6 +34,8 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
           name: initialData.name,
           description: initialData.description || '',
           includeArchitectCommission: initialData.includeArchitectCommission || false,
+          discountEnabled: initialData.discountEnabled || false,
+          phaseDiscount: initialData.phaseDiscount || 0,
           status: initialData.status,
           phaseOrder: initialData.phaseOrder,
         });
@@ -40,6 +44,8 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
           name: '',
           description: '',
           includeArchitectCommission: false,
+          discountEnabled: false,
+          phaseDiscount: 0,
           status: 'created',
           phaseOrder: 1,
         });
@@ -66,16 +72,20 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
       newErrors.name = 'Името на фазата е задължително';
     }
 
-    if (formData.name.length > 100) {
+    if (formData.name && formData.name.length > 100) {
       newErrors.name = 'Името не може да бъде по-дълго от 100 символа';
     }
 
     if (formData.description && formData.description.length > 500) {
       newErrors.description = 'Описанието не може да бъде по-дълго от 500 символа';
+    }
+
+    if (formData.phaseDiscount && (formData.phaseDiscount < 0 || formData.phaseDiscount > 100)) {
+      newErrors.phaseDiscount = 'Отстъпката трябва да бъде между 0 и 100%';
     }
 
     setErrors(newErrors);
@@ -93,9 +103,11 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
       setLoading(true);
       
       const phaseData: UpdatePhaseDto = {
-        name: formData.name.trim(),
+        name: formData.name?.trim(),
         description: formData.description?.trim() || undefined,
         includeArchitectCommission: formData.includeArchitectCommission,
+        discountEnabled: formData.discountEnabled,
+        phaseDiscount: formData.discountEnabled ? formData.phaseDiscount : 0,
         status: formData.status,
         phaseOrder: formData.phaseOrder,
       };
@@ -173,7 +185,7 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
                 <p className="mt-1 text-sm text-red-600">{errors.name}</p>
               )}
               <p className="mt-1 text-sm text-gray-500">
-                {formData.name.length}/100 символа
+                {(formData.name || '').length}/100 символа
               </p>
             </div>
 
@@ -270,6 +282,62 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
               </div>
             )}
 
+            {/* Phase Discount Settings */}
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  name="discountEnabled"
+                  id="discountEnabled"
+                  checked={formData.discountEnabled}
+                  onChange={handleInputChange}
+                  className="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                />
+                <div className="flex-1">
+                  <label htmlFor="discountEnabled" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    Активирай отстъпка за фазата
+                  </label>
+                  <p className="text-sm text-gray-500">
+                    Ако е избрано, ще се приложи отстъпка към всички продукти в тази фаза
+                  </p>
+                </div>
+                <Percent className="w-5 h-5 text-green-500 mt-0.5" />
+              </div>
+
+              {/* Discount Percentage */}
+              {formData.discountEnabled && (
+                <div className="ml-7">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Процент отстъпка
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="phaseDiscount"
+                      value={formData.phaseDiscount || ''}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      className={`w-full px-4 py-3 border rounded-lg transition-colors ${
+                        errors.phaseDiscount ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'
+                      } focus:outline-none focus:ring-2 pr-12`}
+                      placeholder="0.00"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <span className="text-gray-500 text-sm">%</span>
+                    </div>
+                  </div>
+                  {errors.phaseDiscount && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phaseDiscount}</p>
+                  )}
+                  <p className="mt-1 text-sm text-gray-500">
+                    Тази отстъпка ще се приложи към всички варианти и стаи в фазата
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Include Architect Commission */}
             <div className="flex items-start space-x-3">
               <input
@@ -319,6 +387,19 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Discount Info */}
+            {formData.discountEnabled && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Percent className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">Отстъпка на фазата</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  Отстъпката от {formData.phaseDiscount}% ще се приложи автоматично към всички варианти в тази фаза. Потребителите могат да override-ят тази стойност в отделните стаи.
+                </p>
               </div>
             )}
           </div>

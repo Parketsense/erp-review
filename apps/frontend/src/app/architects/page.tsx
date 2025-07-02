@@ -256,13 +256,13 @@ export default function ArchitectsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {architect.phone && (
-                          <div className="text-sm text-gray-900 flex items-center">
+                          <div key="phone" className="text-sm text-gray-900 flex items-center">
                             <Phone className="h-4 w-4 mr-1 text-gray-400" />
                             {architect.phone}
                           </div>
                         )}
                         {architect.email && (
-                          <div className="text-sm text-gray-500 flex items-center mt-1">
+                          <div key="email" className="text-sm text-gray-500 flex items-center mt-1">
                             <Mail className="h-4 w-4 mr-1 text-gray-400" />
                             {architect.email}
                           </div>

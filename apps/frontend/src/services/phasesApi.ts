@@ -4,6 +4,8 @@ export interface CreatePhaseDto {
   name: string;
   description?: string;
   includeArchitectCommission?: boolean;
+  discountEnabled?: boolean;
+  phaseDiscount?: number;
   status?: 'created' | 'quoted' | 'won' | 'lost';
 }
 
@@ -11,6 +13,8 @@ export interface UpdatePhaseDto {
   name?: string;
   description?: string;
   includeArchitectCommission?: boolean;
+  discountEnabled?: boolean;
+  phaseDiscount?: number;
   status?: 'created' | 'quoted' | 'won' | 'lost';
   phaseOrder?: number;
 }
@@ -21,6 +25,8 @@ export interface ProjectPhase {
   name: string;
   description?: string;
   includeArchitectCommission: boolean;
+  discountEnabled?: boolean;
+  phaseDiscount?: number;
   status: 'created' | 'quoted' | 'won' | 'lost';
   phaseOrder: number;
   createdAt: string;

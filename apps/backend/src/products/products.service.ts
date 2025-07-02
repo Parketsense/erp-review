@@ -110,12 +110,64 @@ export class ProductsService {
     const where: any = {};
 
     if (options.search) {
-      where.OR = [
-        { nameBg: { contains: options.search } },
-        { nameEn: { contains: options.search } },
-        { code: { contains: options.search } },
-        { supplier: { contains: options.search } },
-      ];
+      // Multi-word search with AND logic - all words must be found
+      // For SQLite case-insensitive search, we'll create multiple variants of each term
+      const searchTerms = options.search.trim().split(/\s+/);
+      
+      if (searchTerms.length === 1) {
+        // Single word search - simple OR across fields with case variants
+        const term = searchTerms[0];
+        const lowerTerm = term.toLowerCase();
+        const upperTerm = term.toUpperCase();
+        const capitalTerm = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
+        
+        where.OR = [
+          { nameBg: { contains: term } },
+          { nameBg: { contains: lowerTerm } },
+          { nameBg: { contains: upperTerm } },
+          { nameBg: { contains: capitalTerm } },
+          { nameEn: { contains: term } },
+          { nameEn: { contains: lowerTerm } },
+          { nameEn: { contains: upperTerm } },
+          { nameEn: { contains: capitalTerm } },
+          { code: { contains: term } },
+          { code: { contains: lowerTerm } },
+          { code: { contains: upperTerm } },
+          { code: { contains: capitalTerm } },
+          { supplier: { contains: term } },
+          { supplier: { contains: lowerTerm } },
+          { supplier: { contains: upperTerm } },
+          { supplier: { contains: capitalTerm } }
+        ];
+      } else {
+        // Multi-word search - each word must be found in at least one field (AND logic)
+        where.AND = searchTerms.map(term => {
+          const lowerTerm = term.toLowerCase();
+          const upperTerm = term.toUpperCase();
+          const capitalTerm = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
+          
+          return {
+            OR: [
+              { nameBg: { contains: term } },
+              { nameBg: { contains: lowerTerm } },
+              { nameBg: { contains: upperTerm } },
+              { nameBg: { contains: capitalTerm } },
+              { nameEn: { contains: term } },
+              { nameEn: { contains: lowerTerm } },
+              { nameEn: { contains: upperTerm } },
+              { nameEn: { contains: capitalTerm } },
+              { code: { contains: term } },
+              { code: { contains: lowerTerm } },
+              { code: { contains: upperTerm } },
+              { code: { contains: capitalTerm } },
+              { supplier: { contains: term } },
+              { supplier: { contains: lowerTerm } },
+              { supplier: { contains: upperTerm } },
+              { supplier: { contains: capitalTerm } }
+            ]
+          };
+        });
+      }
     }
 
     if (options.isFeatured !== undefined) where.isRecommended = options.isFeatured;

@@ -34,6 +34,8 @@ export class PhasesService {
         phaseOrder: nextPhaseOrder,
         status: createPhaseDto.status || 'created',
         includeArchitectCommission: createPhaseDto.includeArchitectCommission || false,
+        discountEnabled: createPhaseDto.discountEnabled || false,
+        phaseDiscount: createPhaseDto.phaseDiscount || 0,
       },
       include: {
         project: {
@@ -174,6 +176,59 @@ export class PhasesService {
     };
   }
 
+  /**
+   * Cascading update method: Updates all variants in a phase when phase discount changes
+   */
+  private async cascadeDiscountToVariants(phaseId: string, phaseDiscount: number, discountEnabled: boolean) {
+    // Get all variants for this phase
+    const variants = await this.prisma.phaseVariant.findMany({
+      where: { phaseId },
+      include: {
+        rooms: {
+          include: {
+            products: true,
+          },
+        },
+      },
+    });
+
+    // Update each variant using a transaction
+    await this.prisma.$transaction(async (prisma) => {
+      for (const variant of variants) {
+        // Update variant discount
+        await prisma.phaseVariant.update({
+          where: { id: variant.id },
+          data: {
+            discountEnabled: discountEnabled,
+            variantDiscount: discountEnabled ? phaseDiscount : 0,
+          },
+        });
+
+        // Cascade to all rooms in this variant
+        for (const room of variant.rooms) {
+          await prisma.variantRoom.update({
+            where: { id: room.id },
+            data: {
+              discountEnabled: discountEnabled,
+              discount: discountEnabled ? phaseDiscount : 0,
+            },
+          });
+
+          // Cascade to all products in this room
+          await prisma.roomProduct.updateMany({
+            where: { roomId: room.id },
+            data: {
+              discountEnabled: discountEnabled,
+              discount: discountEnabled ? phaseDiscount : 0,
+            },
+          });
+        }
+      }
+    });
+
+    return variants.length;
+  }
+
   async update(id: string, updatePhaseDto: UpdatePhaseDto) {
     const phase = await this.prisma.projectPhase.findUnique({
       where: { id },
@@ -199,6 +254,11 @@ export class PhasesService {
       }
     }
 
+    // Check if discount settings are being changed
+    const isDiscountChanged = 
+      (updatePhaseDto.discountEnabled !== undefined && updatePhaseDto.discountEnabled !== phase.discountEnabled) ||
+      (updatePhaseDto.phaseDiscount !== undefined && updatePhaseDto.phaseDiscount !== phase.phaseDiscount);
+
     const updatedPhase = await this.prisma.projectPhase.update({
       where: { id },
       data: updatePhaseDto,
@@ -212,6 +272,14 @@ export class PhasesService {
         variants: true,
       },
     });
+
+    // If discount settings changed, cascade to all variants, rooms, and products
+    if (isDiscountChanged) {
+      const newDiscountEnabled = updatePhaseDto.discountEnabled ?? phase.discountEnabled;
+      const newPhaseDiscount = updatePhaseDto.phaseDiscount ?? phase.phaseDiscount ?? 0;
+      
+      await this.cascadeDiscountToVariants(id, newPhaseDiscount, newDiscountEnabled);
+    }
 
     return {
       success: true,

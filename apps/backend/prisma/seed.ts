@@ -2055,7 +2055,6 @@ async function main() {
   // Create sample products
   const products = [
     {
-      id: 'prod_foglie_oak_classic',
       code: 'FOG-OAK-001',
       nameBg: 'Дъб Класик Essenze',
       nameEn: 'Oak Classic Essenze',
@@ -2074,7 +2073,6 @@ async function main() {
       isNew: false,
     },
     {
-      id: 'prod_salis_walnut_modern',
       code: 'SAL-WAL-002',
       nameBg: 'Орех Модерн',
       nameEn: 'Walnut Modern',
@@ -2093,7 +2091,6 @@ async function main() {
       isNew: true,
     },
     {
-      id: 'prod_blu_minimal_white',
       code: 'BLU-MIN-001',
       nameBg: 'Минимал Бяла',
       nameEn: 'Minimal White',
@@ -2114,123 +2111,115 @@ async function main() {
   ];
 
   console.log('Creating sample Products...');
+  const createdProducts = [];
   for (const product of products) {
-    await prisma.product.upsert({
-      where: { id: product.id },
+    const createdProduct = await prisma.product.upsert({
+      where: { code: product.code },
       update: product,
       create: product,
     });
+    createdProducts.push(createdProduct);
   }
 
   // Create product attribute values for the sample products
+  const foglieDOroProduct = createdProducts.find(p => p.code === 'FOG-OAK-001');
+  const salıswalnutProduct = createdProducts.find(p => p.code === 'SAL-WAL-002');
+  const bluinterniProduct = createdProducts.find(p => p.code === 'BLU-MIN-001');
+
+  if (!foglieDOroProduct || !salıswalnutProduct || !bluinterniProduct) {
+    throw new Error('Failed to create sample products');
+  }
+
   const productAttributeValues = [
     // Foglie Oak Classic attributes
     {
-      id: 'pav_foglie_oak_wood',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_wood_type',
       attributeValueId: 'av_wood_oak_all',
     },
     {
-      id: 'pav_foglie_oak_const',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_construction',
       attributeValueId: 'av_const_engineered_all',
     },
     {
-      id: 'pav_foglie_oak_thick',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_thickness',
       attributeValueId: 'av_thick_14mm',
     },
     {
-      id: 'pav_foglie_oak_width',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_width',
       attributeValueId: 'av_width_140mm',
     },
     {
-      id: 'pav_foglie_oak_length',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_length',
       attributeValueId: 'av_length_variable',
     },
     {
-      id: 'pav_foglie_oak_color',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_color',
       attributeValueId: 'av_color_natural',
     },
     {
-      id: 'pav_foglie_oak_finish',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_finish',
       attributeValueId: 'av_finish_oil',
     },
     {
-      id: 'pav_foglie_oak_selection',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_selection',
       attributeValueId: 'av_select_select',
     },
     {
-      id: 'pav_foglie_oak_collection',
-      productId: 'prod_foglie_oak_classic',
+      productId: foglieDOroProduct.id,
       attributeTypeId: 'at_parquet_collection',
       attributeValueId: 'av_collection_foglie_essenze',
     },
     // Bluinterni Minimal White door attributes
     {
-      id: 'pav_blu_door_type',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_type',
       attributeValueId: 'av_door_interior',
     },
     {
-      id: 'pav_blu_door_frame',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_frame_material',
       attributeValueId: 'av_frame_wood',
     },
     {
-      id: 'pav_blu_door_push',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_finish_push',
       attributeValueId: 'av_door_finish_painted',
     },
     {
-      id: 'pav_blu_door_pull',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_finish_pull',
       attributeValueId: 'av_door_finish_pull_painted',
     },
     {
-      id: 'pav_blu_door_lock',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_lock_type',
       attributeValueId: 'av_lock_standard',
     },
     {
-      id: 'pav_blu_door_opening',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_opening',
       attributeValueId: 'av_opening_right',
     },
     {
-      id: 'pav_blu_door_height',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_height',
       attributeValueId: 'av_door_height_2100',
     },
     {
-      id: 'pav_blu_door_width',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_width',
       attributeValueId: 'av_door_width_800',
     },
     {
-      id: 'pav_blu_door_collection',
-      productId: 'prod_blu_minimal_white',
+      productId: bluinterniProduct.id,
       attributeTypeId: 'at_doors_collection',
       attributeValueId: 'av_collection_blu_minimal',
     },
@@ -2250,6 +2239,305 @@ async function main() {
     });
   }
 
+  // Create sample Clients
+  const clients = [
+    {
+      firstName: 'Иван',
+      lastName: 'Петров',
+      email: 'ivan.petrov@email.bg',
+      phone: '+359888123456',
+      address: 'ул. Витоша 15, София 1000',
+      hasCompany: false,
+      isActive: true,
+    },
+    {
+      firstName: 'Мария',
+      lastName: 'Георгиева',
+      email: 'maria.georgieva@company.bg',
+      phone: '+359887654321',
+      address: 'бул. България 58, Пловдив 4000',
+      hasCompany: true,
+      companyName: 'Георгиева ЕООД',
+      isActive: true,
+    },
+    {
+      firstName: 'Стефан',
+      lastName: 'Димитров',
+      email: 'stefan@architech.bg',
+      phone: '+359899111222',
+      address: 'ул. Княз Борис I 123, Варна 9000',
+      hasCompany: true,
+      companyName: 'Architech Studio',
+      isArchitect: true,
+      commissionPercent: 12.0,
+      isActive: true,
+    },
+    {
+      firstName: 'Елена',
+      lastName: 'Николова',
+      email: 'elena.nikolova@gmail.com',
+      phone: '+359878333444',
+      address: 'ж.к. Младост 2, бл. 234, ап. 56, София 1799',
+      hasCompany: false,
+      isActive: true,
+    },
+    {
+      firstName: 'Георги',
+      lastName: 'Стоянов',
+      email: 'g.stoyanov@constructions.bg',
+      phone: '+359887999888',
+      address: 'ул. Раковски 78, Бургас 8000',
+      hasCompany: true,
+      companyName: 'Стоянов Строителство',
+      isActive: true,
+    },
+    // Additional Architects
+    {
+      firstName: 'Архитект Петя',
+      lastName: 'Иванова',
+      email: 'petya@designstudio.bg',
+      phone: '+359888555777',
+      address: 'ул. Графа 5, София 1202',
+      hasCompany: true,
+      companyName: 'Design Studio BG',
+      isArchitect: true,
+      commissionPercent: 15.0,
+      isActive: true,
+    },
+    {
+      firstName: 'Димитър',
+      lastName: 'Архитектов',
+      email: 'dimitar@modernarchitects.bg',
+      phone: '+359899444333',
+      address: 'бул. Христо Ботев 112, Пловдив 4002',
+      hasCompany: true,
+      companyName: 'Modern Architects',
+      isArchitect: true,
+      commissionPercent: 10.0,
+      isActive: true,
+    },
+    {
+      firstName: 'Лора',
+      lastName: 'Петкова',
+      email: 'lora.petkova@creativespace.bg',
+      phone: '+359887222111',
+      address: 'ул. Македония 25, Варна 9000',
+      hasCompany: true,
+      companyName: 'Creative Space',
+      isArchitect: true,
+      commissionPercent: 8.0,
+      isActive: true,
+    },
+    {
+      firstName: 'Владимир',
+      lastName: 'Дизайнов',
+      email: 'vladimir@interior-design.bg',
+      phone: '+359878111999',
+      address: 'ул. Ал. Стамболийски 45, Стара Загора 6000',
+      hasCompany: false,
+      isArchitect: true,
+      commissionPercent: 12.5,
+      isActive: true,
+    },
+    {
+      firstName: 'Ани',
+      lastName: 'Тодорова',
+      email: 'ani@luxurydesign.bg',
+      phone: '+359899888777',
+      address: 'ж.к. Тракия, бл. 150, ап. 25, Пловдив 4004',
+      hasCompany: true,
+      companyName: 'Luxury Design Studio',
+      isArchitect: true,
+      commissionPercent: 18.0,
+      isActive: true,
+    },
+    {
+      firstName: 'Николай',
+      lastName: 'Архитект',
+      email: 'nikolay@homespace.bg',
+      phone: '+359888333444',
+      address: 'ул. Левски 67, Русе 7000',
+      hasCompany: true,
+      companyName: 'Home Space Design',
+      isArchitect: true,
+      commissionPercent: 11.0,
+      isActive: true,
+    },
+  ];
+
+  console.log('Creating Clients...');
+  const createdClients = [];
+  for (const client of clients) {
+    // Use eikBulstat for companies or generate one for upsert
+    const whereClause = client.hasCompany && client.companyName
+      ? { eikBulstat: `EIK${client.firstName.charAt(0)}${client.lastName.charAt(0)}${Date.now()}`.slice(0, 13) }
+      : { eikBulstat: `IND${client.firstName.charAt(0)}${client.lastName.charAt(0)}${Date.now()}`.slice(0, 13) };
+    
+    const clientData = {
+      ...client,
+      eikBulstat: whereClause.eikBulstat,
+    };
+    
+    const createdClient = await prisma.client.upsert({
+      where: whereClause,
+      update: clientData,
+      create: clientData,
+    });
+    createdClients.push(createdClient);
+  }
+
+  // Create sample Suppliers
+  const suppliers = [
+    {
+      name: 'parket_bulgaria',
+      displayName: 'Паркет България ЕООД',
+      contactName: 'Димитър Александров',
+      contactEmail: 'sales@parketbulgaria.bg',
+      contactPhone: '+359878555666',
+      address: 'ул. Индустриална 45, София 1592',
+      website: 'https://parketbulgaria.bg',
+      isActive: true,
+    },
+    {
+      name: 'euro_mebel',
+      displayName: 'Евро Мебел ООД',
+      contactName: 'Анна Петкова',
+      contactEmail: 'office@euromebel.bg',
+      contactPhone: '+359888777999',
+      address: 'бул. Ботевградско шосе 89, София 1839',
+      website: 'https://euromebel.bg',
+      isActive: true,
+    },
+    {
+      name: 'darvo_stil',
+      displayName: 'Дърво и Стил АД',
+      contactName: 'Валентин Тодоров',
+      contactEmail: 'import@darvostil.bg',
+      contactPhone: '+359886111000',
+      address: 'ул. Околовръстен път 147, Пловдив 4023',
+      website: 'https://darvostil.bg',
+      isActive: true,
+    },
+    {
+      name: 'italian_style',
+      displayName: 'Италиански Стил ООД',
+      contactName: 'Marco Rossini',
+      contactEmail: 'bulgaria@italianstyle.eu',
+      contactPhone: '+359899222333',
+      address: 'ул. Г.М. Димитров 34, Варна 9002',
+      website: 'https://italianstyle.eu',
+      isActive: true,
+    },
+    {
+      name: 'bg_vrati',
+      displayName: 'БГ Врати ЕООД',
+      contactName: 'Красимир Василев',
+      contactEmail: 'info@bgvrati.bg',
+      contactPhone: '+359887444555',
+      address: 'ул. Златна Панега 78, Бургас 8001',
+      website: 'https://bgvrati.bg',
+      isActive: true,
+    },
+  ];
+
+  console.log('Creating Suppliers...');
+  const createdSuppliers = [];
+  for (const supplier of suppliers) {
+    const createdSupplier = await prisma.supplier.upsert({
+      where: { name: supplier.name },
+      update: supplier,
+      create: supplier,
+    });
+    createdSuppliers.push(createdSupplier);
+  }
+
+  // Create sample Projects
+  const projects = [
+    {
+      name: 'Апартамент Борисова градина',
+      description: 'Ремонт на двустаен апартамент в кв. Борисова градина, София. Включва паркет, врати и мебели.',
+      clientId: createdClients[0].id,
+      projectType: 'apartment',
+      address: 'кв. Борисова градина, София',
+      city: 'София',
+      status: 'draft',
+      totalArea: 65.0,
+      roomsCount: 2,
+      estimatedBudget: 8500.00,
+      startDate: new Date('2024-03-15'),
+      expectedCompletionDate: new Date('2024-04-30'),
+    },
+    {
+      name: 'Офис Пловдив',
+      description: 'Обзавеждане на нов офис в бизнес сграда в Пловдив. 180 кв.м. площ.',
+      clientId: createdClients[1].id,
+      projectType: 'office',
+      address: 'бул. България 58, Пловдив',
+      city: 'Пловдив',
+      status: 'active',
+      totalArea: 180.0,
+      estimatedBudget: 25000.00,
+      startDate: new Date('2024-02-01'),
+      expectedCompletionDate: new Date('2024-03-15'),
+    },
+    {
+      name: 'Къща Варна',
+      description: 'Паркет за цяла къща във Варна. Различни видове дървесина за различните стаи.',
+      clientId: createdClients[2].id,
+      projectType: 'house',
+      address: 'кв. Младост, Варна',
+      city: 'Варна',
+      status: 'draft',
+      totalArea: 120.0,
+      roomsCount: 4,
+      floorsCount: 2,
+      estimatedBudget: 15000.00,
+      startDate: new Date('2024-05-01'),
+      expectedCompletionDate: new Date('2024-06-30'),
+    },
+    {
+      name: 'Ресторант София Център',
+      description: 'Комплексно обзавеждане на ресторант в центъра на София.',
+      clientId: createdClients[3].id,
+      projectType: 'commercial',
+      address: 'ул. Витоша 125, София',
+      city: 'София',
+      status: 'draft',
+      totalArea: 150.0,
+      estimatedBudget: 35000.00,
+      startDate: new Date('2024-04-15'),
+      expectedCompletionDate: new Date('2024-05-30'),
+    },
+    {
+      name: 'Хотел Бургас',
+      description: 'Ремонт на хотелски стаи - паркет, врати и мебели за 20 стаи.',
+      clientId: createdClients[4].id,
+      projectType: 'commercial',
+      address: 'морска зона, Бургас',
+      city: 'Бургас',
+      status: 'archived',
+      totalArea: 400.0,
+      roomsCount: 20,
+      estimatedBudget: 45000.00,
+    },
+  ];
+
+  console.log('Creating Projects...');
+  const createdProjects = [];
+  for (const project of projects) {
+    const createdProject = await prisma.project.upsert({
+      where: { 
+        id: `proj_${project.name.toLowerCase().replace(/\s+/g, '_').substring(0, 20)}_${project.clientId.substring(0, 8)}`
+      },
+      update: { ...project, id: undefined },
+      create: {
+        ...project,
+        id: `proj_${project.name.toLowerCase().replace(/\s+/g, '_').substring(0, 20)}_${project.clientId.substring(0, 8)}`
+      },
+    });
+    createdProjects.push(createdProject);
+  }
+
   console.log('✅ Comprehensive seed completed successfully!');
   console.log('📊 Database Statistics:');
   console.log(`- ProductTypes: ${productTypes.length}`);
@@ -2257,6 +2545,9 @@ async function main() {
   console.log(`- AttributeTypes: ${attributeTypes.length}`);
   console.log(`- AttributeValues: ${attributeValues.length + manufacturerSpecificValues.length}`);
   console.log(`- Sample Products: ${products.length}`);
+  console.log(`- Clients: ${clients.length} (включително ${clients.filter(c => c.isArchitect).length} архитекта)`);
+  console.log(`- Suppliers: ${suppliers.length}`);
+  console.log(`- Projects: ${projects.length}`);
 }
 
 main()

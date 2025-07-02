@@ -5,6 +5,9 @@ export interface Phase {
   status: 'created' | 'quoted' | 'won' | 'lost' | 'archived';
   projectId: string;
   phaseOrder: number;
+  includeArchitectCommission?: boolean;
+  discountEnabled?: boolean;
+  phaseDiscount?: number;
   createdAt: string;
   updatedAt: string;
   project: {
@@ -55,6 +58,9 @@ export interface CreatePhaseDto {
   name: string;
   description?: string;
   status?: 'created' | 'quoted' | 'won' | 'lost' | 'archived';
+  includeArchitectCommission?: boolean;
+  discountEnabled?: boolean;
+  phaseDiscount?: number;
   phaseOrder?: number;
 }
 

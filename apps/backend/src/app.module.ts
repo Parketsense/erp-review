@@ -18,6 +18,9 @@ import { AttributeValuesModule } from './attribute-values/attribute-values.modul
 import { AttributesModule } from './attributes/attributes.module';
 import { ProjectsModule } from './projects/projects.module';
 import { PhasesModule } from './phases/phases.module';
+import { VariantsModule } from './variants/variants.module';
+import { RoomsModule } from './rooms/rooms.module';
+import { RoomProductsModule } from './room-products/room-products.module';
 
 @Module({
   imports: [
@@ -42,6 +45,9 @@ import { PhasesModule } from './phases/phases.module';
     // Projects module
     ProjectsModule,
     PhasesModule,
+    VariantsModule,
+    RoomsModule,
+    RoomProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingProvider } from '../components/LoadingProvider';
+import GlobalNavigation from '../components/GlobalNavigation';
 import { validateEnvironment, APP_CONFIG } from '../lib/env';
 import "./globals.css";
 
@@ -54,6 +55,7 @@ export default function RootLayout({
       }}>
         <ErrorBoundary>
           <LoadingProvider>
+            <GlobalNavigation />
             {children}
           </LoadingProvider>
         </ErrorBoundary>

@@ -14,7 +14,8 @@ import {
   Eye,
   Edit,
   Trash2,
-  GripVertical
+  GripVertical,
+  Home
 } from 'lucide-react';
 import { ProjectPhase } from '@/services/phasesApi';
 
@@ -258,11 +259,10 @@ export default function PhasesList({
                       <span className="font-medium">Ред: {phase.phaseOrder}</span>
                     </div>
 
-                    {phase.variantsCount !== undefined && (
-                      <div className="flex items-center text-gray-600">
-                        <span>{phase.variantsCount} варианта</span>
-                      </div>
-                    )}
+                    <div className="flex items-center text-gray-600">
+                      <Home className="w-4 h-4 mr-1" />
+                      <span>{phase.variantsCount || 0} варианта</span>
+                    </div>
 
                     {phase.totalValue !== undefined && (
                       <div className="flex items-center text-gray-600">
@@ -309,11 +309,12 @@ export default function PhasesList({
 
                 <div className="flex items-center space-x-2 ml-4">
                   <Link
-                    href={`/projects/${projectId}/phases/${phase.id}`}
-                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Преглед на фаза"
+                    href={`/projects/${projectId}/phases/${phase.id}/variants`}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                    title="Управление на варианти"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Home className="w-4 h-4 mr-1" />
+                    Варианти ({phase.variantsCount || 0})
                   </Link>
                   <button
                     onClick={() => onEditPhase(phase)}

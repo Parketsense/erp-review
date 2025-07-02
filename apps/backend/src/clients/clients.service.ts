@@ -70,15 +70,80 @@ export class ClientsService {
     const where: any = {};
 
     if (options.search) {
-      // For SQLite, we'll load more data and let frontend do case-insensitive filtering
-      where.OR = [
-        { firstName: { contains: options.search } },
-        { lastName: { contains: options.search } },
-        { email: { contains: options.search } },
-        { phone: { contains: options.search } },
-        { companyName: { contains: options.search } },
-        { eikBulstat: { contains: options.search } },
-      ];
+      // Multi-word search with AND logic - all words must be found
+      // SQLite case-insensitive search with multiple case variants
+      const searchTerms = options.search.trim().split(/\s+/);
+      
+      if (searchTerms.length === 1) {
+        // Single word search - simple OR across fields with case variants
+        const term = searchTerms[0];
+        const lowerTerm = term.toLowerCase();
+        const upperTerm = term.toUpperCase();
+        const capitalTerm = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
+        
+        where.OR = [
+          { firstName: { contains: term } },
+          { firstName: { contains: lowerTerm } },
+          { firstName: { contains: upperTerm } },
+          { firstName: { contains: capitalTerm } },
+          { lastName: { contains: term } },
+          { lastName: { contains: lowerTerm } },
+          { lastName: { contains: upperTerm } },
+          { lastName: { contains: capitalTerm } },
+          { email: { contains: term } },
+          { email: { contains: lowerTerm } },
+          { email: { contains: upperTerm } },
+          { email: { contains: capitalTerm } },
+          { phone: { contains: term } },
+          { phone: { contains: lowerTerm } },
+          { phone: { contains: upperTerm } },
+          { phone: { contains: capitalTerm } },
+          { companyName: { contains: term } },
+          { companyName: { contains: lowerTerm } },
+          { companyName: { contains: upperTerm } },
+          { companyName: { contains: capitalTerm } },
+          { eikBulstat: { contains: term } },
+          { eikBulstat: { contains: lowerTerm } },
+          { eikBulstat: { contains: upperTerm } },
+          { eikBulstat: { contains: capitalTerm } },
+        ];
+      } else {
+        // Multi-word search - each word must be found in at least one field (AND logic)
+        where.AND = searchTerms.map(term => {
+          const lowerTerm = term.toLowerCase();
+          const upperTerm = term.toUpperCase();
+          const capitalTerm = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
+          
+          return {
+            OR: [
+              { firstName: { contains: term } },
+              { firstName: { contains: lowerTerm } },
+              { firstName: { contains: upperTerm } },
+              { firstName: { contains: capitalTerm } },
+              { lastName: { contains: term } },
+              { lastName: { contains: lowerTerm } },
+              { lastName: { contains: upperTerm } },
+              { lastName: { contains: capitalTerm } },
+              { email: { contains: term } },
+              { email: { contains: lowerTerm } },
+              { email: { contains: upperTerm } },
+              { email: { contains: capitalTerm } },
+              { phone: { contains: term } },
+              { phone: { contains: lowerTerm } },
+              { phone: { contains: upperTerm } },
+              { phone: { contains: capitalTerm } },
+              { companyName: { contains: term } },
+              { companyName: { contains: lowerTerm } },
+              { companyName: { contains: upperTerm } },
+              { companyName: { contains: capitalTerm } },
+              { eikBulstat: { contains: term } },
+              { eikBulstat: { contains: lowerTerm } },
+              { eikBulstat: { contains: upperTerm } },
+              { eikBulstat: { contains: capitalTerm } },
+            ]
+          };
+        });
+      }
     }
 
     if (options.hasCompany !== undefined) {

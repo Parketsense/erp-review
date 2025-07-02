@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, X, MapPin, Users, Building, Phone, Mail, CheckCircle, AlertCircle, ArrowLeft, ArrowRight, Trash2, UserPlus } from 'lucide-react';
 import { clientsApi } from '../../services/clientsApi';
+import { architectsApi } from '../../services/architectsApi';
 
 interface Client {
   id: string;
@@ -43,6 +44,13 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
   const [contactSearchTerm, setContactSearchTerm] = useState('');
   const [showContactClientDropdown, setShowContactClientDropdown] = useState(false);
   const [isSelectingContactClient, setIsSelectingContactClient] = useState(false);
+  
+  // Architect search states
+  const [architects, setArchitects] = useState<Client[]>([]);
+  const [architectSearchTerm, setArchitectSearchTerm] = useState('');
+  const [showArchitectDropdown, setShowArchitectDropdown] = useState(false);
+  const [showCreateArchitectForm, setShowCreateArchitectForm] = useState(false);
+  const [selectedArchitect, setSelectedArchitect] = useState<Client | null>(null);
   
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -135,6 +143,17 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
     }
   }, [isOpen]);
 
+  // Load architects when needed
+  const loadArchitects = async (searchTerm = '') => {
+    try {
+      const response = await architectsApi.searchArchitects(searchTerm, 50);
+      setArchitects(response);
+    } catch (error) {
+      console.error('Error loading architects:', error);
+      setArchitects([]);
+    }
+  };
+
   const loadClients = async () => {
     try {
       const response = await clientsApi.getClients({ limit: 100 });
@@ -197,6 +216,34 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
     setContactSearchTerm('');
     setShowContactClientDropdown(false);
     setIsSelectingContactClient(false);
+  };
+
+  const handleArchitectSelect = (architect: Client) => {
+    setSelectedArchitect(architect);
+    setProjectData(prev => ({
+      ...prev,
+      architectId: architect.id,
+      architectName: `${architect.firstName} ${architect.lastName}`,
+      architectPhone: architect.phone || '',
+      architectEmail: architect.email || '',
+      architectCommission: (architect as any).commissionPercent || 10
+    }));
+    setArchitectSearchTerm(`${architect.firstName} ${architect.lastName}`);
+    setShowArchitectDropdown(false);
+  };
+
+  const handleCreateNewArchitect = () => {
+    setShowCreateArchitectForm(true);
+    setSelectedArchitect(null);
+    setProjectData(prev => ({
+      ...prev,
+      architectId: '',
+      architectName: '',
+      architectPhone: '',
+      architectEmail: '',
+      architectCommission: 10
+    }));
+    setArchitectSearchTerm('');
   };
 
   const validateStep = () => {
@@ -513,71 +560,214 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                   <h3 className="font-medium text-gray-900">Данни за архитект</h3>
                   
                   {projectData.architectType === 'external' && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Име на архитект *
-                      </label>
-                      <input
-                        type="text"
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.architectName ? 'border-red-300' : 'border-gray-300'
-                        }`}
-                        placeholder="Въведете име на архитекта"
-                        value={projectData.architectName}
-                        onChange={(e) => setProjectData(prev => ({ ...prev, architectName: e.target.value }))}
-                      />
-                      {errors.architectName && <p className="text-red-500 text-sm mt-1">{errors.architectName}</p>}
+                    <div className="space-y-4">
+                      {/* Architect Search Section */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Търсене на архитект
+                          </label>
+                          {!showCreateArchitectForm && (
+                            <button
+                              type="button"
+                              onClick={handleCreateNewArchitect}
+                              className="flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg hover:bg-blue-50"
+                            >
+                              <Plus className="w-4 h-4 mr-1" />
+                              Нов архитект
+                            </button>
+                          )}
+                        </div>
+                        
+                        {!showCreateArchitectForm && (
+                          <div className="relative">
+                            <input
+                              type="text"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Търсете архитект по име или фирма..."
+                              value={architectSearchTerm}
+                              onChange={(e) => {
+                                setArchitectSearchTerm(e.target.value);
+                                loadArchitects(e.target.value);
+                                setShowArchitectDropdown(true);
+                              }}
+                              onFocus={() => {
+                                loadArchitects(architectSearchTerm);
+                                setShowArchitectDropdown(true);
+                              }}
+                            />
+                            <Search className="absolute right-3 top-2.5 w-5 h-5 text-gray-400" />
+                            
+                            {/* Architect Dropdown */}
+                            {showArchitectDropdown && architects.length > 0 && (
+                              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {architects.map((architect) => (
+                                  <div
+                                    key={architect.id}
+                                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                    onClick={() => handleArchitectSelect(architect)}
+                                  >
+                                    <div className="font-medium text-gray-900">
+                                      {architect.firstName} {architect.lastName}
+                                    </div>
+                                    {architect.hasCompany && architect.companyName && (
+                                      <div className="text-sm text-gray-600">{architect.companyName}</div>
+                                    )}
+                                    <div className="text-sm text-gray-500 flex items-center gap-2">
+                                      {architect.email && <span>{architect.email}</span>}
+                                      {architect.phone && <span>{architect.phone}</span>}
+                                      {architect.commissionPercent && (
+                                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
+                                          Комисионна {architect.commissionPercent}%
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Selected Architect Display */}
+                        {selectedArchitect && !showCreateArchitectForm && (
+                          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-green-900">
+                                  {selectedArchitect.firstName} {selectedArchitect.lastName}
+                                </div>
+                                {selectedArchitect.hasCompany && selectedArchitect.companyName && (
+                                  <div className="text-sm text-green-700">{selectedArchitect.companyName}</div>
+                                )}
+                                <div className="text-sm text-green-600">
+                                  {selectedArchitect.email} • {selectedArchitect.phone}
+                                  {selectedArchitect.commissionPercent && (
+                                    <span className="ml-2">• Комисионна {selectedArchitect.commissionPercent}%</span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedArchitect(null);
+                                  setArchitectSearchTerm('');
+                                  setProjectData(prev => ({
+                                    ...prev,
+                                    architectId: '',
+                                    architectName: '',
+                                    architectPhone: '',
+                                    architectEmail: '',
+                                    architectCommission: 10
+                                  }));
+                                }}
+                                className="text-green-600 hover:text-green-800"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Create New Architect Form */}
+                      {showCreateArchitectForm && (
+                        <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-blue-900">Създаване на нов архитект</h4>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowCreateArchitectForm(false);
+                                setProjectData(prev => ({
+                                  ...prev,
+                                  architectName: '',
+                                  architectPhone: '',
+                                  architectEmail: '',
+                                  architectCommission: 10
+                                }));
+                              }}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Име на архитект *
+                            </label>
+                            <input
+                              type="text"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                errors.architectName ? 'border-red-300' : 'border-gray-300'
+                              }`}
+                              placeholder="Въведете име на архитекта"
+                              value={projectData.architectName}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, architectName: e.target.value }))}
+                            />
+                            {errors.architectName && <p className="text-red-500 text-sm mt-1">{errors.architectName}</p>}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Телефон
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="+359..."
-                        value={projectData.architectPhone}
-                        onChange={(e) => setProjectData(prev => ({ ...prev, architectPhone: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.architectEmail ? 'border-red-300' : 'border-gray-300'
-                        }`}
-                        placeholder="email@example.com"
-                        value={projectData.architectEmail}
-                        onChange={(e) => setProjectData(prev => ({ ...prev, architectEmail: e.target.value }))}
-                      />
-                      {errors.architectEmail && <p className="text-red-500 text-sm mt-1">{errors.architectEmail}</p>}
-                    </div>
-                  </div>
+                  {/* Additional fields only for new architect creation */}
+                  {(showCreateArchitectForm || (selectedArchitect && !showCreateArchitectForm)) && (
+                    <div className={showCreateArchitectForm ? "space-y-4" : "space-y-4 mt-4"}>
+                      {showCreateArchitectForm && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Телефон
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="+359..."
+                              value={projectData.architectPhone}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, architectPhone: e.target.value }))}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                                errors.architectEmail ? 'border-red-300' : 'border-gray-300'
+                              }`}
+                              placeholder="email@example.com"
+                              value={projectData.architectEmail}
+                              onChange={(e) => setProjectData(prev => ({ ...prev, architectEmail: e.target.value }))}
+                            />
+                            {errors.architectEmail && <p className="text-red-500 text-sm mt-1">{errors.architectEmail}</p>}
+                          </div>
+                        </div>
+                      )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Комисионна (%)
-                    </label>
-                    <input
-                      type="number"
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                        errors.architectCommission ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      placeholder="0"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={projectData.architectCommission}
-                      onChange={(e) => setProjectData(prev => ({ ...prev, architectCommission: parseFloat(e.target.value) || 0 }))}
-                    />
-                    {errors.architectCommission && <p className="text-red-500 text-sm mt-1">{errors.architectCommission}</p>}
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Комисионна (%)
+                        </label>
+                        <input
+                          type="number"
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            errors.architectCommission ? 'border-red-300' : 'border-gray-300'
+                          }`}
+                          placeholder="0"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={projectData.architectCommission}
+                          onChange={(e) => setProjectData(prev => ({ ...prev, architectCommission: parseFloat(e.target.value) || 0 }))}
+                        />
+                        {errors.architectCommission && <p className="text-red-500 text-sm mt-1">{errors.architectCommission}</p>}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

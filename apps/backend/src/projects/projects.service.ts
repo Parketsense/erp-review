@@ -116,20 +116,92 @@ export class ProjectsService {
     };
 
     if (options.search) {
-      where.OR = [
-        { name: { contains: options.search, mode: 'insensitive' } },
-        { description: { contains: options.search, mode: 'insensitive' } },
-        { address: { contains: options.search, mode: 'insensitive' } },
-        { 
-          client: {
-            OR: [
-              { firstName: { contains: options.search, mode: 'insensitive' } },
-              { lastName: { contains: options.search, mode: 'insensitive' } },
-              { companyName: { contains: options.search, mode: 'insensitive' } },
-            ],
+      // Multi-word search with AND logic - all words must be found
+      // SQLite case-insensitive search with multiple case variants
+      const searchTerms = options.search.trim().split(/\s+/);
+      
+      if (searchTerms.length === 1) {
+        // Single word search - simple OR across fields with case variants
+        const term = searchTerms[0];
+        const lowerTerm = term.toLowerCase();
+        const upperTerm = term.toUpperCase();
+        const capitalTerm = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
+        
+        where.OR = [
+          { name: { contains: term } },
+          { name: { contains: lowerTerm } },
+          { name: { contains: upperTerm } },
+          { name: { contains: capitalTerm } },
+          { description: { contains: term } },
+          { description: { contains: lowerTerm } },
+          { description: { contains: upperTerm } },
+          { description: { contains: capitalTerm } },
+          { address: { contains: term } },
+          { address: { contains: lowerTerm } },
+          { address: { contains: upperTerm } },
+          { address: { contains: capitalTerm } },
+          {
+            client: {
+              OR: [
+                { firstName: { contains: term } },
+                { firstName: { contains: lowerTerm } },
+                { firstName: { contains: upperTerm } },
+                { firstName: { contains: capitalTerm } },
+                { lastName: { contains: term } },
+                { lastName: { contains: lowerTerm } },
+                { lastName: { contains: upperTerm } },
+                { lastName: { contains: capitalTerm } },
+                { companyName: { contains: term } },
+                { companyName: { contains: lowerTerm } },
+                { companyName: { contains: upperTerm } },
+                { companyName: { contains: capitalTerm } },
+              ],
+            },
           },
-        },
-      ];
+        ];
+      } else {
+        // Multi-word search - each word must be found in at least one field (AND logic)
+        where.AND = searchTerms.map(term => {
+          const lowerTerm = term.toLowerCase();
+          const upperTerm = term.toUpperCase();
+          const capitalTerm = term.charAt(0).toUpperCase() + term.slice(1).toLowerCase();
+          
+          return {
+            OR: [
+              { name: { contains: term } },
+              { name: { contains: lowerTerm } },
+              { name: { contains: upperTerm } },
+              { name: { contains: capitalTerm } },
+              { description: { contains: term } },
+              { description: { contains: lowerTerm } },
+              { description: { contains: upperTerm } },
+              { description: { contains: capitalTerm } },
+              { address: { contains: term } },
+              { address: { contains: lowerTerm } },
+              { address: { contains: upperTerm } },
+              { address: { contains: capitalTerm } },
+              {
+                client: {
+                  OR: [
+                    { firstName: { contains: term } },
+                    { firstName: { contains: lowerTerm } },
+                    { firstName: { contains: upperTerm } },
+                    { firstName: { contains: capitalTerm } },
+                    { lastName: { contains: term } },
+                    { lastName: { contains: lowerTerm } },
+                    { lastName: { contains: upperTerm } },
+                    { lastName: { contains: capitalTerm } },
+                    { companyName: { contains: term } },
+                    { companyName: { contains: lowerTerm } },
+                    { companyName: { contains: upperTerm } },
+                    { companyName: { contains: capitalTerm } },
+                  ],
+                },
+              },
+            ]
+          };
+        });
+      }
     }
 
     if (options.clientId) {

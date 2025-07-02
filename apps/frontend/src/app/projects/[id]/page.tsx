@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { projectsApi, Project } from '@/services/projectsApi';
 import { phasesApi, ProjectPhase } from '@/services/phasesApi';
+import { variantsApi } from '@/services/variantsApi';
 import PhasesList from '@/components/phases/PhasesList';
 import PhaseCreateModal from '@/components/phases/PhaseCreateModal';
 import PhaseEditModal from '@/components/phases/PhaseEditModal';
@@ -74,13 +75,34 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     loadProject();
   }, [id]);
 
-  // Load phases
+  // Load phases with variants count
   useEffect(() => {
     const loadPhases = async () => {
       try {
         setPhasesLoading(true);
         const phasesResponse = await phasesApi.getPhasesByProject(id);
-        setPhases(phasesResponse.data || []);
+        const phasesData = phasesResponse.data || [];
+        
+        // Load variants count for each phase
+        const phasesWithVariantsCount = await Promise.all(
+          phasesData.map(async (phase) => {
+            try {
+              const variants = await variantsApi.getVariantsByPhase(phase.id);
+              return {
+                ...phase,
+                variantsCount: variants.length
+              };
+            } catch (err) {
+              console.error(`Error loading variants for phase ${phase.id}:`, err);
+              return {
+                ...phase,
+                variantsCount: 0
+              };
+            }
+          })
+        );
+        
+        setPhases(phasesWithVariantsCount);
       } catch (err) {
         console.error('Error loading phases:', err);
         setPhases([]);
@@ -125,7 +147,11 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const handleSavePhase = async (phaseData: any) => {
     try {
       const newPhase = await phasesApi.createPhase(id, phaseData);
-      setPhases(prev => [...prev, newPhase]);
+      const phaseWithVariantsCount = {
+        ...newPhase,
+        variantsCount: 0 // New phases start with 0 variants
+      };
+      setPhases(prev => [...prev, phaseWithVariantsCount]);
       setShowCreatePhaseModal(false);
     } catch (err) {
       console.error('Error creating phase:', err);
@@ -143,7 +169,11 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     
     try {
       const updatedPhase = await phasesApi.updatePhase(editingPhase.id, phaseData);
-      setPhases(prev => prev.map(p => p.id === editingPhase.id ? updatedPhase : p));
+      setPhases(prev => prev.map(p => 
+        p.id === editingPhase.id 
+          ? { ...updatedPhase, variantsCount: p.variantsCount } 
+          : p
+      ));
       setShowEditPhaseModal(false);
       setEditingPhase(null);
     } catch (err) {

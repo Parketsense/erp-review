@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Calendar, Users } from 'lucide-react';
+import { Plus, X, Calendar, Users, Percent } from 'lucide-react';
 import { CreatePhaseDto, ProjectPhase } from '@/services/phasesApi';
 
 interface PhaseCreateModalProps {
@@ -16,6 +16,8 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
     name: '',
     description: '',
     includeArchitectCommission: false,
+    discountEnabled: false,
+    phaseDiscount: 0,
     status: 'created',
   });
 
@@ -29,6 +31,8 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
         name: '',
         description: '',
         includeArchitectCommission: false,
+        discountEnabled: false,
+        phaseDiscount: 0,
         status: 'created',
       });
       setErrors({});
@@ -65,6 +69,10 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
       newErrors.description = 'Описанието не може да бъде по-дълго от 500 символа';
     }
 
+    if (formData.phaseDiscount && (formData.phaseDiscount < 0 || formData.phaseDiscount > 100)) {
+      newErrors.phaseDiscount = 'Отстъпката трябва да бъде между 0 и 100%';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -83,6 +91,8 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
         name: formData.name.trim(),
         description: formData.description?.trim() || undefined,
         includeArchitectCommission: formData.includeArchitectCommission,
+        discountEnabled: formData.discountEnabled,
+        phaseDiscount: formData.discountEnabled ? formData.phaseDiscount : 0,
         status: formData.status,
       };
 
@@ -219,6 +229,62 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
               <Users className="w-5 h-5 text-purple-500 mt-0.5" />
             </div>
 
+            {/* Phase Discount Settings */}
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  name="discountEnabled"
+                  id="discountEnabled"
+                  checked={formData.discountEnabled}
+                  onChange={handleInputChange}
+                  className="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                />
+                <div className="flex-1">
+                  <label htmlFor="discountEnabled" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    Активирай отстъпка за фазата
+                  </label>
+                  <p className="text-sm text-gray-500">
+                    Ако е избрано, ще се приложи отстъпка към всички продукти в тази фаза
+                  </p>
+                </div>
+                <Percent className="w-5 h-5 text-green-500 mt-0.5" />
+              </div>
+
+              {/* Discount Percentage */}
+              {formData.discountEnabled && (
+                <div className="ml-7">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Процент отстъпка
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="phaseDiscount"
+                      value={formData.phaseDiscount || ''}
+                      onChange={handleInputChange}
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      className={`w-full px-4 py-3 border rounded-lg transition-colors ${
+                        errors.phaseDiscount ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-green-500'
+                      } focus:outline-none focus:ring-2 pr-12`}
+                      placeholder="0.00"
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <span className="text-gray-500 text-sm">%</span>
+                    </div>
+                  </div>
+                  {errors.phaseDiscount && (
+                    <p className="mt-1 text-sm text-red-600">{errors.phaseDiscount}</p>
+                  )}
+                  <p className="mt-1 text-sm text-gray-500">
+                    Тази отстъпка ще се приложи към всички варианти и стаи в фазата
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Architect Commission Info */}
             {formData.includeArchitectCommission && (
               <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
@@ -228,6 +294,19 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
                 </div>
                 <p className="text-sm text-purple-700">
                   Комисионната ще се изчисли автоматично на базата на общата стойност на фазата и процента определен в настройките на проекта.
+                </p>
+              </div>
+            )}
+
+            {/* Discount Info */}
+            {formData.discountEnabled && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Percent className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">Отстъпка на фазата</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  Отстъпката от {formData.phaseDiscount}% ще се приложи автоматично към всички варианти в тази фаза. Потребителите могат да override-ят тази стойност в отделните стаи.
                 </p>
               </div>
             )}
