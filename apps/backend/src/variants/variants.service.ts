@@ -2,10 +2,14 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateVariantDto } from './dto/create-variant.dto';
 import { UpdateVariantDto } from './dto/update-variant.dto';
+import { RoomsService } from '../rooms/rooms.service';
 
 @Injectable()
 export class VariantsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private roomsService: RoomsService,
+  ) {}
 
   async create(createVariantDto: CreateVariantDto) {
     const { phaseId, variantOrder, ...data } = createVariantDto;
@@ -208,6 +212,10 @@ export class VariantsService {
       throw new NotFoundException('Variant not found');
     }
 
+    // Check if discountEnabled is being changed
+    const isDiscountEnabledChanged = updateVariantDto.discountEnabled !== undefined && 
+                                    updateVariantDto.discountEnabled !== existingVariant.discountEnabled;
+
     const variant = await this.prisma.phaseVariant.update({
       where: { id },
       data: updateVariantDto,
@@ -239,6 +247,11 @@ export class VariantsService {
         },
       },
     });
+
+    // If discountEnabled was changed, update all room discounts
+    if (isDiscountEnabledChanged) {
+      await this.roomsService.updateRoomDiscountsForVariant(id);
+    }
 
     return {
       success: true,
@@ -365,6 +378,153 @@ export class VariantsService {
     });
   }
 
+  async duplicateVariant(id: string, options?: {
+    name?: string;
+    targetPhaseId?: string;
+    cloneType?: 'all' | 'selected';
+    selectedRoomIds?: string[];
+    includeProducts?: boolean;
+  }) {
+    // Find the original variant with all its rooms and products
+    const originalVariant = await this.prisma.phaseVariant.findUnique({
+      where: { id },
+      include: {
+        phase: true,
+        rooms: {
+          include: {
+            products: {
+              include: {
+                product: true,
+              },
+            },
+            images: true,
+          },
+        },
+      },
+    });
+
+    if (!originalVariant) {
+      throw new NotFoundException('Variant not found');
+    }
+
+    // Determine target phase and room selection
+    const targetPhaseId = options?.targetPhaseId || originalVariant.phaseId;
+    const includeProducts = options?.includeProducts !== false;
+    const cloneType = options?.cloneType || 'all';
+    
+    // Filter rooms based on clone type
+    const roomsToClone = cloneType === 'selected' && options?.selectedRoomIds
+      ? originalVariant.rooms.filter(room => options.selectedRoomIds!.includes(room.id))
+      : originalVariant.rooms;
+
+    // Get the next order number for the new variant in target phase
+    const lastVariant = await this.prisma.phaseVariant.findFirst({
+      where: { phaseId: targetPhaseId },
+      orderBy: { variantOrder: 'desc' },
+    });
+    const nextOrder = (lastVariant?.variantOrder || 0) + 1;
+
+    // Create the new variant with transaction to ensure data consistency
+    return await this.prisma.$transaction(async (tx) => {
+      // Create the duplicated variant
+      const duplicatedVariant = await tx.phaseVariant.create({
+        data: {
+          phaseId: targetPhaseId,
+          name: options?.name || `${originalVariant.name} (копие)`,
+          designer: originalVariant.designer,
+          architect: originalVariant.architect,
+          architectCommission: originalVariant.architectCommission,
+          variantDiscount: originalVariant.variantDiscount,
+          discountEnabled: originalVariant.discountEnabled,
+          includeInOffer: false, // Set to false for new variants
+          variantOrder: nextOrder,
+        },
+        include: {
+          phase: {
+            include: {
+              project: true,
+            },
+          },
+          _count: {
+            select: {
+              rooms: true,
+            },
+          },
+        },
+      });
+
+      // Copy selected rooms from the original variant
+      if (roomsToClone.length > 0) {
+        for (const originalRoom of roomsToClone) {
+          // Create the duplicated room
+          const duplicatedRoom = await tx.variantRoom.create({
+            data: {
+              variantId: duplicatedVariant.id,
+              name: originalRoom.name,
+              area: originalRoom.area,
+              discount: originalRoom.discount,
+              discountEnabled: originalRoom.discountEnabled,
+              wastePercent: originalRoom.wastePercent,
+            },
+          });
+
+          // Copy products only if includeProducts is true
+          if (includeProducts && originalRoom.products.length > 0) {
+            const productData = originalRoom.products.map((roomProduct) => ({
+              roomId: duplicatedRoom.id,
+              productId: roomProduct.productId,
+              quantity: roomProduct.quantity,
+              unitPrice: roomProduct.unitPrice,
+              discount: roomProduct.discount,
+              discountEnabled: roomProduct.discountEnabled,
+              wastePercent: roomProduct.wastePercent,
+            }));
+
+            await tx.roomProduct.createMany({
+              data: productData,
+            });
+          }
+
+          // Note: Images are not copied in this implementation
+          // If image copying is needed, it would require additional logic
+          // to copy image files and create new image records
+        }
+      }
+
+      // Return the fully populated variant
+      return await tx.phaseVariant.findUnique({
+        where: { id: duplicatedVariant.id },
+        include: {
+          phase: {
+            include: {
+              project: true,
+            },
+          },
+          rooms: {
+            include: {
+              products: {
+                include: {
+                  product: true,
+                },
+              },
+              _count: {
+                select: {
+                  products: true,
+                  images: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              rooms: true,
+            },
+          },
+        },
+      });
+    });
+  }
+
   async getStats() {
     const [totalVariants, variantsByPhase, variantsByIncludeInOffer] = await Promise.all([
       this.prisma.phaseVariant.count(),
@@ -391,5 +551,13 @@ export class VariantsService {
       },
       message: 'Variant stats retrieved successfully'
     };
+  }
+
+  /**
+   * Manually trigger room discount updates for a variant
+   * Used for testing and debugging
+   */
+  async updateRoomDiscountsManually(variantId: string) {
+    return await this.roomsService.updateRoomDiscountsForVariant(variantId);
   }
 } 

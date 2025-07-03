@@ -8,6 +8,9 @@ import {
   Delete,
   Put,
   Query,
+  HttpCode,
+  HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { VariantsService } from './variants.service';
 import { CreateVariantDto } from './dto/create-variant.dto';
@@ -55,8 +58,48 @@ export class VariantsController {
     return this.variantsService.reorderVariants(phaseId, body.variantIds);
   }
 
+  @Post(':id/duplicate')
+  @HttpCode(HttpStatus.CREATED)
+  async duplicate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { 
+      name?: string;
+      targetPhaseId?: string;
+      cloneType?: 'all' | 'selected';
+      selectedRoomIds?: string[];
+      includeProducts?: boolean;
+    },
+  ) {
+    try {
+      const duplicatedVariant = await this.variantsService.duplicateVariant(id, body);
+      return {
+        success: true,
+        data: duplicatedVariant,
+        message: 'Variant duplicated successfully',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.variantsService.remove(id);
+  }
+
+  @Post(':id/update-discounts')
+  @HttpCode(HttpStatus.OK)
+  async updateDiscounts(@Param('id', ParseUUIDPipe) id: string) {
+    try {
+      // This endpoint will manually trigger discount update for testing
+      const result = await this.variantsService.updateRoomDiscountsManually(id);
+      return {
+        success: true,
+        data: result,
+        message: 'Discounts updated successfully',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 } 

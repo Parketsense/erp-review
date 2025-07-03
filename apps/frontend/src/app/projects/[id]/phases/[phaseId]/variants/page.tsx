@@ -24,8 +24,7 @@ import {
   Percent,
   Settings
 } from 'lucide-react';
-import { PhaseVariant } from '@/types/variant';
-import { VariantRoom } from '@/types/room';
+import { PhaseVariant as VariantPhase, VariantRoom } from '@/types/variant';
 import { variantsApi } from '@/services/variantsApi';
 import { roomsApi } from '@/services/roomsApi';
 import { roomProductsApi, RoomProduct } from '@/services/roomProductsApi';
@@ -36,10 +35,12 @@ import VariantEditModal from '@/components/variants/VariantEditModal';
 import RoomCreateModal from '@/components/rooms/RoomCreateModal';
 import RoomEditModal from '@/components/rooms/RoomEditModal';
 import AddProductModal from '@/components/rooms/AddProductModal';
+import VariantCloneModal from '@/components/variants/VariantCloneModal';
+import RoomCloneModal from '@/components/rooms/RoomCloneModal';
 
 export default function VariantsPage() {
   const { id: projectId, phaseId } = useParams() as { id: string; phaseId: string };
-  const [variants, setVariants] = useState<PhaseVariant[]>([]);
+  const [variants, setVariants] = useState<VariantPhase[]>([]);
   const [phase, setPhase] = useState<ProjectPhase | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,12 +49,13 @@ export default function VariantsPage() {
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<PhaseVariant | null>(null);
-  const [showRoomCreateModal, setShowRoomCreateModal] = useState(false);
-  const [showRoomEditModal, setShowRoomEditModal] = useState(false);
+  const [showEditRoomModal, setShowEditRoomModal] = useState(false);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [showVariantCloneModal, setShowVariantCloneModal] = useState(false);
+  const [showRoomCloneModal, setShowRoomCloneModal] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<VariantPhase | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<VariantRoom | null>(null);
   const [selectedVariantForRoom, setSelectedVariantForRoom] = useState<string | null>(null);
-  const [showProductModal, setShowProductModal] = useState(false);
   const [selectedRoomForProducts, setSelectedRoomForProducts] = useState<VariantRoom | null>(null);
   const [selectedRoomForEdit, setSelectedRoomForEdit] = useState<VariantRoom | null>(null);
   
@@ -114,7 +116,7 @@ export default function VariantsPage() {
 
   const handleCreateRoom = (variantId: string) => {
     setSelectedVariantForRoom(variantId);
-    setShowRoomCreateModal(true);
+    setShowCreateModal(true);
   };
 
   const handleRoomCreated = async () => {
@@ -127,23 +129,23 @@ export default function VariantsPage() {
       });
       await loadRoomsForVariant(selectedVariantForRoom);
     }
-    setShowRoomCreateModal(false);
+    setShowCreateModal(false);
     setSelectedVariantForRoom(null);
   };
 
   const handleRoomClick = (room: VariantRoom) => {
     setSelectedRoom(room);
-    setShowProductModal(true);
+    setShowAddProductModal(true);
   };
 
   const handleEditRoom = (room: VariantRoom) => {
     setSelectedRoomForEdit(room);
-    setShowRoomEditModal(true);
+    setShowEditRoomModal(true);
   };
 
   const handleProductsManage = (room: VariantRoom) => {
     setSelectedRoomForProducts(room);
-    setShowProductModal(true);
+    setShowAddProductModal(true);
   };
 
   const handleRoomUpdated = async () => {
@@ -173,7 +175,7 @@ export default function VariantsPage() {
         console.error('Error updating room:', error);
       }
     }
-    setShowRoomEditModal(false);
+    setShowEditRoomModal(false);
     setSelectedRoomForEdit(null);
   };
 
@@ -221,7 +223,7 @@ export default function VariantsPage() {
     }
   };
 
-  const handleEditVariant = (variant: PhaseVariant) => {
+  const handleEditVariant = (variant: VariantPhase) => {
     setSelectedVariant(variant);
     setShowEditModal(true);
   };
@@ -343,7 +345,7 @@ export default function VariantsPage() {
 
   const handleRoomCardClick = (room: VariantRoom) => {
     setSelectedRoomForProducts(room);
-    setShowProductModal(true);
+    setShowAddProductModal(true);
   };
 
   // Calculate variant total
@@ -363,6 +365,43 @@ export default function VariantsPage() {
     });
     
     return total;
+  };
+
+  const handleDuplicateVariant = (variant: VariantPhase) => {
+    setSelectedVariant(variant);
+    setShowVariantCloneModal(true);
+  };
+
+  const handleDuplicateRoom = (room: VariantRoom) => {
+    setSelectedRoom(room);
+    setShowRoomCloneModal(true);
+  };
+
+  const handleVariantCloned = async () => {
+    // Reload all data to show new variants
+    await loadData();
+    
+    // The variants state will be updated automatically by loadData(), 
+    // so we'll auto-expand all variants in the useEffect that watches variants
+    
+    setShowVariantCloneModal(false);
+    setSelectedVariant(null);
+  };
+
+  const handleRoomCloned = async () => {
+    // Reload all rooms for all expanded variants to ensure we see any new rooms
+    await Promise.all(
+      Array.from(expandedVariants).map(variantId => loadRoomsForVariant(variantId))
+    );
+    
+    // If no variants are expanded, reload the current room's variant
+    if (selectedRoom && expandedVariants.size === 0) {
+      await loadRoomsForVariant(selectedRoom.variantId);
+      setExpandedVariants(new Set([selectedRoom.variantId]));
+    }
+    
+    setShowRoomCloneModal(false);
+    setSelectedRoom(null);
   };
 
   if (loading) {
@@ -659,46 +698,51 @@ export default function VariantsPage() {
                       </div>
 
                       <div className="flex items-center space-x-2 ml-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCreateRoom(variant.id);
-                          }}
-                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-                          title="Създай нова стая"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Нова стая
-                        </button>
-                        <Link
-                          href={`/projects/${projectId}/phases/${phaseId}/variants/${variant.id}/rooms`}
-                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-                          title="Управление на стаи"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Home className="w-4 h-4 mr-1" />
-                          Стаи ({variant._count?.rooms || 0})
-                        </Link>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditVariant(variant);
-                          }}
-                          className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                        >
-                          <Edit2 className="w-4 h-4 mr-1" />
-                          Редактирай
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteVariant(variant.id);
-                          }}
-                          className="inline-flex items-center px-3 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Изтрий
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditVariant(variant);
+                            }}
+                            className="flex items-center px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Редактирай
+                          </button>
+                          
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDuplicateVariant(variant);
+                            }}
+                            className="flex items-center px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Клонирай
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCreateRoom(variant.id);
+                            }}
+                            className="flex items-center px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Добави стая
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteVariant(variant.id);
+                            }}
+                            className="flex items-center px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Изтрий
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -754,6 +798,16 @@ export default function VariantsPage() {
                                     title="Редактирай стая"
                                   >
                                     <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDuplicateRoom(room);
+                                    }}
+                                    className="p-1.5 text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
+                                    title="Клонирай стая"
+                                  >
+                                    <Plus className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={(e) => {
@@ -836,12 +890,12 @@ export default function VariantsPage() {
       )}
 
       {/* Create Room Modal */}
-      {showRoomCreateModal && selectedVariantForRoom && (
+      {showCreateModal && selectedVariantForRoom && (
         <RoomCreateModal
           variantId={selectedVariantForRoom}
-          isOpen={showRoomCreateModal}
+          isOpen={showCreateModal}
           onClose={() => {
-            setShowRoomCreateModal(false);
+            setShowCreateModal(false);
             setSelectedVariantForRoom(null);
           }}
           onRoomCreated={handleRoomCreated}
@@ -849,12 +903,12 @@ export default function VariantsPage() {
       )}
 
       {/* Room Edit Modal */}
-      {showRoomEditModal && selectedRoomForEdit && (
+      {showEditRoomModal && selectedRoomForEdit && (
         <RoomEditModal
           room={selectedRoomForEdit}
-          isOpen={showRoomEditModal}
+          isOpen={showEditRoomModal}
           onClose={() => {
-            setShowRoomEditModal(false);
+            setShowEditRoomModal(false);
             setSelectedRoomForEdit(null);
           }}
           onRoomUpdated={handleRoomUpdated}
@@ -862,11 +916,11 @@ export default function VariantsPage() {
       )}
 
       {/* Product Modal */}
-      {showProductModal && selectedRoomForProducts && (
+      {showAddProductModal && selectedRoomForProducts && (
         <AddProductModal
-          isOpen={showProductModal}
+          isOpen={showAddProductModal}
           onClose={() => {
-            setShowProductModal(false);
+            setShowAddProductModal(false);
             setSelectedRoomForProducts(null);
           }}
           roomId={selectedRoomForProducts.id}
@@ -883,6 +937,37 @@ export default function VariantsPage() {
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           onVariantUpdated={handleVariantUpdated}
+        />
+      )}
+
+      {/* Variant Clone Modal */}
+      {showVariantCloneModal && selectedVariant && (
+        <VariantCloneModal
+          isOpen={showVariantCloneModal}
+          onClose={() => {
+            setShowVariantCloneModal(false);
+            setSelectedVariant(null);
+          }}
+          variant={selectedVariant}
+          currentPhaseId={phaseId}
+          projectId={projectId}
+          onCloned={handleVariantCloned}
+        />
+      )}
+
+      {/* Room Clone Modal */}
+      {showRoomCloneModal && selectedRoom && (
+        <RoomCloneModal
+          isOpen={showRoomCloneModal}
+          onClose={() => {
+            setShowRoomCloneModal(false);
+            setSelectedRoom(null);
+          }}
+          room={selectedRoom}
+          currentVariantId={selectedRoom.variantId}
+          currentPhaseId={phaseId}
+          projectId={projectId}
+          onCloned={handleRoomCloned}
         />
       )}
     </div>

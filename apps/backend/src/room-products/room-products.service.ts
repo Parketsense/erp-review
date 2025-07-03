@@ -9,9 +9,22 @@ export class RoomProductsService {
 
   async create(createRoomProductDto: CreateRoomProductDto) {
     try {
-      // Validate room exists
+      // Validate room exists and get discount info
       const room = await this.prisma.variantRoom.findUnique({
         where: { id: createRoomProductDto.roomId },
+        include: {
+          variant: {
+            include: {
+              phase: {
+                select: {
+                  id: true,
+                  discountEnabled: true,
+                  phaseDiscount: true,
+                },
+              },
+            },
+          },
+        },
       });
       if (!room) {
         throw new NotFoundException('Room not found');
@@ -37,14 +50,29 @@ export class RoomProductsService {
         throw new BadRequestException('Product already exists in this room');
       }
 
+      // Calculate product discount based on room/variant/phase settings
+      let productDiscount = createRoomProductDto.discount || 0;
+      let productDiscountEnabled = createRoomProductDto.discountEnabled ?? true;
+      
+      // Override discount based on room/variant/phase settings
+      if (!room.variant.discountEnabled || !room.variant.phase.discountEnabled || !room.discountEnabled) {
+        // If variant, phase, or room discount is disabled, set product discount to 0
+        productDiscount = 0;
+        productDiscountEnabled = false;
+      } else if (createRoomProductDto.discount === undefined) {
+        // If no specific discount provided, use room discount (which should already be set based on phase)
+        productDiscount = room.discount || 0;
+        productDiscountEnabled = true;
+      }
+
       const roomProduct = await this.prisma.roomProduct.create({
         data: {
           roomId: createRoomProductDto.roomId,
           productId: createRoomProductDto.productId,
           quantity: createRoomProductDto.quantity,
           unitPrice: createRoomProductDto.unitPrice,
-          discount: createRoomProductDto.discount || 0,
-          discountEnabled: createRoomProductDto.discountEnabled ?? true,
+          discount: productDiscount,
+          discountEnabled: productDiscountEnabled,
           wastePercent: createRoomProductDto.wastePercent || 10,
         },
         include: {

@@ -111,6 +111,30 @@ export const variantsApi = {
     return result.data;
   },
 
+  // Duplicate variant
+  async duplicateVariant(id: string, options?: {
+    name?: string;
+    targetPhaseId?: string;
+    cloneType?: 'all' | 'selected';
+    selectedRoomIds?: string[];
+    includeProducts?: boolean;
+  }): Promise<PhaseVariant> {
+    const response = await fetch(`${API_BASE_URL}/variants/${id}/duplicate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(options || {}),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to duplicate variant');
+    }
+
+    const result: ApiResponse<PhaseVariant> = await response.json();
+    return result.data;
+  },
+
   // Get variant stats
   async getVariantStats(): Promise<VariantStats> {
     const response = await fetch(`${API_BASE_URL}/variants/stats`);

@@ -128,10 +128,15 @@ export class RoomsController {
   @HttpCode(HttpStatus.CREATED)
   async duplicate(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { name?: string },
+    @Body() body: { 
+      name?: string;
+      targetVariantId?: string;
+      productCloneType?: 'all' | 'selected' | 'none';
+      selectedProductIds?: string[];
+    },
   ) {
     try {
-      const duplicatedRoom = await this.roomsService.duplicateRoom(id, body.name);
+      const duplicatedRoom = await this.roomsService.duplicateRoom(id, body);
       return {
         success: true,
         data: duplicatedRoom,

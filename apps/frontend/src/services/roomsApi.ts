@@ -94,13 +94,18 @@ export const roomsApi = {
   },
 
   // Duplicate room
-  async duplicateRoom(id: string, newName?: string): Promise<VariantRoom> {
+  async duplicateRoom(id: string, options?: {
+    name?: string;
+    targetVariantId?: string;
+    productCloneType?: 'all' | 'selected' | 'none';
+    selectedProductIds?: string[];
+  }): Promise<VariantRoom> {
     const response = await fetch(`${API_BASE_URL}/rooms/${id}/duplicate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name: newName }),
+      body: JSON.stringify(options || {}),
     });
 
     if (!response.ok) {
