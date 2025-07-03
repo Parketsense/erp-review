@@ -102,4 +102,10 @@ export class VariantsController {
       throw error;
     }
   }
+
+  @Post(':id/select')
+  @HttpCode(HttpStatus.OK)
+  async selectVariant(@Param('id', ParseUUIDPipe) id: string) {
+    return this.variantsService.selectVariant(id);
+  }
 } 

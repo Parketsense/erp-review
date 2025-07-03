@@ -1,0 +1,291 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
+import { User, Bell, ChevronDown, Grid3X3 } from 'lucide-react';
+import styles from './HeaderV1.module.css';
+
+interface NavItem {
+  label: string;
+  path: string;
+  hasDropdown?: boolean;
+  dropdownItems?: DropdownItem[];
+}
+
+interface DropdownItem {
+  label: string;
+  path: string;
+}
+
+interface NavCardData {
+  title: string;
+  description: string;
+  icon: string;
+  href: string;
+  color: string;
+}
+
+const navItems: NavItem[] = [
+  {
+    label: 'Начало',
+    path: '/',
+  },
+  {
+    label: 'Клиенти',
+    path: '/clients',
+    hasDropdown: true,
+    dropdownItems: [
+      { label: 'Всички клиенти', path: '/clients' },
+      { label: 'Добави клиент', path: '/clients/create' },
+      { label: 'Архитекти', path: '/architects' },
+      { label: 'Импорт/Експорт', path: '/clients/import' }
+    ]
+  },
+  {
+    label: 'Проекти',
+    path: '/projects',
+    hasDropdown: true,
+    dropdownItems: [
+      { label: 'Активни проекти', path: '/projects' },
+      { label: 'Създай проект', path: '/projects/create' },
+      { label: 'Фази и варианти', path: '/projects/phases' },
+      { label: 'Архив', path: '/projects/archive' }
+    ]
+  },
+  {
+    label: 'Продукти',
+    path: '/products',
+  },
+  {
+    label: 'Поръчки',
+    path: '/orders',
+  },
+  {
+    label: 'Документи',
+    path: '/documents',
+    hasDropdown: true,
+    dropdownItems: [
+      { label: 'Оферти', path: '/offers' },
+      { label: 'Фактури', path: '/invoices' },
+      { label: 'Складови документи', path: '/warehouse' },
+      { label: 'Доставки', path: '/deliveries' }
+    ]
+  }
+];
+
+const navigationCards: NavCardData[] = [
+  { 
+    title: 'Клиенти', 
+    description: 'Управление на клиенти и контакти',
+    icon: '👥',
+    href: '/clients',
+    color: '#E3F2FD'
+  },
+  { 
+    title: 'Архитекти', 
+    description: 'Архитекти и комисионни',
+    icon: '🏗️',
+    href: '/architects',
+    color: '#F3E5F5'
+  },
+  { 
+    title: 'Проекти', 
+    description: 'Създаване и управление на проекти',
+    icon: '📋',
+    href: '/projects',
+    color: '#EDE7F6'
+  },
+  { 
+    title: 'Продукти', 
+    description: 'Каталог с продукти и цени',
+    icon: '🏷️',
+    href: '/products',
+    color: '#E8F5E9'
+  },
+  { 
+    title: 'Производители', 
+    description: 'Управление на производители',
+    icon: '🏭',
+    href: '/manufacturers',
+    color: '#FFF3E0'
+  },
+  { 
+    title: 'Доставчици', 
+    description: 'Доставчици и склад',
+    icon: '🚚',
+    href: '/suppliers',
+    color: '#FFEBEE'
+  },
+  { 
+    title: 'Атрибути', 
+    description: 'Система за атрибути',
+    icon: '⚙️',
+    href: '/attributes',
+    color: '#E0F2F1'
+  },
+  { 
+    title: 'Анализи', 
+    description: 'Отчети и статистики',
+    icon: '📊',
+    href: '/analytics',
+    color: '#F3E5F5'
+  }
+];
+
+export default function HeaderV1Updated() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [notificationCount] = useState(3); // Mock notification count
+
+  const handleMainClick = (path: string) => {
+    router.push(path);
+  };
+
+  const handleDropdownClick = (path: string) => {
+    router.push(path);
+    setActiveDropdown(null);
+  };
+
+  const handleMouseEnter = (label: string) => {
+    setActiveDropdown(label);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveDropdown(null);
+  };
+
+  const handleNavCardClick = (href: string) => {
+    router.push(href);
+    setActiveDropdown(null);
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(path);
+  };
+
+  return (
+    <header className={styles.header}>
+      <div className={styles.headerContent}>
+        {/* Logo Section */}
+        <div className={styles.logoSection}>
+          <div className={styles.logo}>
+            <Image
+              src="/parketsense-logo-mono-black.png"
+              alt="PARKETSENSE"
+              width={32}
+              height={32}
+              className={styles.logoImage}
+            />
+          </div>
+          <span className={styles.brandText}>PARKETSENSE ERP</span>
+        </div>
+
+        {/* Navigation */}
+        <nav className={styles.navigation}>
+          {navItems.map((item) => (
+            <div
+              key={item.label}
+              className={`${styles.navItem} ${isActive(item.path) ? styles.active : ''}`}
+              onMouseEnter={() => item.hasDropdown && handleMouseEnter(item.label)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button
+                className={styles.navButton}
+                onClick={() => handleMainClick(item.path)}
+              >
+                {item.label}
+                {item.hasDropdown && (
+                  <ChevronDown className={styles.chevron} size={16} />
+                )}
+              </button>
+
+              {/* Dropdown Menu */}
+              {item.hasDropdown && activeDropdown === item.label && (
+                <div className={styles.dropdown}>
+                  {item.dropdownItems?.map((dropdownItem) => (
+                    <button
+                      key={dropdownItem.path}
+                      className={styles.dropdownItem}
+                      onClick={() => handleDropdownClick(dropdownItem.path)}
+                    >
+                      {dropdownItem.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Navigation Cards Menu */}
+          <div
+            className={styles.navItem}
+            onMouseEnter={() => handleMouseEnter('Меню')}
+            onMouseLeave={handleMouseLeave}
+          >
+            <button className={styles.navButton}>
+              <Grid3X3 className={styles.menuIcon} size={16} />
+              Меню
+              <ChevronDown className={styles.chevron} size={16} />
+            </button>
+
+            {/* Navigation Cards Dropdown */}
+            {activeDropdown === 'Меню' && (
+              <div className={styles.navigationCardsDropdown}>
+                <div className={styles.navigationCardsGrid}>
+                  {navigationCards.map((card, index) => (
+                    <button
+                      key={index}
+                      className={styles.navigationCard}
+                      onClick={() => handleNavCardClick(card.href)}
+                    >
+                      <div 
+                        className={styles.navigationCardIcon}
+                        style={{ backgroundColor: card.color }}
+                      >
+                        <span className={styles.navigationCardIconEmoji}>
+                          {card.icon}
+                        </span>
+                      </div>
+                      <div className={styles.navigationCardContent}>
+                        <h3 className={styles.navigationCardTitle}>
+                          {card.title}
+                        </h3>
+                        <p className={styles.navigationCardDescription}>
+                          {card.description}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* User Menu */}
+        <div className={styles.userMenu}>
+          {/* Notifications */}
+          <div className={styles.notifications}>
+            <Bell className={styles.notificationIcon} size={20} />
+            {notificationCount > 0 && (
+              <span className={styles.notificationBadge}>
+                {notificationCount}
+              </span>
+            )}
+          </div>
+
+          {/* User Avatar */}
+          <div className={styles.userAvatar}>
+            <User className={styles.avatarIcon} size={20} />
+            <span className={styles.userInitials}>АМ</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+} 

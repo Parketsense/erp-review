@@ -79,6 +79,12 @@ export default function VariantsPage() {
       setVariants(variantsResponse);
       setPhase(phaseResponse);
       setProject(projectResponse);
+      
+      // Debug log for variants with architects
+      console.log('Variants with architects:', variantsResponse.filter(v => v.architect));
+      
+      // Debug log for variants with architects
+      console.log('Variants with architects:', variantsResponse.filter(v => v.architect));
     } catch (err) {
       console.error('Error loading data:', err);
       setError(err instanceof Error ? err.message : 'Възникна грешка');
@@ -404,6 +410,15 @@ export default function VariantsPage() {
     setSelectedRoom(null);
   };
 
+  const handleSelectVariant = async (variantId: string) => {
+    try {
+      await variantsApi.selectVariant(variantId);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Грешка при избор на вариант');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -603,10 +618,10 @@ export default function VariantsPage() {
           ) : (
             <div className="divide-y divide-gray-200">
               {variants.map((variant, index) => (
-                <div key={variant.id} className="overflow-hidden">
+                <div key={variant.id} className={`overflow-hidden ${variant.isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-white'}`}>
                   {/* Variant Card */}
                   <div 
-                    className="p-6 hover:bg-gray-50 cursor-pointer"
+                    className={`p-6 hover:bg-gray-50 cursor-pointer transition-colors ${variant.isSelected ? 'bg-blue-50 hover:bg-blue-100' : ''}`}
                     onClick={() => toggleVariantExpansion(variant.id)}
                   >
                     <div className="flex items-center justify-between">
@@ -621,8 +636,8 @@ export default function VariantsPage() {
                           </div>
                           
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <span className="text-sm font-medium text-blue-600">
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${variant.isSelected ? 'bg-blue-500' : 'bg-blue-100'}`}>
+                              <span className={`text-sm font-medium ${variant.isSelected ? 'text-white' : 'text-blue-600'}`}>
                                 {variant.variantOrder}
                               </span>
                             </div>
@@ -646,9 +661,14 @@ export default function VariantsPage() {
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center">
-                              <h4 className="text-sm font-medium text-gray-900 truncate">
+                              <h4 className={`text-sm font-medium truncate ${variant.isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
                                 {variant.name}
                               </h4>
+                              {variant.isSelected && (
+                                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  Избран
+                                </span>
+                              )}
                               {!variant.includeInOffer && (
                                 <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                   Изключен
@@ -656,7 +676,7 @@ export default function VariantsPage() {
                               )}
                             </div>
                             {variant.description && (
-                              <p className="mt-1 text-sm text-gray-500 truncate">
+                              <p className={`mt-1 text-sm truncate ${variant.isSelected ? 'text-blue-700' : 'text-gray-500'}`}>
                                 {variant.description}
                               </p>
                             )}
@@ -671,12 +691,13 @@ export default function VariantsPage() {
                             </div>
                           )}
                           
-                          {variant.architect && (
-                            <div className="flex items-center">
-                              <UserCheck className="w-4 h-4 mr-1" />
-                              <span>Архитект: {variant.architect}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center">
+                            <UserCheck className="w-4 h-4 mr-1" />
+                            <span>Архитект: {variant.architect || 'Не е зададен'}</span>
+                            <span className="ml-1 text-xs text-gray-500">
+                              ({variant.architectCommission || 0}% - {formatCurrency((variant.architectCommission || 0) / 100 * calculateVariantTotal(variant.id))})
+                            </span>
+                          </div>
                           
                           <div className="flex items-center">
                             <Home className="w-4 h-4 mr-1" />
@@ -699,6 +720,19 @@ export default function VariantsPage() {
 
                       <div className="flex items-center space-x-2 ml-4">
                         <div className="flex space-x-2">
+                          {!variant.isSelected && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectVariant(variant.id);
+                              }}
+                              className="flex items-center px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
+                            >
+                              <CheckSquare className="w-4 h-4 mr-1" />
+                              Избери
+                            </button>
+                          )}
+                          
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -715,7 +749,7 @@ export default function VariantsPage() {
                               e.stopPropagation();
                               handleDuplicateVariant(variant);
                             }}
-                            className="flex items-center px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
+                            className="flex items-center px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 transition-colors"
                           >
                             <Plus className="w-4 h-4 mr-1" />
                             Клонирай

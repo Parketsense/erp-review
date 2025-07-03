@@ -68,6 +68,29 @@ export interface ProjectStats {
   completed: number;
   drafts: number;
   thisMonth: number;
+  withArchitect: number;
+}
+
+export interface ProjectFilters {
+  search: string;
+  status: 'all' | 'active' | 'completed' | 'with-architect';
+  dateRange?: [Date, Date];
+}
+
+export interface ProjectTableRow {
+  id: string;
+  name: string;
+  client: {
+    id: string;
+    name: string;
+  };
+  type: string;
+  architect?: {
+    id: string;
+    name: string;
+  };
+  status: 'active' | 'completed' | 'with-architect';
+  createdAt: string;
 }
 
 export interface CreateProjectDto {

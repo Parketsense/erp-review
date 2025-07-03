@@ -6,6 +6,8 @@ export interface Phase {
   projectId: string;
   phaseOrder: number;
   includeArchitectCommission?: boolean;
+  architectCommissionPercent?: number;
+  architectCommissionAmount?: number;
   discountEnabled?: boolean;
   phaseDiscount?: number;
   createdAt: string;

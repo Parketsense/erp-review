@@ -1,0 +1,141 @@
+.dashboard-header {
+  background: var(--color-primary);
+  color: var(--white);
+  padding: var(--space-2xl) 0 var(--space-xl) 0;
+  position: relative;
+  z-index: 10;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header-logo {
+  width: 48px;
+  height: 48px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.header-title {
+  font-size: var(--display-sm-size);
+  font-weight: var(--display-sm-weight);
+  line-height: var(--display-sm-line);
+  color: var(--white);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.header-subtitle {
+  font-size: var(--body-size);
+  font-weight: var(--body-weight);
+  line-height: var(--body-line);
+  color: var(--white);
+  opacity: 0.8;
+  margin: 0;
+}
+
+.version-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--caption-size);
+  font-weight: var(--caption-weight);
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-xs);
+}
+
+.user-name {
+  font-size: var(--body-size);
+  font-weight: 600;
+  color: var(--white);
+}
+
+.user-email {
+  font-size: var(--caption-size);
+  color: var(--white);
+  opacity: 0.8;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: var(--space-lg);
+    text-align: center;
+  }
+  
+  .header-brand {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  
+  .header-user {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .user-info {
+    align-items: center;
+  }
+} 

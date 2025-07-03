@@ -31,6 +31,10 @@ export class CreateVariantDto {
 
   @IsOptional()
   @IsBoolean()
+  isSelected?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   includeInOffer?: boolean;
 
   @IsOptional()

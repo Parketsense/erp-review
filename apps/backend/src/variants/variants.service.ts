@@ -14,9 +14,17 @@ export class VariantsService {
   async create(createVariantDto: CreateVariantDto) {
     const { phaseId, variantOrder, ...data } = createVariantDto;
 
-    // Get the phase to validate it exists
+    // Get the phase to validate it exists and get project info
     const phase = await this.prisma.projectPhase.findUnique({
       where: { id: phaseId },
+      include: {
+        project: {
+          select: {
+            architectName: true,
+            architectCommission: true,
+          },
+        },
+      },
     });
 
     if (!phase) {
@@ -33,13 +41,26 @@ export class VariantsService {
       order = (lastVariant?.variantOrder || 0) + 1;
     }
 
+    // Auto-populate architect from project if not provided
+    const variantData = {
+      phaseId,
+      variantOrder: order,
+      ...data,
+    };
+
+    // If architect is not provided, inherit from project
+    if (!variantData.architect && phase.project?.architectName) {
+      variantData.architect = phase.project.architectName;
+    }
+
+    // If architect commission is not provided, inherit from project
+    if (!variantData.architectCommission && phase.project?.architectCommission) {
+      variantData.architectCommission = phase.project.architectCommission;
+    }
+
     // Create the variant
     const variant = await this.prisma.phaseVariant.create({
-      data: {
-        phaseId,
-        variantOrder: order,
-        ...data,
-      },
+      data: variantData,
       include: {
         phase: {
           include: {
@@ -558,6 +579,67 @@ export class VariantsService {
    * Used for testing and debugging
    */
   async updateRoomDiscountsManually(variantId: string) {
-    return await this.roomsService.updateRoomDiscountsForVariant(variantId);
+    await this.roomsService.updateRoomDiscountsForVariant(variantId);
+  }
+
+  async selectVariant(variantId: string) {
+    const variant = await this.prisma.phaseVariant.findUnique({
+      where: { id: variantId },
+      include: {
+        phase: true,
+      },
+    });
+
+    if (!variant) {
+      throw new NotFoundException('Variant not found');
+    }
+
+    // Use transaction to ensure only one variant is selected per phase
+    return await this.prisma.$transaction(async (tx) => {
+      // First, unselect all variants in this phase
+      await tx.phaseVariant.updateMany({
+        where: { phaseId: variant.phaseId },
+        data: { isSelected: false },
+      });
+
+      // Then select the specified variant
+      const updatedVariant = await tx.phaseVariant.update({
+        where: { id: variantId },
+        data: { isSelected: true },
+        include: {
+          phase: {
+            include: {
+              project: true,
+            },
+          },
+          rooms: {
+            include: {
+              products: {
+                include: {
+                  product: true,
+                },
+              },
+              _count: {
+                select: {
+                  products: true,
+                  images: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              rooms: true,
+            },
+          },
+        },
+      });
+
+      return {
+        success: true,
+        data: updatedVariant,
+        message: 'Variant selected successfully'
+      };
+    });
   }
 } 

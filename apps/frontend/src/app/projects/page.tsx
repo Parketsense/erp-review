@@ -1,11 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Plus, FolderOpen, ArrowLeft, Search, Calendar, User, Building, Archive } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { 
+  ProjectsPageHeader,
+  ProjectsActionBar,
+  ProjectsStatsGrid,
+  ProjectsTable,
+  ProjectsPagination
+} from '@/components/projects';
 import { projectsApi, Project, ProjectsResponse } from '@/services/projectsApi';
 import { clientsApi } from '@/services/clientsApi';
 import CreateProjectModal from '@/components/projects/CreateProjectModal';
+import { ProjectStats, ProjectFilters } from '@/types/project';
 
 interface ProjectWithClient extends Project {
   clientName?: string;
@@ -13,12 +20,23 @@ interface ProjectWithClient extends Project {
 }
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<ProjectWithClient[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredProjects, setFilteredProjects] = useState<ProjectWithClient[]>([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  
+  // Filters and search
+  const [filters, setFilters] = useState<ProjectFilters>({
+    search: '',
+    status: 'all'
+  });
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
 
   // Load projects from backend
   useEffect(() => {
@@ -49,11 +67,13 @@ export default function ProjectsPage() {
         );
         
         setProjects(enrichedProjects);
-        setFilteredProjects(enrichedProjects);
+        setTotalItems(response.meta.total);
+        setTotalPages(response.meta.totalPages);
       } catch (error) {
         console.error('Error loading projects:', error);
         setProjects([]);
-        setFilteredProjects([]);
+        setTotalItems(0);
+        setTotalPages(1);
       } finally {
         setLoading(false);
       }
@@ -62,54 +82,45 @@ export default function ProjectsPage() {
     loadProjects();
   }, []);
 
-  // Filter projects based on search term
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredProjects(projects);
-      return;
-    }
-
-    const searchLower = searchTerm.toLowerCase();
-    const filtered = projects.filter(project => 
-      project.name.toLowerCase().includes(searchLower) ||
-      project.clientName?.toLowerCase().includes(searchLower) ||
-      project.address?.toLowerCase().includes(searchLower) ||
-      project.projectType.toLowerCase().includes(searchLower)
-    );
-    setFilteredProjects(filtered);
-  }, [searchTerm, projects]);
-
-  const getProjectTypeIcon = (type: string) => {
-    switch (type) {
-      case 'apartment': return '🏠';
-      case 'house': return '🏡';
-      case 'office': return '🏢';
-      case 'commercial': return '🏬';
-      case 'other': return '📋';
-      default: return '📋';
-    }
+  // Calculate project stats
+  const projectStats: ProjectStats = {
+    total: projects.length,
+    active: projects.filter(p => p.status === 'active').length,
+    completed: projects.filter(p => p.status === 'completed').length,
+    drafts: projects.filter(p => p.status === 'draft').length,
+    thisMonth: projects.filter(p => {
+      const createdAt = new Date(p.createdAt);
+      const now = new Date();
+      return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
+    }).length,
+    withArchitect: projects.filter(p => p.architectType === 'external' || p.architectType === 'client').length
   };
 
-  const getProjectTypeLabel = (type: string) => {
-    const types = {
-      apartment: 'Апартамент',
-      house: 'Къща',
-      office: 'Офис', 
-      commercial: 'Търговски обект',
-      other: 'Друго'
-    };
-    return types[type as keyof typeof types] || 'Неизвестен';
-  };
+  // Filter projects based on search and status
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = !filters.search || 
+      project.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      project.clientName?.toLowerCase().includes(filters.search.toLowerCase()) ||
+      project.address?.toLowerCase().includes(filters.search.toLowerCase()) ||
+      project.projectType.toLowerCase().includes(filters.search.toLowerCase());
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('bg-BG');
-  };
+    const matchesStatus = filters.status === 'all' ||
+      (filters.status === 'active' && project.status === 'active') ||
+      (filters.status === 'completed' && project.status === 'completed') ||
+      (filters.status === 'with-architect' && (project.architectType === 'external' || project.architectType === 'client'));
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Paginate filtered projects
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
 
   const handleCreateProject = async (projectData: any) => {
     try {
       setCreateLoading(true);
       
-      // Create the project via API (contacts will be added later in full implementation)
       const newProject = await projectsApi.createProject({
         name: projectData.name,
         clientId: projectData.clientId,
@@ -122,18 +133,15 @@ export default function ProjectsPage() {
         architectCommission: projectData.architectCommission
       });
 
-      // Add to projects list
       const enrichedProject = {
         ...newProject,
-        clientName: 'Нов клиент', // Will be loaded properly on refresh
+        clientName: 'Нов клиент',
         status: 'active' as const
       };
 
       setProjects(prev => [enrichedProject, ...prev]);
-      setFilteredProjects(prev => [enrichedProject, ...prev]);
       setShowCreateModal(false);
       
-      // Show success message
       alert('Проектът е създаден успешно!');
       
     } catch (error) {
@@ -144,108 +152,66 @@ export default function ProjectsPage() {
     }
   };
 
+  const handleStatClick = (metric: keyof ProjectStats) => {
+    // Filter based on clicked stat
+    switch (metric) {
+      case 'active':
+        setFilters(prev => ({ ...prev, status: 'active' }));
+        break;
+      case 'completed':
+        setFilters(prev => ({ ...prev, status: 'completed' }));
+        break;
+      case 'withArchitect':
+        setFilters(prev => ({ ...prev, status: 'with-architect' }));
+        break;
+      default:
+        setFilters(prev => ({ ...prev, status: 'all' }));
+    }
+    setCurrentPage(1);
+  };
+
+  const handleProjectClick = (id: string) => {
+    router.push(`/projects/${id}`);
+  };
+
+  const handleClientClick = (clientId: string) => {
+    router.push(`/clients/${clientId}`);
+  };
+
+  const handleEdit = (id: string) => {
+    router.push(`/projects/${id}/edit`);
+  };
+
+  const handleArchive = (id: string) => {
+    // TODO: Implement archive functionality
+    console.log('Archive project:', id);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Сигурни ли сте, че искате да изтриете този проект?')) {
+      // TODO: Implement delete functionality
+      console.log('Delete project:', id);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 mr-1" />
-                Назад
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Проекти</h1>
-                <p className="text-gray-600 mt-1">Управление на проекти</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Нов проект
-            </button>
-          </div>
-        </div>
+    <div className="projects-page min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ProjectsPageHeader />
+        
+        <ProjectsActionBar
+          searchQuery={filters.search}
+          onSearchChange={(query) => setFilters(prev => ({ ...prev, search: query }))}
+          statusFilter={filters.status}
+          onStatusFilterChange={(status) => setFilters(prev => ({ ...prev, status: status as any }))}
+          onCreateProject={() => setShowCreateModal(true)}
+        />
 
-        {/* Stats Cards */}
         {!loading && projects.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-blue-100">
-                  <FolderOpen className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">{projects.length}</h3>
-                  <p className="text-sm text-gray-500">Общо проекти</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-green-100">
-                  <Calendar className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {projects.filter(p => p.status === 'active').length}
-                  </h3>
-                  <p className="text-sm text-gray-500">Активни</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-yellow-100">
-                  <User className="w-6 h-6 text-yellow-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {projects.filter(p => p.architectType === 'external' || p.architectType === 'client').length}
-                  </h3>
-                  <p className="text-sm text-gray-500">С архитект</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-purple-100">
-                  <Archive className="w-6 h-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {projects.filter(p => p.status === 'completed').length}
-                  </h3>
-                  <p className="text-sm text-gray-500">Завършени</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Search and Filters */}
-        {!loading && projects.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Търсене по име на проект, клиент, адрес или тип..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
+          <ProjectsStatsGrid
+            stats={projectStats}
+            onStatClick={handleStatClick}
+          />
         )}
 
         {/* Loading State */}
@@ -258,93 +224,47 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* Projects List */}
+        {/* Projects Table */}
         {!loading && filteredProjects.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="grid grid-cols-1 gap-0">
-              {filteredProjects.map((project) => (
-                <div key={project.id} className="border-b border-gray-200 last:border-b-0">
-                  <Link href={`/projects/${project.id}`} className="block p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <span className="text-2xl">{getProjectTypeIcon(project.projectType)}</span>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
-                            <p className="text-sm text-gray-500">{getProjectTypeLabel(project.projectType)}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                          <div className="flex items-center text-sm text-gray-600">
-                            <User className="w-4 h-4 mr-2" />
-                            <span>{project.clientName}</span>
-                          </div>
-                          
-                          {project.address && (
-                            <div className="flex items-center text-sm text-gray-600">
-                              <Building className="w-4 h-4 mr-2" />
-                              <span>{project.address}</span>
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center text-sm text-gray-600">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            <span>Създаден: {formatDate(project.createdAt)}</span>
-                          </div>
-
-                          {project.architectName && (
-                            <div className="flex items-center text-sm text-gray-600">
-                              <User className="w-4 h-4 mr-2" />
-                              <span>Архитект: {project.architectName}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {project.description && (
-                          <p className="text-sm text-gray-600 mt-3 line-clamp-2">{project.description}</p>
-                        )}
-                      </div>
-                      
-                      <div className="ml-4 flex flex-col items-end space-y-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          project.status === 'active' ? 'bg-green-100 text-green-800' :
-                          project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                          project.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {project.status === 'active' ? 'Активен' :
-                           project.status === 'completed' ? 'Завършен' :
-                           project.status === 'draft' ? 'Чернова' : 'Неизвестен'}
-                        </span>
-                        
-                        {project.architectType !== 'none' && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            С архитект
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
+          <>
+            <ProjectsTable
+              projects={paginatedProjects}
+              onProjectClick={handleProjectClick}
+              onClientClick={handleClientClick}
+              onEdit={handleEdit}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+            />
+            
+            <ProjectsPagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredProjects.length / itemsPerPage)}
+              totalItems={filteredProjects.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
 
         {/* Empty State */}
         {!loading && projects.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Няма проекти</h2>
             <p className="text-gray-500 mb-6">
               Започнете да създавате проекти за да управлявате работата си по-ефективно.
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 focus:ring-2 focus:ring-black"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
               Създай първи проект
             </button>
           </div>
@@ -353,13 +273,17 @@ export default function ProjectsPage() {
         {/* No Search Results */}
         {!loading && projects.length > 0 && filteredProjects.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Няма намерени проекти</h2>
             <p className="text-gray-500 mb-4">
               Опитайте с различни ключови думи или премахнете филтрите.
             </p>
             <button
-              onClick={() => setSearchTerm('')}
+              onClick={() => setFilters({ search: '', status: 'all' })}
               className="text-blue-600 hover:text-blue-800 font-medium"
             >
               Изчисти търсенето

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingProvider } from '../components/LoadingProvider';
-import GlobalNavigation from '../components/GlobalNavigation';
+import HeaderV1 from '../components/Header/HeaderV1';
 import { validateEnvironment, APP_CONFIG } from '../lib/env';
 import "./globals.css";
 
@@ -41,22 +41,25 @@ export default function RootLayout({
     <html lang="bg">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="theme-color" content="#1a1a1a" />
+        <link rel="icon" href="/parketsense-logo-mono-black.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/parketsense-logo-mono-black.png" />
+        <meta name="theme-color" content="#000000" />
         <meta name="color-scheme" content="light" />
       </head>
       <body style={{ 
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif',
         margin: 0,
         padding: 0,
-        background: '#f8f9fa',
+        background: 'var(--background-light)',
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
       }}>
         <ErrorBoundary>
           <LoadingProvider>
-            <GlobalNavigation />
-            {children}
+            <HeaderV1 />
+            <main className="parketsense-main">
+              {children}
+            </main>
           </LoadingProvider>
         </ErrorBoundary>
         

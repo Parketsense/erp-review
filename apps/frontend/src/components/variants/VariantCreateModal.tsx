@@ -34,7 +34,9 @@ export default function VariantCreateModal({
     description: '',
     includeInOffer: true,
     discountEnabled: false,
-    variantDiscount: 0
+    variantDiscount: 0,
+    architect: '',
+    architectCommission: 0
   });
   
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,15 @@ export default function VariantCreateModal({
       setLoadingPhase(true);
       const phaseData = await phasesApi.getPhaseById(phaseId);
       setPhase(phaseData);
+      
+      // Auto-populate architect from phase if available
+      if (phaseData?.project?.architectName && !formData.architect) {
+        setFormData(prev => ({
+          ...prev,
+          architect: phaseData.project.architectName,
+          architectCommission: phaseData.project.architectCommission || 0
+        }));
+      }
     } catch (err) {
       console.error('Failed to load phase:', err);
       // Don't show error to user, phase info is optional
@@ -90,7 +101,9 @@ export default function VariantCreateModal({
         description: '',
         includeInOffer: true,
         discountEnabled: false,
-        variantDiscount: 0
+        variantDiscount: 0,
+        architect: '',
+        architectCommission: 0
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Възникна грешка при създаването');
@@ -187,6 +200,63 @@ export default function VariantCreateModal({
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Personnel Information */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Персонал</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="designer" className="block text-sm font-medium text-gray-700">
+                    Дизайнер
+                  </label>
+                  <input
+                    type="text"
+                    id="designer"
+                    value={formData.designer || ''}
+                    onChange={(e) => handleInputChange('designer', e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Въведете име на дизайнера"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="architect" className="block text-sm font-medium text-gray-700">
+                    Архитект
+                  </label>
+                  <input
+                    type="text"
+                    id="architect"
+                    value={formData.architect || ''}
+                    onChange={(e) => handleInputChange('architect', e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Въведете име на архитекта"
+                  />
+                </div>
+              </div>
+              
+              {formData.architect && (
+                <div className="mt-4">
+                  <label htmlFor="architectCommission" className="block text-sm font-medium text-gray-700">
+                    <Percent className="w-4 h-4 inline mr-1" />
+                    Комисионна на архитекта (%)
+                  </label>
+                  <input
+                    type="number"
+                    id="architectCommission"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={formData.architectCommission || 0}
+                    onChange={(e) => handleInputChange('architectCommission', parseFloat(e.target.value) || 0)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="0.00"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Процентът се изчислява от общата стойност на варианта след прилагане на отстъпки.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Offer Settings */}

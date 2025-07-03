@@ -7,6 +7,7 @@ export interface PhaseVariant {
   designer?: string;
   architect?: string;
   architectCommission?: number;
+  isSelected: boolean;
   includeInOffer: boolean;
   discountEnabled: boolean;
   variantDiscount?: number;
@@ -105,6 +106,7 @@ export interface CreateVariantDto {
   designer?: string;
   architect?: string;
   architectCommission?: number;
+  isSelected?: boolean;
   includeInOffer?: boolean;
   discountEnabled?: boolean;
   variantDiscount?: number;
@@ -117,6 +119,7 @@ export interface UpdateVariantDto {
   designer?: string;
   architect?: string;
   architectCommission?: number;
+  isSelected?: boolean;
   includeInOffer?: boolean;
   discountEnabled?: boolean;
   variantDiscount?: number;

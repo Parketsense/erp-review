@@ -374,6 +374,8 @@ model ProjectPhase {
   
   // Architect Commission Settings
   includeArchitectCommission Boolean @default(false)
+  architectCommissionPercent Float?  @default(0) // Commission percentage for this phase
+  architectCommissionAmount  Float?  @default(0) // Fixed commission amount for this phase
   
   // Discount Settings
   discountEnabled     Boolean       @default(false)
@@ -390,6 +392,7 @@ model ProjectPhase {
   project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   variants    PhaseVariant[]
   offers      Offer[]
+  payments    ArchitectPayment[]
 
   @@unique([projectId, phaseOrder])
   @@map("project_phases")
@@ -408,6 +411,9 @@ model PhaseVariant {
   designer            String?
   architect           String?
   architectCommission Float?        @default(0)
+  
+  // Selection
+  isSelected          Boolean       @default(false)  // Маркира дали вариантът е избран като окончателен
   
   // Settings
   includeInOffer      Boolean       @default(true)
@@ -559,4 +565,30 @@ model OfferHistory {
   offer           Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
 
   @@map("offer_history")
+}
+
+model ArchitectPayment {
+  id          String       @id @default(uuid())
+  phaseId     String
+  
+  // Payment Details
+  amount      Float
+  paymentDate DateTime
+  description String?
+  
+  // Payment Method
+  paymentMethod String? // cash, bank_transfer, check, etc.
+  referenceNumber String?
+  
+  // Status
+  status      String       @default("pending") // pending, completed, cancelled
+  
+  // Timestamps
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Relations
+  phase       ProjectPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  @@map("architect_payments")
 }

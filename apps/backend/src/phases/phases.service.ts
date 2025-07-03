@@ -34,6 +34,8 @@ export class PhasesService {
         phaseOrder: nextPhaseOrder,
         status: createPhaseDto.status || 'created',
         includeArchitectCommission: createPhaseDto.includeArchitectCommission || false,
+        architectCommissionPercent: createPhaseDto.architectCommissionPercent || 0,
+        architectCommissionAmount: createPhaseDto.architectCommissionAmount || 0,
         discountEnabled: createPhaseDto.discountEnabled || false,
         phaseDiscount: createPhaseDto.phaseDiscount || 0,
       },
@@ -139,6 +141,8 @@ export class PhasesService {
           select: {
             id: true,
             name: true,
+            architectName: true,
+            architectCommission: true,
             client: {
               select: {
                 id: true,

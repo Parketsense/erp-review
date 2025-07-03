@@ -77,31 +77,50 @@ class ProjectsApiService {
     search?: string;
     clientId?: string;
   }): Promise<ProjectsResponse> {
-    const searchParams = new URLSearchParams();
-    
-    if (params?.page) searchParams.append('page', params.page.toString());
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    if (params?.search) searchParams.append('search', params.search);
-    if (params?.clientId) searchParams.append('clientId', params.clientId);
+    try {
+      const searchParams = new URLSearchParams();
+      
+      if (params?.page) searchParams.append('page', params.page.toString());
+      if (params?.limit) searchParams.append('limit', params.limit.toString());
+      if (params?.search) searchParams.append('search', params.search);
+      if (params?.clientId) searchParams.append('clientId', params.clientId);
 
-    const url = `${API_BASE_URL}/projects${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
-    
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch projects');
+      const url = `${API_BASE_URL}/projects${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+      
+      console.log('🔍 Fetching projects from:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Error:', response.status, errorText);
+        throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ API Response:', result);
+      
+      // Backend returns { success, data, pagination }
+      return {
+        data: result.data || [],
+        meta: {
+          total: result.pagination?.total || 0,
+          page: result.pagination?.page || 1,
+          limit: result.pagination?.limit || 50,
+          totalPages: result.pagination?.totalPages || 1,
+        },
+      };
+    } catch (error) {
+      console.error('💥 getProjects error:', error);
+      throw error;
     }
-    
-    const result = await response.json();
-    // Backend returns { success, data, pagination }
-    return {
-      data: result.data || [],
-      meta: {
-        total: result.pagination?.total || 0,
-        page: result.pagination?.page || 1,
-        limit: result.pagination?.limit || 50,
-        totalPages: result.pagination?.totalPages || 1,
-      },
-    };
   }
 
   async createProject(project: CreateProjectDto): Promise<Project> {

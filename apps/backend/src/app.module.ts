@@ -21,6 +21,7 @@ import { PhasesModule } from './phases/phases.module';
 import { VariantsModule } from './variants/variants.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { RoomProductsModule } from './room-products/room-products.module';
+import { ArchitectPaymentsModule } from './architect-payments/architect-payments.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { RoomProductsModule } from './room-products/room-products.module';
     VariantsModule,
     RoomsModule,
     RoomProductsModule,
+    ArchitectPaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

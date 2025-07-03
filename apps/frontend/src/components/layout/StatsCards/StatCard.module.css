@@ -1,0 +1,54 @@
+.stat-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--elevation-card);
+  border: 1px solid var(--color-neutral-200);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-width: 250px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-2);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-emoji {
+  font-size: 24px;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--color-neutral-900);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: var(--caption-size);
+  font-weight: var(--caption-weight);
+  color: var(--color-neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+} 

@@ -17,6 +17,17 @@ export class CreatePhaseDto {
   includeArchitectCommission?: boolean;
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  architectCommissionPercent?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  architectCommissionAmount?: number;
+
+  @IsOptional()
   @IsBoolean()
   discountEnabled?: boolean;
 

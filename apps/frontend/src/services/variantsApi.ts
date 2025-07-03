@@ -146,4 +146,21 @@ export const variantsApi = {
     const result: ApiResponse<VariantStats> = await response.json();
     return result.data;
   },
+
+  // Select variant as final
+  async selectVariant(id: string): Promise<PhaseVariant> {
+    const response = await fetch(`${API_BASE_URL}/variants/${id}/select`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to select variant');
+    }
+
+    const result: ApiResponse<PhaseVariant> = await response.json();
+    return result.data;
+  },
 }; 

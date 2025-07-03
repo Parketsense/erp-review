@@ -316,6 +316,18 @@ export default function PhasesList({
                     <Home className="w-4 h-4 mr-1" />
                     Варианти ({phase.variantsCount || 0})
                   </Link>
+                  
+                  {phase.includeArchitectCommission && (
+                    <Link
+                      href={`/projects/${projectId}/phases/${phase.id}?tab=payments`}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                      title="Плащания към архитект"
+                    >
+                      <DollarSign className="w-4 h-4 mr-1" />
+                      Плащания
+                    </Link>
+                  )}
+                  
                   <button
                     onClick={() => onEditPhase(phase)}
                     className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"

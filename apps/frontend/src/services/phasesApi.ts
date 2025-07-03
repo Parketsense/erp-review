@@ -32,6 +32,19 @@ export interface ProjectPhase {
   createdAt: string;
   updatedAt: string;
   
+  // Relations
+  project?: {
+    id: string;
+    name: string;
+    architectName?: string;
+    architectCommission?: number;
+    client?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+    };
+  };
+  
   // Calculated fields (will be added later)
   variantsCount?: number;
   totalValue?: number;
