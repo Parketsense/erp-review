@@ -81,23 +81,7 @@ export class ProductsController {
     return this.productsService.create(createProductDto);
   }
 
-  @Post(':id/upload')
-  @UseInterceptors(FilesInterceptor('files', 20, { storage, fileFilter }))
-  async uploadFiles(
-    @Param('id') id: string,
-    @UploadedFiles() files: Express.Multer.File[],
-    @Body('mediaType') mediaType: string
-  ) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('No files uploaded');
-    }
 
-    if (!['images', 'documents', 'models3d', 'textures'].includes(mediaType)) {
-      throw new BadRequestException('Invalid media type');
-    }
-
-    return this.productsService.addMediaFiles(id, files, mediaType);
-  }
 
   @Get()
   findAll(
@@ -125,19 +109,42 @@ export class ProductsController {
     return this.productsService.getStats();
   }
 
-  @Get('check-code/:code')
-  checkCode(@Param('code') code: string) {
-    return this.productsService.checkCode(code);
-  }
-
   @Get('test-simple')
   testSimple() {
     return { message: 'Simple test endpoint works' };
   }
 
+  @Get('check-code/:code')
+  checkCode(@Param('code') code: string) {
+    return this.productsService.checkCode(code);
+  }
+
   @Get('test-delete/:id')
   testDelete(@Param('id') id: string) {
     return { message: 'Test delete endpoint works', id };
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.productsService.findOne(id);
+  }
+
+  @Post(':id/upload')
+  @UseInterceptors(FilesInterceptor('files', 20, { storage, fileFilter }))
+  async uploadFiles(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('mediaType') mediaType: string
+  ) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
+    }
+
+    if (!['images', 'documents', 'models3d', 'textures'].includes(mediaType)) {
+      throw new BadRequestException('Invalid media type');
+    }
+
+    return this.productsService.addMediaFiles(id, files, mediaType);
   }
 
   @Delete(':id/media/:mediaType/:filename')
@@ -157,11 +164,6 @@ export class ProductsController {
   ) {
     return this.productsService.updateVideoUrl(id, videoUrl);
   }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.productsService.findOne(id);
-  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {

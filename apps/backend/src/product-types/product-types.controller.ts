@@ -18,13 +18,20 @@ export class ProductTypesController {
 
   @Get()
   async findAll() {
-    const productTypes = await this.productTypesService.findAll();
-    
-    return {
-      success: true,
-      data: productTypes,
-      total: productTypes.length
-    };
+    console.log('🔍 ProductTypesController.findAll() called');
+    try {
+      const productTypes = await this.productTypesService.findAll();
+      console.log('✅ Found product types:', productTypes.length);
+      
+      return {
+        success: true,
+        data: productTypes,
+        total: productTypes.length
+      };
+    } catch (error) {
+      console.error('❌ Error in findAll:', error);
+      throw error;
+    }
   }
 
   @Get(':id')

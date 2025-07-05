@@ -65,6 +65,11 @@ export class RoomProductsService {
         productDiscountEnabled = true;
       }
 
+      // Inherit wastage percentage from room if not provided
+      const wastePercent = createRoomProductDto.wastePercent !== undefined 
+        ? createRoomProductDto.wastePercent 
+        : room.wastePercent || 10;
+
       const roomProduct = await this.prisma.roomProduct.create({
         data: {
           roomId: createRoomProductDto.roomId,
@@ -73,7 +78,7 @@ export class RoomProductsService {
           unitPrice: createRoomProductDto.unitPrice,
           discount: productDiscount,
           discountEnabled: productDiscountEnabled,
-          wastePercent: createRoomProductDto.wastePercent || 10,
+          wastePercent: wastePercent,
         },
         include: {
           product: {
