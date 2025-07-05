@@ -66,26 +66,25 @@ export const ProjectsTable: React.FC<ProjectTableProps> = ({
               return (
                 <tr 
                   key={project.id} 
-                  className="border-b border-gray-200 hover:bg-blue-50 transition-colors"
+                  className="border-b border-gray-200 hover:bg-blue-50 transition-colors cursor-pointer active:bg-blue-100"
                   style={{ padding: 'var(--space-4) var(--space-5)' }}
+                  onClick={() => onProjectClick(project.id)}
                 >
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => onProjectClick(project.id)}
+                    <div
                       className="text-left font-semibold text-blue-600 hover:text-blue-800 transition-colors"
                       style={{ fontWeight: 600, color: 'var(--color-blue)' }}
                     >
                       {project.name}
-                    </button>
+                    </div>
                   </td>
                   
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => onClientClick(project.clientId)}
+                    <div
                       className="text-left text-gray-700 hover:text-gray-900 transition-colors"
                     >
                       {clientName}
-                    </button>
+                    </div>
                   </td>
                   
                   <td className="px-6 py-4 text-gray-700">
@@ -110,21 +109,21 @@ export const ProjectsTable: React.FC<ProjectTableProps> = ({
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <button
-                        onClick={() => onEdit(project.id)}
+                        onClick={(e) => { e.stopPropagation(); onEdit(project.id); }}
                         className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                         title="Редактирай"
                       >
                         <Edit size={16} />
                       </button>
                       <button
-                        onClick={() => onArchive(project.id)}
+                        onClick={(e) => { e.stopPropagation(); onArchive(project.id); }}
                         className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                         title="Архивирай"
                       >
                         <Archive size={16} />
                       </button>
                       <button
-                        onClick={() => onDelete(project.id)}
+                        onClick={(e) => { e.stopPropagation(); onDelete(project.id); }}
                         className="p-2 text-gray-400 hover:text-red-600 transition-colors"
                         title="Изтрий"
                       >

@@ -1,13 +1,13 @@
 export async function GET(request: Request) {
   try {
-    // Extract URL parameters from the request
-    const url = new URL(request.url);
-    const searchParams = url.searchParams;
+    const { searchParams } = new URL(request.url);
+    const includeInactive = searchParams.get('includeInactive');
+    const productTypeId = searchParams.get('productTypeId');
     
-    // Forward all URL parameters to the backend
-        const backendUrl = `http://localhost:4000/api/manufacturers${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
-
-    const response = await fetch(backendUrl, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+    const backendUrlWithParams = `${backendUrl}/api/manufacturers${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    
+    const response = await fetch(backendUrlWithParams, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -36,8 +36,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    const response = await fetch('http://localhost:4000/api/manufacturers', {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+    const response = await fetch(`${backendUrl}/api/manufacturers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,9 +46,9 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.text();
       return Response.json(
-        { success: false, message: error.message || 'Failed to create manufacturer' },
+        { success: false, message: `Backend error: ${error}` },
         { status: response.status }
       );
     }

@@ -1,1007 +1,482 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import {
-  Plus,
-  Edit2,
-  Trash2,
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { 
+  ArrowLeft, 
+  Plus, 
+  Search, 
+  Filter,
+  SortAsc,
+  SortDesc,
+  Grid3X3,
+  List,
+  RefreshCw,
+  Settings,
+  MoreHorizontal,
+  Download,
+  Upload,
   Eye,
-  GripVertical,
-  CheckSquare,
-  Square,
-  Home,
-  DollarSign,
-  Calendar,
-  User,
-  UserCheck,
-  ArrowLeft,
-  ChevronDown,
-  ChevronRight,
-  Package,
-  Ruler,
-  Percent,
-  Settings
+  EyeOff,
+  Package
 } from 'lucide-react';
-import { PhaseVariant as VariantPhase, VariantRoom } from '@/types/variant';
-import { variantsApi } from '@/services/variantsApi';
-import { roomsApi } from '@/services/roomsApi';
-import { roomProductsApi, RoomProduct } from '@/services/roomProductsApi';
-import { phasesApi, ProjectPhase } from '@/services/phasesApi';
-import { projectsApi, Project } from '@/services/projectsApi';
-import VariantCreateModal from '@/components/variants/VariantCreateModal';
-import VariantEditModal from '@/components/variants/VariantEditModal';
+import VariantStatsGrid from '@/components/variants/VariantStatsGrid';
+import VariantCard from '@/components/variants/VariantCard';
+import CreateVariantModal from '@/components/variants/CreateVariantModal';
+import EditVariantModal from '@/components/variants/EditVariantModal';
 import RoomCreateModal from '@/components/rooms/RoomCreateModal';
-import RoomEditModal from '@/components/rooms/RoomEditModal';
-import AddProductModal from '@/components/rooms/AddProductModal';
-import VariantCloneModal from '@/components/variants/VariantCloneModal';
-import RoomCloneModal from '@/components/rooms/RoomCloneModal';
+import { PhaseVariant } from '@/types/variant';
+import { variantsApi } from '@/services/variantsApi';
+import { phasesApi } from '@/services/phasesApi';
+import { projectsApi } from '@/services/projectsApi';
 
 export default function VariantsPage() {
-  const { id: projectId, phaseId } = useParams() as { id: string; phaseId: string };
-  const [variants, setVariants] = useState<VariantPhase[]>([]);
-  const [phase, setPhase] = useState<ProjectPhase | null>(null);
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const params = useParams();
+  const projectId = params.id as string;
+  const phaseId = params.phaseId as string;
+
+  // State
+  const [variants, setVariants] = useState<PhaseVariant[]>([]);
+  const [phase, setPhase] = useState<any>(null);
+  const [project, setProject] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'createdAt' | 'total'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showEditRoomModal, setShowEditRoomModal] = useState(false);
-  const [showAddProductModal, setShowAddProductModal] = useState(false);
-  const [showVariantCloneModal, setShowVariantCloneModal] = useState(false);
-  const [showRoomCloneModal, setShowRoomCloneModal] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<VariantPhase | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<VariantRoom | null>(null);
-  const [selectedVariantForRoom, setSelectedVariantForRoom] = useState<string | null>(null);
-  const [selectedRoomForProducts, setSelectedRoomForProducts] = useState<VariantRoom | null>(null);
-  const [selectedRoomForEdit, setSelectedRoomForEdit] = useState<VariantRoom | null>(null);
-  
-  // Expand/collapse states
-  const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set());
-  const [variantRooms, setVariantRooms] = useState<Record<string, VariantRoom[]>>({});
-  const [loadingRooms, setLoadingRooms] = useState<Record<string, boolean>>({});
-  const [roomProducts, setRoomProducts] = useState<Record<string, RoomProduct[]>>({});
+  const [selectedVariant, setSelectedVariant] = useState<PhaseVariant | null>(null);
+  // Room modal state
+  const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
+  const [selectedVariantForRoom, setSelectedVariantForRoom] = useState<PhaseVariant | null>(null);
 
+  // Load data
   const loadData = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      const [variantsResponse, phaseResponse, projectResponse] = await Promise.all([
+      setIsLoading(true);
+      const [variantsData, phaseData, projectData] = await Promise.all([
         variantsApi.getVariantsByPhase(phaseId),
         phasesApi.getPhaseById(phaseId),
-        projectsApi.getProjectById(projectId)
+        projectsApi.getProject(projectId)
       ]);
       
-      setVariants(variantsResponse);
-      setPhase(phaseResponse);
-      setProject(projectResponse);
-      
-      // Debug log for variants with architects
-      console.log('Variants with architects:', variantsResponse.filter(v => v.architect));
-      
-      // Debug log for variants with architects
-      console.log('Variants with architects:', variantsResponse.filter(v => v.architect));
-    } catch (err) {
-      console.error('Error loading data:', err);
-      setError(err instanceof Error ? err.message : 'Възникна грешка');
+      setVariants(variantsData);
+      setPhase(phaseData);
+      setProject(projectData);
+    } catch (error) {
+      console.error('Error loading variants data:', error);
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadRoomsForVariant = async (variantId: string) => {
-    if (variantRooms[variantId]) return; // Already loaded
-    
-    try {
-      setLoadingRooms(prev => ({ ...prev, [variantId]: true }));
-      const rooms = await roomsApi.getRoomsByVariant(variantId);
-      setVariantRooms(prev => ({ ...prev, [variantId]: rooms }));
-    } catch (err) {
-      console.error('Error loading rooms:', err);
-    } finally {
-      setLoadingRooms(prev => ({ ...prev, [variantId]: false }));
-    }
-  };
-
-  const toggleVariantExpansion = async (variantId: string) => {
-    const newExpanded = new Set(expandedVariants);
-    
-    if (expandedVariants.has(variantId)) {
-      newExpanded.delete(variantId);
-    } else {
-      newExpanded.add(variantId);
-      await loadRoomsForVariant(variantId);
-    }
-    
-    setExpandedVariants(newExpanded);
-  };
-
-  const handleCreateRoom = (variantId: string) => {
-    setSelectedVariantForRoom(variantId);
-    setShowCreateModal(true);
-  };
-
-  const handleRoomCreated = async () => {
-    if (selectedVariantForRoom) {
-      // Reload rooms for this variant
-      setVariantRooms(prev => {
-        const newRooms = { ...prev };
-        delete newRooms[selectedVariantForRoom];
-        return newRooms;
-      });
-      await loadRoomsForVariant(selectedVariantForRoom);
-    }
-    setShowCreateModal(false);
-    setSelectedVariantForRoom(null);
-  };
-
-  const handleRoomClick = (room: VariantRoom) => {
-    setSelectedRoom(room);
-    setShowAddProductModal(true);
-  };
-
-  const handleEditRoom = (room: VariantRoom) => {
-    setSelectedRoomForEdit(room);
-    setShowEditRoomModal(true);
-  };
-
-  const handleProductsManage = (room: VariantRoom) => {
-    setSelectedRoomForProducts(room);
-    setShowAddProductModal(true);
-  };
-
-  const handleRoomUpdated = async () => {
-    if (selectedRoomForEdit) {
-      // Reload the specific room to get updated data
-      try {
-        const updatedRoom = await roomsApi.getRoomById(selectedRoomForEdit.id);
-        
-        // Update the room in the state
-        setVariantRooms(prev => {
-          const updated = { ...prev };
-          Object.keys(updated).forEach(variantId => {
-            updated[variantId] = updated[variantId].map(room => 
-              room.id === selectedRoomForEdit.id ? updatedRoom : room
-            );
-          });
-          return updated;
-        });
-
-        // Update products for this room with new room data (discount, area)
-        await updateRoomProductsAfterRoomEdit(selectedRoomForEdit.id, updatedRoom);
-        
-        // Reload products to reflect the changes
-        await loadRoomProducts(selectedRoomForEdit.id);
-        
-      } catch (error) {
-        console.error('Error updating room:', error);
-      }
-    }
-    setShowEditRoomModal(false);
-    setSelectedRoomForEdit(null);
-  };
-
-  const handleProductAdded = async () => {
-    if (selectedRoomForProducts) {
-      // Reload products for this room
-      await loadRoomProducts(selectedRoomForProducts.id);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
-  }, [phaseId, projectId]);
+  }, [projectId, phaseId]);
 
-  // Load rooms when variants change and auto-expand them
-  useEffect(() => {
-    if (variants.length > 0) {
-      // Auto-expand all variants and load their rooms
-      const newExpanded = new Set<string>();
-      variants.forEach(variant => {
-        newExpanded.add(variant.id);
-        loadRoomsForVariant(variant.id);
-      });
-      setExpandedVariants(newExpanded);
+  // Handlers
+  const handleCreateVariant = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleEditVariant = (variantId: string) => {
+    const variant = variants.find(v => v.id === variantId);
+    if (variant) {
+      setSelectedVariant(variant);
+      setShowEditModal(true);
     }
-  }, [variants]);
+  };
 
-  // Load products when rooms change
-  useEffect(() => {
-    Object.entries(variantRooms).forEach(([variantId, rooms]) => {
-      if (rooms.length > 0) {
-        loadProductsForVariant(variantId);
-      }
-    });
-  }, [variantRooms]);
+  const handleDuplicateVariant = async (variantId: string) => {
+    try {
+      await variantsApi.duplicateVariant(variantId);
+      await loadData();
+    } catch (error) {
+      console.error('Error duplicating variant:', error);
+    }
+  };
 
   const handleDeleteVariant = async (variantId: string) => {
     if (confirm('Сигурни ли сте, че искате да изтриете този вариант?')) {
       try {
         await variantsApi.deleteVariant(variantId);
         await loadData();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Грешка при изтриване');
+      } catch (error) {
+        console.error('Error deleting variant:', error);
       }
     }
   };
 
-  const handleEditVariant = (variant: VariantPhase) => {
-    setSelectedVariant(variant);
-    setShowEditModal(true);
-  };
-
-  const handleVariantUpdated = async () => {
-    await loadData();
-    // Refresh rooms if the edited variant is expanded
-    if (selectedVariant && expandedVariants.has(selectedVariant.id)) {
-      await loadRoomsForVariant(selectedVariant.id);
-    }
-  };
-
-  const toggleIncludeInOffer = async (variantId: string, currentValue: boolean) => {
-    try {
-      await variantsApi.updateVariant(variantId, {
-        includeInOffer: !currentValue
-      });
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Грешка при обновяване');
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('bg-BG');
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('bg-BG', {
-      style: 'currency',
-      currency: 'BGN'
-    }).format(amount);
-  };
-
-  // Load room products for a specific room
-  const loadRoomProducts = async (roomId: string) => {
-    try {
-      const response = await roomProductsApi.getRoomProducts(roomId);
-      setRoomProducts(prev => ({
-        ...prev,
-        [roomId]: response.data
-      }));
-    } catch (error) {
-      console.error('Failed to load room products:', error);
-      // Set empty array on error
-      setRoomProducts(prev => ({
-        ...prev,
-        [roomId]: []
-      }));
-    }
-  };
-
-  // Load products for all rooms in a variant
-  const loadProductsForVariant = async (variantId: string) => {
-    const rooms = variantRooms[variantId] || [];
-    await Promise.all(rooms.map(room => loadRoomProducts(room.id)));
-  };
-
-  // Calculate room totals
-  const calculateRoomTotals = (roomId: string) => {
-    const products = roomProducts[roomId] || [];
-    let totalQuantity = 0;
-    let totalAmount = 0;
-
-    products.forEach(roomProduct => {
-      const quantity = roomProduct.quantity || 0;
-      const unitPrice = roomProduct.unitPrice || 0;
-      const discount = roomProduct.discountEnabled ? (roomProduct.discount || 0) : 0;
-      const wastePercent = roomProduct.wastePercent || 0;
-
-      const baseTotal = quantity * unitPrice;
-      const discountAmount = baseTotal * (discount / 100);
-      const afterDiscount = baseTotal - discountAmount;
-      const wasteAmount = afterDiscount * (wastePercent / 100);
-      const finalAmount = afterDiscount + wasteAmount;
-
-      totalQuantity += quantity;
-      totalAmount += finalAmount;
-    });
-
-    return {
-      productCount: products.length,
-      totalQuantity,
-      totalAmount
-    };
-  };
-
-  // Function to update room products after room edit
-  const updateRoomProductsAfterRoomEdit = async (roomId: string, updatedRoom: VariantRoom) => {
-    try {
-      const roomProductsList = roomProducts[roomId] || [];
-      
-      for (const roomProduct of roomProductsList) {
-        // Prepare update data - update products to inherit from room
-        const updateData: any = {};
-        let needsUpdate = false;
-
-        // Update quantity to match room area
-        if (updatedRoom.area && updatedRoom.area !== roomProduct.quantity) {
-          updateData.quantity = updatedRoom.area;
-          needsUpdate = true;
-        }
-
-        // Update discount to match room discount
-        if (updatedRoom.discount !== undefined && updatedRoom.discount !== roomProduct.discount) {
-          updateData.discount = updatedRoom.discount;
-          needsUpdate = true;
-        }
-
-        // Update the product if needed
-        if (needsUpdate) {
-          await roomProductsApi.updateRoomProduct(roomProduct.id, updateData);
-        }
-      }
-    } catch (error) {
-      console.error('Error updating room products after room edit:', error);
-    }
-  };
-
-  const handleRoomCardClick = (room: VariantRoom) => {
-    setSelectedRoomForProducts(room);
-    setShowAddProductModal(true);
-  };
-
-  // Calculate variant total
-  const calculateVariantTotal = (variantId: string): number => {
-    const rooms = variantRooms[variantId] || [];
-    let total = 0;
-    
-    rooms.forEach(room => {
-      const products = roomProducts[room.id] || [];
-      products.forEach(product => {
-        const basePrice = product.quantity * product.unitPrice;
-        const discountAmount = basePrice * ((product.discount || 0) / 100);
-        const wasteAmount = (basePrice - discountAmount) * ((product.wastePercent || 0) / 100);
-        const finalPrice = basePrice - discountAmount + wasteAmount;
-        total += finalPrice;
-      });
-    });
-    
-    return total;
-  };
-
-  const handleDuplicateVariant = (variant: VariantPhase) => {
-    setSelectedVariant(variant);
-    setShowVariantCloneModal(true);
-  };
-
-  const handleDuplicateRoom = (room: VariantRoom) => {
-    setSelectedRoom(room);
-    setShowRoomCloneModal(true);
-  };
-
-  const handleVariantCloned = async () => {
-    // Reload all data to show new variants
-    await loadData();
-    
-    // The variants state will be updated automatically by loadData(), 
-    // so we'll auto-expand all variants in the useEffect that watches variants
-    
-    setShowVariantCloneModal(false);
-    setSelectedVariant(null);
-  };
-
-  const handleRoomCloned = async () => {
-    // Reload all rooms for all expanded variants to ensure we see any new rooms
-    await Promise.all(
-      Array.from(expandedVariants).map(variantId => loadRoomsForVariant(variantId))
-    );
-    
-    // If no variants are expanded, reload the current room's variant
-    if (selectedRoom && expandedVariants.size === 0) {
-      await loadRoomsForVariant(selectedRoom.variantId);
-      setExpandedVariants(new Set([selectedRoom.variantId]));
-    }
-    
-    setShowRoomCloneModal(false);
-    setSelectedRoom(null);
-  };
-
-  const handleSelectVariant = async (variantId: string) => {
+  const handleToggleSelection = async (variantId: string) => {
     try {
       await variantsApi.selectVariant(variantId);
       await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Грешка при избор на вариант');
+    } catch (error) {
+      console.error('Error toggling variant selection:', error);
     }
   };
 
-  if (loading) {
+  const handleRoomEdit = (roomId: string) => {
+    router.push(`/projects/${projectId}/phases/${phaseId}/rooms/${roomId}/edit`);
+  };
+
+  const handleRoomDuplicate = async (roomId: string) => {
+    try {
+      // Implement room duplication
+      console.log('Duplicate room:', roomId);
+    } catch (error) {
+      console.error('Error duplicating room:', error);
+    }
+  };
+
+  const handleRoomDelete = async (roomId: string) => {
+    if (confirm('Сигурни ли сте, че искате да изтриете тази стая?')) {
+      try {
+        // Implement room deletion
+        console.log('Delete room:', roomId);
+      } catch (error) {
+        console.error('Error deleting room:', error);
+      }
+    }
+  };
+
+  // Modal handlers
+  const handleCreateModalClose = () => {
+    setShowCreateModal(false);
+  };
+
+  const handleCreateModalSuccess = async () => {
+    setShowCreateModal(false);
+    await loadData();
+  };
+
+  const handleEditModalClose = () => {
+    setShowEditModal(false);
+    setSelectedVariant(null);
+  };
+
+  const handleEditModalSuccess = async () => {
+    setShowEditModal(false);
+    setSelectedVariant(null);
+    await loadData();
+  };
+
+  const calculateVariantTotal = (variantId: string): number => {
+    const variant = variants.find(v => v.id === variantId);
+    if (!variant) return 0;
+    
+    return variant.rooms?.reduce((sum, room) => {
+      return sum + (room.products?.reduce((productSum, product) => {
+        return productSum + (product.quantity * product.unitPrice * (1 - (product.discount || 0) / 100));
+      }, 0) || 0);
+    }, 0) || 0;
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return `${amount.toLocaleString('bg-BG')} лв.`;
+  };
+
+  // Filter and sort variants
+  const filteredVariants = variants
+    .filter(variant => {
+      const matchesSearch = variant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           variant.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSelection = !showSelectedOnly || variant.isSelected;
+      return matchesSearch && matchesSelection;
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
+          break;
+        case 'total':
+          aValue = calculateVariantTotal(a.id);
+          bValue = calculateVariantTotal(b.id);
+          break;
+        default:
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+  // Room modal handlers
+  const handleOpenCreateRoomModal = (variant: PhaseVariant) => {
+    setSelectedVariantForRoom(variant);
+    setShowCreateRoomModal(true);
+  };
+  const handleCloseCreateRoomModal = () => {
+    setShowCreateRoomModal(false);
+    setSelectedVariantForRoom(null);
+  };
+  const handleRoomCreated = async () => {
+    setShowCreateRoomModal(false);
+    setSelectedVariantForRoom(null);
+    await loadData();
+  };
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Зареждане на варианти...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 text-lg">Грешка: {error}</p>
-          <button
-            onClick={loadData}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Опитай отново
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const includedVariants = variants.filter(v => v.includeInOffer);
-  const totalOfferValue = includedVariants.reduce((sum, variant) => {
-    return sum + calculateVariantTotal(variant.id);
-  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.back()}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
               <div>
-                <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
-                  <Link href="/projects" className="hover:text-gray-700">
-                    Проекти
-                  </Link>
-                  <span>/</span>
-                  <Link href={`/projects/${projectId}`} className="hover:text-gray-700">
-                    {project?.name || 'Зареждане...'}
-                  </Link>
-                  <span>/</span>
-                  <span>{phase?.name || 'Зареждане...'}</span>
-                </nav>
-                <div className="flex items-center space-x-3">
-                  <Link
-                    href={`/projects/${projectId}`}
-                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </Link>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {phase?.name || 'Зареждане...'}
-                  </h1>
-                </div>
-                <p className="mt-1 text-sm text-gray-600">
-                  Управление на варианти в тази фаза
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Варианти - {phase?.name}
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  Проект: {project?.name}
                 </p>
               </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
               <button
-                onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                onClick={() => setIsRefreshing(true)}
+                onTransitionEnd={() => setIsRefreshing(false)}
+                className={`p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200 ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+                title="Обнови"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleCreateVariant}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Нов вариант
+                Създай вариант
               </button>
             </div>
           </div>
+
+          {/* Stats Grid */}
+          <VariantStatsGrid variants={variants} isLoading={isLoading} />
         </div>
-      </div>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                    <Home className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Общо варианти
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {variants.length}
-                    </dd>
-                  </dl>
-                </div>
+        {/* Controls */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Търси варианти..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowSelectedOnly(!showSelectedOnly)}
+                  className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    showSelectedOnly
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {showSelectedOnly ? (
+                    <>
+                      <Eye className="w-4 h-4 mr-2" />
+                      Избрани
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="w-4 h-4 mr-2" />
+                      Всички
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-          </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                    <CheckSquare className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Включени в оферта
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {includedVariants.length}
-                    </dd>
-                  </dl>
-                </div>
+            {/* Sort and View Controls */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option value="name">По име</option>
+                  <option value="createdAt">По дата</option>
+                  <option value="total">По стойност</option>
+                </select>
+                <button
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                >
+                  {sortOrder === 'asc' ? (
+                    <SortAsc className="w-4 h-4" />
+                  ) : (
+                    <SortDesc className="w-4 h-4" />
+                  )}
+                </button>
               </div>
-            </div>
-          </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Стойност на офертата
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {formatCurrency(totalOfferValue)}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      С архитект
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {variants.filter(v => v.architect).length}
-                    </dd>
-                  </dl>
-                </div>
+              <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    viewMode === 'grid'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-md transition-all duration-200 ${
+                    viewMode === 'list'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         {/* Variants List */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
-              Варианти ({variants.length})
-            </h3>
-          </div>
-
-          {variants.length === 0 ? (
+        <div className="space-y-6">
+          {filteredVariants.length === 0 ? (
             <div className="text-center py-12">
-              <Home className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Няма създадени варианти</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Започнете с създаване на първия вариант за тази фаза
+              <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Package className="w-12 h-12 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {searchTerm || showSelectedOnly ? 'Няма намерени варианти' : 'Няма варианти'}
+              </h3>
+              <p className="text-gray-500 mb-6">
+                {searchTerm || showSelectedOnly 
+                  ? 'Променете критериите за търсене или филтриране'
+                  : 'Създайте първия вариант за тази фаза'
+                }
               </p>
-              <div className="mt-6">
+              {!searchTerm && !showSelectedOnly && (
                 <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+                  onClick={handleCreateVariant}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Нов вариант
+                  Създай първи вариант
                 </button>
-              </div>
+              )}
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
-              {variants.map((variant, index) => (
-                <div key={variant.id} className={`overflow-hidden ${variant.isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-white'}`}>
-                  {/* Variant Card */}
-                  <div 
-                    className={`p-6 hover:bg-gray-50 cursor-pointer transition-colors ${variant.isSelected ? 'bg-blue-50 hover:bg-blue-100' : ''}`}
-                    onClick={() => toggleVariantExpansion(variant.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0">
-                            {expandedVariants.has(variant.id) ? (
-                              <ChevronDown className="w-5 h-5 text-gray-400" />
-                            ) : (
-                              <ChevronRight className="w-5 h-5 text-gray-400" />
-                            )}
-                          </div>
-                          
-                          <div className="flex-shrink-0">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${variant.isSelected ? 'bg-blue-500' : 'bg-blue-100'}`}>
-                              <span className={`text-sm font-medium ${variant.isSelected ? 'text-white' : 'text-blue-600'}`}>
-                                {variant.variantOrder}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center mr-4">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleIncludeInOffer(variant.id, variant.includeInOffer);
-                              }}
-                              className="text-gray-400 hover:text-blue-600"
-                            >
-                              {variant.includeInOffer ? (
-                                <CheckSquare className="w-5 h-5 text-blue-600" />
-                              ) : (
-                                <Square className="w-5 h-5" />
-                              )}
-                            </button>
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center">
-                              <h4 className={`text-sm font-medium truncate ${variant.isSelected ? 'text-blue-900' : 'text-gray-900'}`}>
-                                {variant.name}
-                              </h4>
-                              {variant.isSelected && (
-                                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  Избран
-                                </span>
-                              )}
-                              {!variant.includeInOffer && (
-                                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  Изключен
-                                </span>
-                              )}
-                            </div>
-                            {variant.description && (
-                              <p className={`mt-1 text-sm truncate ${variant.isSelected ? 'text-blue-700' : 'text-gray-500'}`}>
-                                {variant.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-4 text-sm text-gray-600">
-                          {variant.designer && (
-                            <div className="flex items-center">
-                              <User className="w-4 h-4 mr-1" />
-                              <span>Дизайнер: {variant.designer}</span>
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center">
-                            <UserCheck className="w-4 h-4 mr-1" />
-                            <span>Архитект: {variant.architect || 'Не е зададен'}</span>
-                            <span className="ml-1 text-xs text-gray-500">
-                              ({variant.architectCommission || 0}% - {formatCurrency((variant.architectCommission || 0) / 100 * calculateVariantTotal(variant.id))})
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <Home className="w-4 h-4 mr-1" />
-                            <span>{variant._count?.rooms || 0} стаи</span>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <DollarSign className="w-4 h-4 mr-1 text-green-600" />
-                            <span className="font-medium text-green-600">
-                              {calculateVariantTotal(variant.id).toFixed(2)} лв.
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            <span>{formatDate(variant.createdAt)}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2 ml-4">
-                        <div className="flex space-x-2">
-                          {!variant.isSelected && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleSelectVariant(variant.id);
-                              }}
-                              className="flex items-center px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
-                            >
-                              <CheckSquare className="w-4 h-4 mr-1" />
-                              Избери
-                            </button>
-                          )}
-                          
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditVariant(variant);
-                            }}
-                            className="flex items-center px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4 mr-1" />
-                            Редактирай
-                          </button>
-                          
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDuplicateVariant(variant);
-                            }}
-                            className="flex items-center px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 transition-colors"
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            Клонирай
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCreateRoom(variant.id);
-                            }}
-                            className="flex items-center px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            Добави стая
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteVariant(variant.id);
-                            }}
-                            className="flex items-center px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Изтрий
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expanded Rooms Section */}
-                  {expandedVariants.has(variant.id) && (
-                    <div className="bg-gray-50 border-t border-gray-200">
-                      <div className="px-6 py-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-sm font-medium text-gray-900">
-                            Стаи в {variant.name}
-                          </h4>
-                          <span className="text-xs text-gray-500">
-                            Кликнете върху стая за добавяне на продукти
-                          </span>
-                        </div>
-
-                        {loadingRooms[variant.id] ? (
-                          <div className="flex items-center justify-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <span className="ml-2 text-sm text-gray-600">Зареждане на стаи...</span>
-                          </div>
-                        ) : variantRooms[variant.id]?.length === 0 ? (
-                          <div className="text-center py-8">
-                            <Home className="mx-auto h-8 w-8 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">
-                              Няма създадени стаи в този вариант
-                            </p>
-                            <button
-                              onClick={() => handleCreateRoom(variant.id)}
-                              className="mt-3 inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                            >
-                              <Plus className="w-4 h-4 mr-1" />
-                              Създай първата стая
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {variantRooms[variant.id]?.map((room) => (
-                              <div
-                                key={room.id}
-                                className="bg-white rounded-lg border border-gray-200 p-4 relative group hover:shadow-md transition-shadow cursor-pointer"
-                                onClick={() => handleRoomCardClick(room)}
-                              >
-                                {/* Room action buttons - positioned absolutely */}
-                                <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditRoom(room);
-                                    }}
-                                    className="p-1.5 text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
-                                    title="Редактирай стая"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDuplicateRoom(room);
-                                    }}
-                                    className="p-1.5 text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors"
-                                    title="Клонирай стая"
-                                  >
-                                    <Plus className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRoomCardClick(room);
-                                    }}
-                                    className="p-1.5 text-green-600 bg-green-50 rounded hover:bg-green-100 transition-colors"
-                                    title="Управление на продукти"
-                                  >
-                                    <Settings className="w-4 h-4" />
-                                  </button>
-                                </div>
-
-                                <div className="pr-20"> {/* Add padding to avoid overlap with buttons */}
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                      <h4 className="font-medium text-gray-900 mb-2">{room.name}</h4>
-                                      
-                                      <div className="space-y-1 text-sm text-gray-600">
-                                        {room.area && (
-                                          <div className="flex items-center">
-                                            <Ruler className="w-4 h-4 mr-1.5 text-gray-400" />
-                                            <span>{room.area} м²</span>
-                                          </div>
-                                        )}
-                                        
-                                        {room.discountEnabled && room.discount && (
-                                          <div className="flex items-center">
-                                            <Percent className="w-4 h-4 mr-1.5 text-gray-400" />
-                                            <span>Отстъпка: {room.discount}%</span>
-                                          </div>
-                                        )}
-
-                                        {(() => {
-                                          const roomTotals = calculateRoomTotals(room.id);
-                                          return (
-                                            <>
-                                              <div className="flex items-center">
-                                                <Package className="w-4 h-4 mr-1.5 text-gray-400" />
-                                                <span>{roomTotals.productCount} продукта</span>
-                                              </div>
-                                              
-                                              {roomTotals.totalAmount > 0 && (
-                                                <div className="flex items-center">
-                                                  <DollarSign className="w-4 h-4 mr-1.5 text-gray-400" />
-                                                  <span className="font-medium text-green-600">
-                                                    {roomTotals.totalAmount.toFixed(2)} лв.
-                                                  </span>
-                                                </div>
-                                              )}
-                                            </>
-                                          );
-                                        })()}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+            <div className={viewMode === 'grid' ? 'grid grid-cols-1 lg:grid-cols-2 gap-6' : 'space-y-4'}>
+              {filteredVariants.map((variant) => (
+                <VariantCard
+                  key={variant.id}
+                  variant={variant}
+                  onEdit={handleEditVariant}
+                  onDuplicate={handleDuplicateVariant}
+                  onDelete={handleDeleteVariant}
+                  onToggleSelection={handleToggleSelection}
+                  onRoomEdit={handleRoomEdit}
+                  onRoomDuplicate={handleRoomDuplicate}
+                  onRoomDelete={handleRoomDelete}
+                  calculateVariantTotal={calculateVariantTotal}
+                  formatCurrency={formatCurrency}
+                  onCreateRoom={() => handleOpenCreateRoomModal(variant)}
+                />
               ))}
             </div>
           )}
         </div>
       </div>
 
-      {/* Create Variant Modal */}
+      {/* Modals */}
       {showCreateModal && (
-        <VariantCreateModal
+        <CreateVariantModal
+          isOpen={showCreateModal}
+          onClose={handleCreateModalClose}
+          onSuccess={handleCreateModalSuccess}
           phaseId={phaseId}
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onVariantCreated={loadData}
         />
       )}
 
-      {/* Create Room Modal */}
-      {showCreateModal && selectedVariantForRoom && (
-        <RoomCreateModal
-          variantId={selectedVariantForRoom}
-          isOpen={showCreateModal}
-          onClose={() => {
-            setShowCreateModal(false);
-            setSelectedVariantForRoom(null);
-          }}
-          onRoomCreated={handleRoomCreated}
-        />
-      )}
-
-      {/* Room Edit Modal */}
-      {showEditRoomModal && selectedRoomForEdit && (
-        <RoomEditModal
-          room={selectedRoomForEdit}
-          isOpen={showEditRoomModal}
-          onClose={() => {
-            setShowEditRoomModal(false);
-            setSelectedRoomForEdit(null);
-          }}
-          onRoomUpdated={handleRoomUpdated}
-        />
-      )}
-
-      {/* Product Modal */}
-      {showAddProductModal && selectedRoomForProducts && (
-        <AddProductModal
-          isOpen={showAddProductModal}
-          onClose={() => {
-            setShowAddProductModal(false);
-            setSelectedRoomForProducts(null);
-          }}
-          roomId={selectedRoomForProducts.id}
-          roomName={selectedRoomForProducts.name}
-          onProductAdded={handleProductAdded}
-          mode="edit"
-        />
-      )}
-
-      {/* Edit Variant Modal */}
       {showEditModal && selectedVariant && (
-        <VariantEditModal
-          variant={selectedVariant}
+        <EditVariantModal
           isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          onVariantUpdated={handleVariantUpdated}
-        />
-      )}
-
-      {/* Variant Clone Modal */}
-      {showVariantCloneModal && selectedVariant && (
-        <VariantCloneModal
-          isOpen={showVariantCloneModal}
-          onClose={() => {
-            setShowVariantCloneModal(false);
-            setSelectedVariant(null);
-          }}
+          onClose={handleEditModalClose}
+          onSuccess={handleEditModalSuccess}
           variant={selectedVariant}
-          currentPhaseId={phaseId}
-          projectId={projectId}
-          onCloned={handleVariantCloned}
+          phaseId={phaseId}
         />
       )}
 
-      {/* Room Clone Modal */}
-      {showRoomCloneModal && selectedRoom && (
-        <RoomCloneModal
-          isOpen={showRoomCloneModal}
-          onClose={() => {
-            setShowRoomCloneModal(false);
-            setSelectedRoom(null);
-          }}
-          room={selectedRoom}
-          currentVariantId={selectedRoom.variantId}
-          currentPhaseId={phaseId}
-          projectId={projectId}
-          onCloned={handleRoomCloned}
+      {/* RoomCreateModal на глобално ниво */}
+      {showCreateRoomModal && selectedVariantForRoom && (
+        <RoomCreateModal
+          isOpen={showCreateRoomModal}
+          onClose={handleCloseCreateRoomModal}
+          onRoomCreated={handleRoomCreated}
+          variantId={selectedVariantForRoom.id}
         />
       )}
     </div>

@@ -18,6 +18,8 @@ export interface PhaseVariant {
   phase?: {
     id: string;
     name: string;
+    discountEnabled: boolean;
+    phaseDiscount?: number;
     project?: {
       id: string;
       name: string;

@@ -2,27 +2,24 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import {
+import { 
+  Home, 
+  Package, 
+  Image as ImageIcon, 
   Plus,
+  AlertCircle,
+  RefreshCw,
+  ArrowLeft,
   Edit2,
   Trash2,
-  Copy,
-  Image as ImageIcon,
-  Package,
-  ArrowLeft,
-  Home,
-  Ruler,
-  Percent,
-  DollarSign
+  Copy
 } from 'lucide-react';
+import Link from 'next/link';
 import { VariantRoom } from '@/types/room';
 import { roomsApi } from '@/services/roomsApi';
 import { variantsApi } from '@/services/variantsApi';
 import { phasesApi } from '@/services/phasesApi';
 import { projectsApi } from '@/services/projectsApi';
-import RoomCreateModal from '@/components/rooms/RoomCreateModal';
-import RoomEditModal from '@/components/rooms/RoomEditModal';
 
 export default function RoomsPage() {
   const { id: projectId, phaseId, variantId } = useParams() as { 
@@ -37,8 +34,7 @@ export default function RoomsPage() {
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingRoom, setEditingRoom] = useState<VariantRoom | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const loadData = async () => {
     try {
@@ -88,16 +84,22 @@ export default function RoomsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('bg-BG');
+  // Calculate stats
+  const stats = {
+    total: rooms.length,
+    withProducts: rooms.filter(r => (r._count?.products || 0) > 0).length,
+    withImages: rooms.filter(r => (r._count?.images || 0) > 0).length,
+    emptyRooms: rooms.filter(r => (r._count?.products || 0) === 0).length,
+    averageArea: rooms.length > 0 
+      ? rooms.reduce((sum, r) => sum + (r.area || 0), 0) / rooms.length 
+      : 0,
+    totalProducts: rooms.reduce((sum, r) => sum + (r._count?.products || 0), 0)
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('bg-BG', {
-      style: 'currency',
-      currency: 'BGN'
-    }).format(amount);
-  };
+  // Filter rooms based on search term
+  const filteredRooms = rooms.filter(room =>
+    room.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -113,12 +115,15 @@ export default function RoomsPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 text-lg">Грешка: {error}</p>
+        <div className="text-center max-w-md mx-auto">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Възникна грешка</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={loadData}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
+            <RefreshCw className="w-4 h-4 mr-2" />
             Опитай отново
           </button>
         </div>
@@ -126,56 +131,99 @@ export default function RoomsPage() {
     );
   }
 
-  const totalRooms = rooms.length;
-  const roomsWithProducts = rooms.filter(r => (r._count?.products || 0) > 0).length;
-  const roomsWithImages = rooms.filter(r => (r._count?.images || 0) > 0).length;
-  const totalProducts = rooms.reduce((sum, r) => sum + (r._count?.products || 0), 0);
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
-                  <Link href="/projects" className="hover:text-gray-700">
-                    Проекти
-                  </Link>
-                  <span>/</span>
-                  <Link href={`/projects/${projectId}`} className="hover:text-gray-700">
-                    {project?.name || 'Зареждане...'}
-                  </Link>
-                  <span>/</span>
-                  <Link href={`/projects/${projectId}/phases/${phaseId}/variants`} className="hover:text-gray-700">
-                    {phase?.name || 'Зареждане...'}
-                  </Link>
-                  <span>/</span>
-                  <span>{variant?.name || 'Зареждане...'}</span>
-                </nav>
-                <div className="flex items-center space-x-3">
-                  <Link
-                    href={`/projects/${projectId}/phases/${phaseId}/variants`}
-                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </Link>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    Стаи - {variant?.name || 'Зареждане...'}
-                  </h1>
-                </div>
-                <p className="mt-1 text-sm text-gray-600">
-                  Управление на стаи в този вариант
-                </p>
-              </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            {/* Breadcrumb Navigation */}
+            <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
+              <Link 
+                href="/projects" 
+                className="hover:text-gray-700 transition-colors flex items-center"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Нова стая
-              </button>
+                <Home className="w-4 h-4 mr-1" />
+                Проекти
+              </Link>
+              <span>/</span>
+              <Link 
+                href={`/projects/${projectId}`} 
+                className="hover:text-gray-700 transition-colors"
+              >
+                {project?.name || 'Зареждане...'}
+              </Link>
+              <span>/</span>
+              <Link 
+                href={`/projects/${projectId}/phases/${phaseId}/variants`} 
+                className="hover:text-gray-700 transition-colors"
+              >
+                {phase?.name || 'Зареждане...'}
+              </Link>
+              <span>/</span>
+              <Link 
+                href={`/projects/${projectId}/phases/${phaseId}/variants/${variantId}`} 
+                className="hover:text-gray-700 transition-colors"
+              >
+                {variant?.name || 'Зареждане...'}
+              </Link>
+              <span>/</span>
+              <span className="text-gray-900 font-medium">Стаи</span>
+            </nav>
+
+            {/* Main Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Link
+                  href={`/projects/${projectId}/phases/${phaseId}/variants/${variantId}`}
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Назад към варианта"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Link>
+                
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    Управление на стаи
+                  </h1>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Вариант: {variant?.name || 'Зареждане...'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center space-x-3">
+                {/* Search */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Търси стаи..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                </div>
+
+                {/* Refresh */}
+                <button 
+                  onClick={loadData}
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Обнови"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </button>
+
+                {/* Create Room */}
+                <button
+                  onClick={() => alert('Функционалност за създаване на стая ще бъде добавена скоро')}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Нова стая
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -183,202 +231,130 @@ export default function RoomsPage() {
 
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                    <Home className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Общо стаи
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {totalRooms}
-                    </dd>
-                  </dl>
-                </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Home className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Общо стаи</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                    <Package className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      С продукти
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {roomsWithProducts}
-                    </dd>
-                  </dl>
-                </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Package className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">С продукти</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.withProducts}</p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-                    <ImageIcon className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      С изображения
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {roomsWithImages}
-                    </dd>
-                  </dl>
-                </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <ImageIcon className="w-6 h-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">С изображения</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.withImages}</p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-                    <Package className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Общо продукти
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {totalProducts}
-                    </dd>
-                  </dl>
-                </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Package className="w-6 h-6 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Общо продукти</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Rooms List */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        {/* Rooms Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
-              Стаи ({totalRooms})
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Стаи ({filteredRooms.length})
+              </h3>
+            </div>
           </div>
 
-          {rooms.length === 0 ? (
+          {filteredRooms.length === 0 ? (
             <div className="text-center py-12">
               <Home className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Няма създадени стаи</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                {searchTerm ? 'Няма намерени стаи' : 'Няма създадени стаи'}
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Започнете с създаване на първата стая за този вариант
+                {searchTerm 
+                  ? 'Променете критериите за търсене' 
+                  : 'Започнете с създаване на първата стая за този вариант'
+                }
               </p>
-              <div className="mt-6">
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Нова стая
-                </button>
-              </div>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {rooms.map((room) => (
-                <div key={room.id} className="p-6 hover:bg-gray-50">
+              {filteredRooms.map((room) => (
+                <div key={room.id} className="p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Home className="w-5 h-5 text-blue-600" />
-                          </div>
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
-                            {room.name}
-                          </h4>
-                          <p className="mt-1 text-sm text-gray-500">
-                            Създадена: {formatDate(room.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                        {room.area && (
-                          <div className="flex items-center">
-                            <Ruler className="w-4 h-4 mr-1" />
-                            <span>{room.area} м²</span>
-                          </div>
+                        <h4 className="text-lg font-medium text-gray-900">{room.name}</h4>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {room._count?.products || 0} продукти
+                        </span>
+                        {(room._count?.images || 0) > 0 && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {room._count?.images || 0} изображения
+                          </span>
                         )}
-                        
-                        <div className="flex items-center">
-                          <Package className="w-4 h-4 mr-1" />
-                          <span>{room._count?.products || 0} продукта</span>
-                        </div>
-                        
-                        <div className="flex items-center">
-                          <ImageIcon className="w-4 h-4 mr-1" />
-                          <span>{room._count?.images || 0} изображения</span>
-                        </div>
-
-                        {room.discount && room.discount > 0 && (
-                          <div className="flex items-center">
-                            <Percent className="w-4 h-4 mr-1" />
-                            <span>{room.discount}% отстъпка</span>
-                          </div>
+                      </div>
+                      <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                        {room.area && (
+                          <span>Площ: {room.area} м²</span>
+                        )}
+                        {room.discountEnabled && room.discount && (
+                          <span>Отстъпка: {room.discount}%</span>
+                        )}
+                        {room.wastePercent && (
+                          <span>Отпадък: {room.wastePercent}%</span>
                         )}
                       </div>
                     </div>
-
-                    <div className="flex items-center space-x-2 ml-4">
-                      <Link
-                        href={`/projects/${projectId}/phases/${phaseId}/variants/${variantId}/rooms/${room.id}/products`}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        <Package className="w-4 h-4 mr-1" />
-                        Продукти ({room._count?.products || 0})
-                      </Link>
+                    <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => handleDuplicateRoom(room.id)}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        onClick={() => alert('Функционалност за редактиране ще бъде добавена скоро')}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Редактирай"
                       >
-                        <Copy className="w-4 h-4 mr-1" />
-                        Копирай
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => {
-                          setEditingRoom(room);
-                        }}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        onClick={() => handleDuplicateRoom(room.id)}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Дублирай"
                       >
-                        <Edit2 className="w-4 h-4 mr-1" />
-                        Редактирай
+                        <Copy className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteRoom(room.id)}
-                        className="inline-flex items-center px-3 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Изтрий"
                       >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Изтрий
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -388,26 +364,6 @@ export default function RoomsPage() {
           )}
         </div>
       </div>
-
-      {/* Create Modal */}
-      {showCreateModal && (
-        <RoomCreateModal
-          variantId={variantId}
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onRoomCreated={loadData}
-        />
-      )}
-
-      {/* Edit Modal */}
-      {editingRoom && (
-        <RoomEditModal
-          room={editingRoom}
-          isOpen={!!editingRoom}
-          onClose={() => setEditingRoom(null)}
-          onRoomUpdated={loadData}
-        />
-      )}
     </div>
   );
 } 

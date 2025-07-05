@@ -151,6 +151,11 @@ class ProjectsApiService {
     return result.data; // Backend returns { success, data }
   }
 
+  // Alias for getProjectById to maintain compatibility
+  async getProject(id: string): Promise<Project> {
+    return this.getProjectById(id);
+  }
+
   async updateProject(id: string, project: Partial<CreateProjectDto>): Promise<Project> {
     const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
       method: 'PATCH',

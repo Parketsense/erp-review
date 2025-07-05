@@ -4,7 +4,8 @@ export async function GET(request: Request) {
     const attributeTypeId = searchParams.get('attributeTypeId');
     const manufacturerId = searchParams.get('manufacturerId');
 
-    let url = 'http://localhost:4000/api/attribute-values';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+    let url = `${backendUrl}/api/attribute-values`;
     const params = new URLSearchParams();
     
     if (attributeTypeId) {
@@ -47,8 +48,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    const response = await fetch('http://localhost:4000/api/attribute-values', {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+    const response = await fetch(`${backendUrl}/api/attribute-values`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,9 +58,9 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.text();
       return Response.json(
-        { success: false, message: error.message || 'Failed to create attribute value' },
+        { success: false, message: `Backend error: ${error}` },
         { status: response.status }
       );
     }

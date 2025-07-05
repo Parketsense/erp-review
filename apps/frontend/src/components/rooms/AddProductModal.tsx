@@ -257,8 +257,8 @@ export default function AddProductModal({
       product,
       quantity: defaultQuantity,
       unitPrice: product.saleBgn || product.costBgn || 0,
-      discount: room?.discountEnabled && room?.discount !== undefined ? room.discount : 0,
-      discountEnabled: room?.discountEnabled || false,
+      discount: room?.discount || 0,
+      discountEnabled: room?.discountEnabled !== undefined ? room.discountEnabled : true,
       wastePercent: room?.wastePercent || 10,
       overrides: {
         // Mark quantity as override only if it's different from default (1)

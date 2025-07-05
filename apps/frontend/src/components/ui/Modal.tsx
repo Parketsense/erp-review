@@ -23,140 +23,34 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   const sizes = {
-    sm: 'modal-sm',
-    md: 'modal-md',
-    lg: 'modal-lg',
-    xl: 'modal-xl'
+    sm: 'max-w-md',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl'
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className={`modal-container ${sizes[size]} ${className}`}
+        className={`bg-white rounded-lg shadow-xl ${sizes[size]} w-full ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header">
-          <h3 className="modal-title">{title}</h3>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           {showCloseButton && (
             <button 
               onClick={onClose} 
-              className="modal-close"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
               aria-label="Затвори"
             >
-              <X className="modal-close-icon" />
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
-        <div className="modal-body">
+        <div className="p-6 max-h-[70vh] overflow-y-auto">
           {children}
         </div>
       </div>
-
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: var(--space-lg);
-        }
-
-        .modal-container {
-          background: var(--background-white);
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-xl);
-          max-height: 90vh;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-        }
-
-        .modal-sm {
-          max-width: 400px;
-        }
-
-        .modal-md {
-          max-width: 600px;
-        }
-
-        .modal-lg {
-          max-width: 800px;
-        }
-
-        .modal-xl {
-          max-width: 1200px;
-        }
-
-        .modal-header {
-          padding: var(--space-lg);
-          border-bottom: 1px solid var(--border-light);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: var(--background-light);
-        }
-
-        .modal-title {
-          font-size: var(--text-lg);
-          font-weight: var(--font-semibold);
-          color: var(--text-primary);
-          margin: 0;
-        }
-
-        .modal-close {
-          background: transparent;
-          border: none;
-          border-radius: var(--radius-md);
-          padding: var(--space-xs);
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .modal-close:hover {
-          background: var(--background-light);
-        }
-
-        .modal-close-icon {
-          width: 24px;
-          height: 24px;
-          color: var(--text-secondary);
-        }
-
-        .modal-body {
-          padding: var(--space-lg);
-          overflow-y: auto;
-          flex: 1;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-          .modal-overlay {
-            padding: var(--space-md);
-          }
-
-          .modal-header {
-            padding: var(--space-md);
-          }
-
-          .modal-body {
-            padding: var(--space-md);
-          }
-
-          .modal-sm,
-          .modal-md,
-          .modal-lg,
-          .modal-xl {
-            max-width: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 };
