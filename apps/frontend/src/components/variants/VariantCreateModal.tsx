@@ -59,8 +59,8 @@ export default function VariantCreateModal({
       if (phaseData?.project?.architectName && !formData.architect) {
         setFormData(prev => ({
           ...prev,
-          architect: phaseData.project.architectName,
-          architectCommission: phaseData.project.architectCommission || 0
+          architect: phaseData.project!.architectName || '',
+          architectCommission: phaseData.project!.architectCommission || 0
         }));
       }
     } catch (err) {

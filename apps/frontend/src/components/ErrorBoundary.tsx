@@ -1,96 +1,50 @@
 'use client';
 
-import React, { Component, ReactNode } from 'react';
+import React from 'react';
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return {
+      hasError: true,
+      error
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Add error logging service (e.g., Sentry)
-      console.error('Production error caught by ErrorBoundary:', error, errorInfo);
-    }
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div style={{
-          padding: '40px',
-          textAlign: 'center',
-          background: '#fff5f5',
-          border: '1px solid #fed7d7',
-          borderRadius: '8px',
-          margin: '20px'
-        }}>
-          <div style={{
-            fontSize: '48px',
-            marginBottom: '16px'
-          }}>
-            ⚠️
-          </div>
-          <h2 style={{
-            fontSize: '24px',
-            color: '#e53e3e',
-            marginBottom: '8px'
-          }}>
+        <div className="p-6 text-center bg-red-50 border border-red-200 rounded-lg">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">
             Възникна грешка
           </h2>
-          <p style={{
-            color: '#718096',
-            marginBottom: '16px'
-          }}>
-            Нещо се обърка. Моля опитайте да презаредите страницата.
+          <p className="text-red-600 mb-4">
+            {this.state.error?.message || 'Неочаквана грешка'}
           </p>
           <button
-            onClick={() => window.location.reload()}
-            style={{
-              background: '#e53e3e',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
+            onClick={() => this.setState({ hasError: false })}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
           >
-            Презареди страницата
+            Опитай отново
           </button>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
-            <details style={{ marginTop: '20px', textAlign: 'left' }}>
-              <summary style={{ cursor: 'pointer', color: '#e53e3e' }}>
-                Детайли за разработчици
-              </summary>
-              <pre style={{
-                background: '#f7fafc',
-                padding: '12px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                overflow: 'auto',
-                color: '#2d3748'
-              }}>
-                {this.state.error.stack}
-              </pre>
-            </details>
-          )}
         </div>
       );
     }

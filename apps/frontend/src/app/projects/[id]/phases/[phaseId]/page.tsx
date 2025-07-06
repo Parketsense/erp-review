@@ -10,7 +10,8 @@ import {
   Users,
   Calendar,
   Edit,
-  Settings
+  Settings,
+  Plus
 } from 'lucide-react';
 import { phasesApi, ProjectPhase } from '@/services/phasesApi';
 import { projectsApi, Project } from '@/services/projectsApi';
@@ -206,7 +207,7 @@ export default function PhaseDetailPage() {
                   <div>
                     <p className="text-sm text-gray-500">Комисионна</p>
                     <p className="text-sm font-medium text-gray-900">
-                      {phase.architectCommissionPercent || 0}%
+                      Да
                     </p>
                   </div>
                 </div>

@@ -22,6 +22,7 @@ import { VariantsModule } from './variants/variants.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { RoomProductsModule } from './room-products/room-products.module';
 import { ArchitectPaymentsModule } from './architect-payments/architect-payments.module';
+import { OffersModule } from './offers/offers.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ArchitectPaymentsModule } from './architect-payments/architect-payments
     RoomsModule,
     RoomProductsModule,
     ArchitectPaymentsModule,
+    OffersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

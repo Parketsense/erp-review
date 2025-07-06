@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../lib/api';
+import { apiClient } from '../lib/api';
 
 export interface CreatePhaseDto {
   name: string;
@@ -73,95 +73,43 @@ export interface PhaseStats {
   totalCommission: number;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
 class PhasesApiService {
   async getPhasesByProject(projectId: string): Promise<PhasesResponse> {
-    const response = await fetch(`${API_BASE_URL}/phases/project/${projectId}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch project phases');
-    }
-    
-    const result = await response.json();
-    return result.data ? { data: result.data } : result;
+    const response = await apiClient.get<ApiResponse<ProjectPhase[]>>(`/phases/project/${projectId}`);
+    return response.data ? { data: response.data } : response;
   }
 
   async createPhase(projectId: string, phase: CreatePhaseDto): Promise<ProjectPhase> {
-    const response = await fetch(`${API_BASE_URL}/phases/project/${projectId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(phase),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Failed to create phase');
-    }
-    
-    const result = await response.json();
-    return result.data; // Backend returns { success, data, message }
+    const response = await apiClient.post<ApiResponse<ProjectPhase>>(`/phases/project/${projectId}`, phase);
+    return response.data;
   }
 
   async getPhaseById(id: string): Promise<ProjectPhase> {
-    const response = await fetch(`${API_BASE_URL}/phases/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch phase');
-    }
-    
-    const result = await response.json();
-    return result.data || result;
+    const response = await apiClient.get<ApiResponse<ProjectPhase>>(`/phases/${id}`);
+    return response.data || response;
   }
 
   async updatePhase(id: string, phase: UpdatePhaseDto): Promise<ProjectPhase> {
-    const response = await fetch(`${API_BASE_URL}/phases/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(phase),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Failed to update phase');
-    }
-    
-    const result = await response.json();
-    return result.data || result;
+    const response = await apiClient.patch<ApiResponse<ProjectPhase>>(`/phases/${id}`, phase);
+    return response.data || response;
   }
 
   async deletePhase(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/phases/${id}`, {
-      method: 'DELETE',
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to delete phase');
-    }
+    await apiClient.delete(`/phases/${id}`);
   }
 
   async reorderPhases(projectId: string, phases: { phaseId: string; newOrder: number }[]): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/phases/project/${projectId}/reorder`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ phases }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Failed to reorder phases');
-    }
+    await apiClient.put(`/phases/project/${projectId}/reorder`, { phases });
   }
 
   async getPhaseStats(): Promise<PhaseStats> {
-    const response = await fetch(`${API_BASE_URL}/phases/stats`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch phase stats');
-    }
-    
-    return response.json();
+    return apiClient.get<PhaseStats>('/phases/stats');
   }
 }
 

@@ -11,10 +11,16 @@ import {
 import { PhasesService } from './phases.service';
 import { CreatePhaseDto } from './dto/create-phase.dto';
 import { UpdatePhaseDto } from './dto/update-phase.dto';
+import { OffersService } from '../offers/offers.service';
+import { VariantsService } from '../variants/variants.service';
 
 @Controller('phases')
 export class PhasesController {
-  constructor(private readonly phasesService: PhasesService) {}
+  constructor(
+    private readonly phasesService: PhasesService,
+    private readonly offersService: OffersService,
+    private readonly variantsService: VariantsService,
+  ) {}
 
   @Post('project/:projectId')
   create(
@@ -37,6 +43,16 @@ export class PhasesController {
   @Get('stats')
   getStats() {
     return this.phasesService.getStats();
+  }
+
+  @Get(':phaseId/variants/offer')
+  async getVariantsForOffer(@Param('phaseId') phaseId: string) {
+    return this.variantsService.getVariantsForOffer(phaseId);
+  }
+
+  @Get(':phaseId/offers')
+  async getOffers(@Param('phaseId') phaseId: string) {
+    return this.offersService.getOffersForPhase(phaseId);
   }
 
   @Get(':id')

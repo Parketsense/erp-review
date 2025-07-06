@@ -40,6 +40,11 @@ export class VariantsController {
     return this.variantsService.findByPhase(phaseId);
   }
 
+  @Get('project/:projectId')
+  findByProject(@Param('projectId') projectId: string) {
+    return this.variantsService.findByProject(projectId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.variantsService.findOne(id);

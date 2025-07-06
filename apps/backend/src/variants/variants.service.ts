@@ -175,6 +175,53 @@ export class VariantsService {
     };
   }
 
+  async findByProject(projectId: string) {
+    const variants = await this.prisma.phaseVariant.findMany({
+      where: {
+        phase: {
+          projectId: projectId,
+        },
+      },
+      include: {
+        phase: {
+          include: {
+            project: true,
+          },
+        },
+        rooms: {
+          include: {
+            products: {
+              include: {
+                product: true,
+              },
+            },
+            _count: {
+              select: {
+                products: true,
+                images: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            rooms: true,
+          },
+        },
+      },
+      orderBy: [
+        { phase: { phaseOrder: 'asc' } },
+        { variantOrder: 'asc' },
+      ],
+    });
+
+    return {
+      success: true,
+      data: variants,
+      message: 'Project variants retrieved successfully'
+    };
+  }
+
   async findOne(id: string) {
     const variant = await this.prisma.phaseVariant.findUnique({
       where: { id },
@@ -641,5 +688,78 @@ export class VariantsService {
         message: 'Variant selected successfully'
       };
     });
+  }
+
+  async getVariantsForOffer(phaseId: string) {
+    const variants = await this.prisma.phaseVariant.findMany({
+      where: { 
+        phaseId,
+        includeInOffer: true // Only include variants that should be in offers
+      },
+      include: {
+        phase: {
+          select: {
+            id: true,
+            name: true,
+            phaseDiscount: true,
+            discountEnabled: true
+          }
+        },
+        rooms: {
+          include: {
+            products: {
+              include: {
+                product: {
+                  include: {
+                    manufacturer: {
+                      select: {
+                        id: true,
+                        name: true,
+                        discount: true
+                      }
+                    },
+                    productType: {
+                      select: {
+                        id: true,
+                        name: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { variantOrder: 'asc' }
+    });
+
+    // Transform variants to match frontend expectations
+    return variants.map(variant => ({
+      id: variant.id,
+      name: variant.name,
+      description: variant.description,
+      totalPrice: this.calculateVariantTotal(variant),
+      rooms: variant.rooms.map(room => ({
+        id: room.id,
+        name: room.name,
+        productCount: room.products.length,
+        totalPrice: this.calculateRoomTotal(room)
+      }))
+    }));
+  }
+
+  private calculateVariantTotal(variant: any): number {
+    return variant.rooms.reduce((total: number, room: any) => {
+      return total + this.calculateRoomTotal(room);
+    }, 0);
+  }
+
+  private calculateRoomTotal(room: any): number {
+    return room.products.reduce((total: number, product: any) => {
+      const discount = product.discount || 0;
+      const productTotal = product.quantity * product.unitPrice * (1 - discount / 100);
+      return total + productTotal;
+    }, 0);
   }
 } 

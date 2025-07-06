@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../lib/api';
+import { apiClient } from '../lib/api';
 
 export interface ProjectContact {
   id: number;
@@ -70,6 +70,18 @@ export interface ProjectsResponse {
   };
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 class ProjectsApiService {
   async getProjects(params?: {
     page?: number;
@@ -85,26 +97,11 @@ class ProjectsApiService {
       if (params?.search) searchParams.append('search', params.search);
       if (params?.clientId) searchParams.append('clientId', params.clientId);
 
-      const url = `${API_BASE_URL}/projects${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+      const url = `/projects${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
       
       console.log('🔍 Fetching projects from:', url);
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      console.log('📡 Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API Error:', response.status, errorText);
-        throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);
-      }
-      
-      const result = await response.json();
+      const result = await apiClient.get<ApiResponse<Project[]>>(url);
       console.log('✅ API Response:', result);
       
       // Backend returns { success, data, pagination }
@@ -124,82 +121,37 @@ class ProjectsApiService {
   }
 
   async createProject(project: CreateProjectDto): Promise<Project> {
-    const response = await fetch(`${API_BASE_URL}/projects`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(project),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || 'Failed to create project');
-    }
-    
-    const result = await response.json();
+    const result = await apiClient.post<ApiResponse<Project>>('/projects', project);
     return result.data; // Backend returns { success, data, message }
   }
 
   async getProjectById(id: string): Promise<Project> {
-    const response = await fetch(`${API_BASE_URL}/projects/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch project');
-    }
-    
-    const result = await response.json();
+    const result = await apiClient.get<ApiResponse<Project>>(`/projects/${id}`);
     return result.data; // Backend returns { success, data }
   }
 
   // Alias for getProjectById to maintain compatibility
   async getProject(id: string): Promise<Project> {
-    return this.getProjectById(id);
+    const response = await apiClient.get<ApiResponse<Project>>(`/projects/${id}`);
+    return response.data || response;
   }
 
   async updateProject(id: string, project: Partial<CreateProjectDto>): Promise<Project> {
-    const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(project),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to update project');
-    }
-    
-    const result = await response.json();
+    const result = await apiClient.patch<ApiResponse<Project>>(`/projects/${id}`, project);
     return result.data; // Backend returns { success, data, message }
   }
 
   async deleteProject(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
-      method: 'DELETE',
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to delete project');
-    }
+    await apiClient.delete(`/projects/${id}`);
   }
 
   async getProjectStats() {
-    const response = await fetch(`${API_BASE_URL}/projects/stats`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch project stats');
-    }
-    
-    return response.json();
+    return apiClient.get('/projects/stats');
   }
 
   async getProjectsByClient(clientId: string): Promise<Project[]> {
-    const response = await fetch(`${API_BASE_URL}/projects?clientId=${clientId}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch client projects');
-    }
-    
-    const data = await response.json();
-    return data.data || [];
+    const result = await apiClient.get<ApiResponse<Project[]>>(`/projects?clientId=${clientId}`);
+    return result.data;
   }
 }
 

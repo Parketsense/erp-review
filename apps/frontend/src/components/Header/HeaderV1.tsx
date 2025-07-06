@@ -50,10 +50,21 @@ const navItems: NavItem[] = [
     path: '/orders',
   },
   {
+    label: 'Оферти',
+    path: '/offers',
+    dropdown: [
+      { label: 'Всички оферти', path: '/offers' },
+      { label: 'Създай оферта', path: '/offers/create' },
+      { label: 'Чернови', path: '/offers?status=draft' },
+      { label: 'Изпратени', path: '/offers?status=sent' },
+      { label: 'Приети', path: '/offers?status=accepted' },
+      { label: 'Админ панел', path: '/admin/offers' },
+    ],
+  },
+  {
     label: 'Документи',
     path: '/documents',
     dropdown: [
-      { label: 'Оферти', path: '/offers' },
       { label: 'Фактури', path: '/invoices' },
       { label: 'Складови документи', path: '/warehouse' },
       { label: 'Доставки', path: '/deliveries' },

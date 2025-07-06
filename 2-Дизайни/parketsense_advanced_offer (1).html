@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивна Оферта | PARKETSENSE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ERP Design System Tokens */
+        :root {
+            /* Colors */
+            --color-primary: #000000;
+            --color-on-primary: #FFFFFF;
+            --color-bg: #F4F5F6;
+            --color-surface: #FFFFFF;
+            --color-border: #E0E0E0;
+            --color-neutral-500: #A1A3A5;
+            --color-neutral-700: #686869;
+            --color-success: #91C479;
+            --color-success-light: #C7F8D3;
+            --color-warning-light: #FFE7C1;
+            --color-danger: #FF4F4F;
+            --color-info-indicator: #2ECC71;
+            
+            /* Typography */
+            --font-family: "Inter", sans-serif;
+            
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            
+            /* Component tokens */
+            --radius-btn: 8px;
+            --size-btn: 40px;
+            --space-btn-x: 20px;
+            --shadow-btn: 0 1px 2px rgba(0,0,0,0.05);
+            
+            /* Elevation */
+            --elevation-0: none;
+            --elevation-1: 0 1px 2px rgba(0,0,0,0.05);
+            --elevation-2: 0 4px 8px rgba(0,0,0,0.08);
+            --elevation-3: 0 8px 16px rgba(0,0,0,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg);
+            color: var(--color-primary);
+            line-height: 1.6;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--color-primary) 0%, #333333 100%);
+            color: white;
+            padding: var(--space-6);
+            text-align: center;
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: white;
+            color: var(--color-primary);
+            border-radius: var(--radius-btn);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+            box-shadow: var(--elevation-2);
+        }
+
+        .company-name {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .project-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+        }
+
+        .project-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-6);
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: var(--space-6);
+        }
+
+        /* Variant Comparison Section - Sticky */
+        .variants-overview {
+            background: var(--color-surface);
+            border-radius: var(--radius-btn);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--elevation-2);
+            position: sticky;
+            top: var(--space-4);
+            z-index: 100;
+            border: 2px solid var(--color-success);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--space-5);
+            color: var(--color-primary);
+        }
+
+        .variants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .variant-summary {
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            padding: var(--space-5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--color-surface);
+        }
+
+        .variant-summary:hover {
+            border-color: var(--color-success);
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-2);
+        }
+
+        .variant-summary.selected {
+            border-color: var(--color-success);
+            background: var(--color-success-light);
+            box-shadow: var(--elevation-2);
+        }
+
+        .variant-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+            color: var(--color-primary);
+        }
+
+        .variant-description {
+            color: var(--color-neutral-700);
+            margin-bottom: var(--space-4);
+        }
+
+        .variant-total-price {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-success);
+        }
+
+        .variant-total-label {
+            font-size: 0.875rem;
+            color: var(--color-neutral-500);
+            margin-top: var(--space-1);
+        }
+
+        /* Detailed View Section */
+        .variant-details {
+            background: var(--color-surface);
+            border-radius: var(--radius-btn);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--elevation-1);
+            display: none;
+        }
+
+        .variant-details.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Room Cards */
+        .rooms-grid {
+            display: grid;
+            gap: var(--space-5);
+        }
+
+        .room-card {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            overflow: hidden;
+            background: var(--color-surface);
+            box-shadow: var(--elevation-1);
+        }
+
+        .room-header {
+            background: var(--color-success-light);
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .room-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .room-meta {
+            display: flex;
+            gap: var(--space-4);
+            font-size: 0.875rem;
+            color: var(--color-neutral-700);
+        }
+
+        .room-content {
+            padding: var(--space-4);
+        }
+
+        /* Product Table */
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: var(--space-4);
+        }
+
+        .products-table th {
+            background: var(--color-bg);
+            padding: var(--space-3);
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--color-neutral-700);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .products-table td {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.875rem;
+        }
+
+        .products-table tr:hover {
+            background: var(--color-bg);
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .discount-badge {
+            background: var(--color-warning-light);
+            color: var(--color-neutral-700);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Gallery Section */
+        .gallery-section {
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .gallery-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+            color: var(--color-primary);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            background: var(--color-bg);
+            border-radius: var(--radius-btn);
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05);
+            border-color: var(--color-success);
+        }
+
+        .gallery-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-neutral-500);
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        /* Installation Options */
+        .installation-section {
+            background: var(--color-surface);
+            border-radius: var(--radius-btn);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: var(--elevation-1);
+        }
+
+        .installation-grid {
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .installation-option {
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            padding: var(--space-4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--color-surface);
+        }
+
+        .installation-option:hover {
+            border-color: var(--color-success);
+            background: var(--color-success-light);
+        }
+
+        .installation-option.selected {
+            border-color: var(--color-success);
+            background: var(--color-success-light);
+            box-shadow: var(--elevation-1);
+        }
+
+        .installation-name {
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+            color: var(--color-primary);
+        }
+
+        .installation-description {
+            color: var(--color-neutral-700);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .installation-price {
+            font-weight: 600;
+            color: var(--color-success);
+            font-size: 1.1rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--color-surface);
+            border-radius: var(--radius-btn);
+            padding: var(--space-6);
+            height: fit-content;
+            position: sticky;
+            top: var(--space-4);
+            box-shadow: var(--elevation-2);
+        }
+
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--space-5);
+            text-align: center;
+            color: var(--color-primary);
+        }
+
+        .price-summary {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            padding: var(--space-4);
+            margin-bottom: var(--space-5);
+            background: var(--color-bg);
+        }
+
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .price-line:last-child {
+            border-bottom: none;
+            padding-top: var(--space-3);
+            margin-top: var(--space-3);
+            border-top: 2px solid var(--color-border);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .total-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-success);
+        }
+
+        /* Action Buttons */
+        .btn {
+            height: var(--size-btn);
+            padding: 0 var(--space-btn-x);
+            border: none;
+            border-radius: var(--radius-btn);
+            font-family: var(--font-family);
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-btn);
+            text-decoration: none;
+            font-size: 0.875rem;
+            margin-bottom: var(--space-3);
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--elevation-2);
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .btn-success {
+            background-color: var(--color-success);
+            color: var(--color-on-primary);
+        }
+
+        .btn-danger {
+            background-color: var(--color-danger);
+            color: var(--color-on-primary);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+        }
+
+        /* Notes Section */
+        .notes-section {
+            margin-top: var(--space-5);
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: var(--space-4);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            font-family: var(--font-family);
+            resize: vertical;
+            background: var(--color-surface);
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--color-success);
+            box-shadow: 0 0 0 3px rgba(145, 196, 121, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+            }
+            
+            .sidebar {
+                position: static;
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .variants-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                padding: var(--space-4);
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: var(--space-4);
+                max-height: 95vh;
+            }
+            
+            .modal-header {
+                padding: var(--space-4);
+            }
+            
+            .modal-body {
+                padding: var(--space-4);
+            }
+            
+            .installation-gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: var(--space-4);
+            }
+            
+            .project-title {
+                font-size: 1.75rem;
+            }
+            
+            .company-name {
+                font-size: 1.5rem;
+            }
+            
+            .service-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-2);
+            }
+            
+            .installation-gallery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sticky comparison visual enhancement */
+        .variants-overview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-success), var(--color-primary));
+            border-radius: var(--radius-btn) var(--radius-btn) 0 0;
+        }
+
+        .variants-overview.scrolled {
+            box-shadow: var(--elevation-3);
+            transform: scale(0.98);
+        }
+
+        /* AI Chat Assistant */
+        .ai-chat-container {
+            position: fixed;
+            bottom: var(--space-4);
+            right: var(--space-4);
+            z-index: 1001;
+        }
+
+        .ai-chat-bubble {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-success));
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--elevation-3);
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 24px;
+            position: relative;
+        }
+
+        .ai-chat-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .ai-chat-bubble.has-notification {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .ai-chat-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: var(--color-danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .ai-chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 400px;
+            height: 500px;
+            background: var(--color-surface);
+            border-radius: var(--radius-btn);
+            box-shadow: var(--elevation-3);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid var(--color-success);
+        }
+
+        .ai-chat-window.active {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ai-chat-header {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-success));
+            color: white;
+            padding: var(--space-4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-chat-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .ai-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--color-success);
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .ai-chat-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .ai-chat-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ai-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-4);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .ai-message, .user-message {
+            max-width: 80%;
+            padding: var(--space-3);
+            border-radius: var(--radius-btn);
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .ai-message {
+            background: var(--color-success-light);
+            color: var(--color-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .user-message {
+            background: var(--color-primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-typing {
+            display: none;
+            align-self: flex-start;
+            padding: var(--space-3);
+            background: var(--color-bg);
+            border-radius: var(--radius-btn);
+            border-bottom-left-radius: 4px;
+        }
+
+        .ai-typing.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--color-neutral-500);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .ai-suggestions {
+            padding: var(--space-3);
+            border-top: 1px solid var(--color-border);
+            background: var(--color-bg);
+        }
+
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .suggestion-chip {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            padding: 6px var(--space-3);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--color-primary);
+        }
+
+        .suggestion-chip:hover {
+            background: var(--color-success);
+            color: white;
+            border-color: var(--color-success);
+        }
+
+        .ai-chat-input-container {
+            display: flex;
+            gap: var(--space-2);
+            align-items: center;
+        }
+
+        .ai-chat-input {
+            flex: 1;
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            padding: var(--space-2) var(--space-3);
+            font-size: 0.875rem;
+            background: var(--color-surface);
+        }
+
+        .ai-chat-input:focus {
+            outline: none;
+            border-color: var(--color-success);
+            box-shadow: 0 0 0 2px rgba(145, 196, 121, 0.2);
+        }
+
+        .ai-chat-send {
+            background: var(--color-success);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .ai-chat-send:hover {
+            background: var(--color-primary);
+            transform: scale(1.05);
+        }
+
+        .ai-chat-send:disabled {
+            background: var(--color-neutral-500);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Mobile responsive for AI chat */
+        @media (max-width: 768px) {
+            .ai-chat-window {
+                width: 350px;
+                height: 450px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ai-chat-container {
+                bottom: var(--space-3);
+                right: var(--space-3);
+            }
+            
+            .ai-chat-window {
+                width: calc(100vw - 24px);
+                height: 400px;
+                right: -var(--space-3);
+            }
+            
+            .ai-chat-bubble {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--color-surface);
+            border-radius: var(--radius-btn);
+            max-width: 900px;
+            max-height: 90vh;
+            width: 90%;
+            overflow-y: auto;
+            box-shadow: var(--elevation-3);
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-50px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--color-success-light);
+            border-radius: var(--radius-btn) var(--radius-btn) 0 0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-neutral-700);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--color-danger);
+            color: white;
+        }
+
+        .modal-body {
+            padding: var(--space-6);
+        }
+
+        .installation-details-grid {
+            display: grid;
+            gap: var(--space-5);
+        }
+
+        .service-category {
+            background: var(--color-bg);
+            border-radius: var(--radius-btn);
+            padding: var(--space-5);
+            border-left: 4px solid var(--color-success);
+        }
+
+        .service-category h3 {
+            color: var(--color-primary);
+            margin-bottom: var(--space-3);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .service-items {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-3);
+            background: var(--color-surface);
+            border-radius: var(--radius-btn);
+            border: 1px solid var(--color-border);
+        }
+
+        .service-item-info {
+            flex: 1;
+        }
+
+        .service-item-name {
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .service-item-description {
+            font-size: 0.875rem;
+            color: var(--color-neutral-700);
+        }
+
+        .service-item-price {
+            font-weight: 600;
+            color: var(--color-success);
+            font-size: 1.1rem;
+        }
+
+        .installation-total {
+            background: var(--color-success-light);
+            border-radius: var(--radius-btn);
+            padding: var(--space-5);
+            margin-top: var(--space-5);
+            text-align: center;
+        }
+
+        .installation-total-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .installation-total-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-success);
+        }
+
+        .installation-gallery {
+            margin-top: var(--space-5);
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .installation-gallery h3 {
+            color: var(--color-primary);
+            margin-bottom: var(--space-4);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .installation-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .installation-gallery-item {
+            aspect-ratio: 4/3;
+            background: var(--color-bg);
+            border-radius: var(--radius-btn);
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .installation-gallery-item:hover {
+            transform: scale(1.05);
+            border-color: var(--color-success);
+        }
+
+        .installation-gallery-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-neutral-500);
+            font-size: 0.75rem;
+            text-align: center;
+            padding: var(--space-2);
+        }
+
+        .details-button {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            border: none;
+            padding: 6px var(--space-3);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: var(--space-2);
+        }
+
+        .details-button:hover {
+            background: var(--color-success);
+            transform: translateY(-1px);
+        }
+
+        /* Update animations */
+        .price-updating {
+            animation: priceUpdate 0.6s ease;
+        }
+
+        @keyframes priceUpdate {
+            0% { background: var(--color-success-light); }
+            50% { background: var(--color-warning-light); }
+            100% { background: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="company-logo">
+            <div class="logo-icon">PS</div>
+            <div class="company-name">PARKETSENSE</div>
+        </div>
+
+    <!-- AI Chat Assistant -->
+    <div class="ai-chat-container">
+        <div class="ai-chat-bubble" id="aiChatBubble" onclick="toggleAIChat()">
+            🤖
+            <div class="ai-chat-notification" id="aiNotification" style="display: none;">1</div>
+        </div>
+        
+        <div class="ai-chat-window" id="aiChatWindow">
+            <div class="ai-chat-header">
+                <div class="ai-chat-title">
+                    🤖 PARKETSENSE AI Асистент
+                    <span class="ai-status"></span>
+                </div>
+                <button class="ai-chat-close" onclick="closeAIChat()">×</button>
+            </div>
+            
+            <div class="ai-chat-messages" id="aiChatMessages">
+                <div class="ai-message">
+                    Здравейте! Аз съм вашият AI асистент за тази оферта. Мога да отговоря на въпроси за:
+                    <br><br>
+                    🏗️ Продуктите и техните характеристики<br>
+                    💰 Цените и калкулациите<br>
+                    🔧 Монтажните услуги<br>
+                    📅 Времето за изпълнение<br>
+                    📋 Гаранционните условия
+                    <br><br>
+                    Как мога да ви помогна?
+                </div>
+            </div>
+            
+            <div class="ai-typing" id="aiTyping">
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            
+            <div class="ai-suggestions">
+                <div class="suggestion-chips" id="aiSuggestions">
+                    <div class="suggestion-chip" onclick="askAI('Каква е разликата между двата варианта?')">
+                        Разлика между вариантите
+                    </div>
+                    <div class="suggestion-chip" onclick="askAI('Колко време отнема монтажът?')">
+                        Време за монтаж
+                    </div>
+                    <div class="suggestion-chip" onclick="askAI('Каква е гаранцията?')">
+                        Гаранционни условия
+                    </div>
+                </div>
+                
+                <div class="ai-chat-input-container">
+                    <input 
+                        type="text" 
+                        class="ai-chat-input" 
+                        id="aiChatInput" 
+                        placeholder="Задайте въпрос..."
+                        onkeypress="handleAIInputKeypress(event)"
+                    >
+                    <button class="ai-chat-send" id="aiChatSend" onclick="sendAIMessage()">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+        <h1 class="project-title" id="projectTitle">Хотел Бургас</h1>
+        <p class="project-subtitle">Професионална интерактивна оферта за подови покрития</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="content-area">
+            <!-- Variants Overview -->
+            <div class="variants-overview">
+                <h2 class="section-title">🎯 Сравнение на варианти</h2>
+                <div class="variants-grid">
+                    <div class="variant-summary selected" onclick="selectVariant(1)" data-variant="1">
+                        <div class="variant-name">Вариант 1: Рибена кост</div>
+                        <div class="variant-description">Елегантен паркет с рибена кост схема, подходящ за представителни зони</div>
+                        <div class="variant-total-price" id="variant1-total">52,800 лв</div>
+                        <div class="variant-total-label" id="variant1-label">с ДДС и стандартен монтаж</div>
+                    </div>
+                    
+                    <div class="variant-summary" onclick="selectVariant(2)" data-variant="2">
+                        <div class="variant-name">Вариант 2: Прав паркет</div>
+                        <div class="variant-description">Класически прав паркет с естествена красота на дървото</div>
+                        <div class="variant-total-price" id="variant2-total">48,600 лв</div>
+                        <div class="variant-total-label" id="variant2-label">с ДДС и стандартен монтаж</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Variant 1 Details -->
+            <div class="variant-details active" id="variant1-details">
+                <h2 class="section-title">📋 Детайли - Вариант 1: Рибена кост</h2>
+                
+                <div class="rooms-grid">
+                    <!-- Room 1: Дневна -->
+                    <div class="room-card">
+                        <div class="room-header">
+                            <div class="room-name">🏠 Дневна</div>
+                            <div class="room-meta">
+                                <span>📐 85 м²</span>
+                                <span>💰 5% отстъпка</span>
+                                <span>📊 10% фира</span>
+                            </div>
+                        </div>
+                        
+                        <div class="room-content">
+                            <table class="products-table">
+                                <thead>
+                                    <tr>
+                                        <th>Продукт</th>
+                                        <th>Количество</th>
+                                        <th>Ед. цена</th>
+                                        <th>Отстъпка</th>
+                                        <th>Обща сума</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="product-name">Паркет Дъб Рибена кост</td>
+                                        <td>94 м² (85+10% фира)</td>
+                                        <td>85 лв/м²</td>
+                                        <td><span class="discount-badge">5% отстъпка</span></td>
+                                        <td><strong>7,581 лв</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="product-name">Первази дъб</td>
+                                        <td>35 лм</td>
+                                        <td>15 лв/лм</td>
+                                        <td><span class="discount-badge">5% отстъпка</span></td>
+                                        <td><strong>499 лв</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="product-name">Лепило Bona R850</td>
+                                        <td>8 кг</td>
+                                        <td>25 лв/кг</td>
+                                        <td>-</td>
+                                        <td><strong>200 лв</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div class="gallery-section">
+                                <div class="gallery-title">📸 Галерия - Дневна</div>
+                                <div class="gallery-grid">
+                                    <div class="gallery-item" onclick="openGallery('room1', 1)">
+                                        <div class="gallery-placeholder">Вдъхновение<br>дневна</div>
+                                    </div>
+                                    <div class="gallery-item" onclick="openGallery('room1', 2)">
+                                        <div class="gallery-placeholder">Паркет<br>образци</div>
+                                    </div>
+                                    <div class="gallery-item" onclick="openGallery('room1', 3)">
+                                        <div class="gallery-placeholder">Цветова<br>гама</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Room 2: Спалня -->
+                    <div class="room-card">
+                        <div class="room-header">
+                            <div class="room-name">🛏️ Спалня</div>
+                            <div class="room-meta">
+                                <span>📐 35 м²</span>
+                                <span>💰 5% отстъпка</span>
+                                <span>📊 10% фира</span>
+                            </div>
+                        </div>
+                        
+                        <div class="room-content">
+                            <table class="products-table">
+                                <thead>
+                                    <tr>
+                                        <th>Продукт</th>
+                                        <th>Количество</th>
+                                        <th>Ед. цена</th>
+                                        <th>Отстъпка</th>
+                                        <th>Обща сума</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="product-name">Паркет Дъб Рибена кост</td>
+                                        <td>39 м² (35+10% фира)</td>
+                                        <td>85 лв/м²</td>
+                                        <td><span class="discount-badge">5% отстъпка</span></td>
+                                        <td><strong>3,147 лв</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="product-name">Первази дъб</td>
+                                        <td>24 лм</td>
+                                        <td>15 лв/лм</td>
+                                        <td><span class="discount-badge">5% отстъпка</span></td>
+                                        <td><strong>342 лв</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div class="gallery-section">
+                                <div class="gallery-title">📸 Галерия - Спалня</div>
+                                <div class="gallery-grid">
+                                    <div class="gallery-item" onclick="openGallery('room2', 1)">
+                                        <div class="gallery-placeholder">Спалня<br>дизайн</div>
+                                    </div>
+                                    <div class="gallery-item" onclick="openGallery('room2', 2)">
+                                        <div class="gallery-placeholder">Интериор<br>идеи</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Variant 2 Details -->
+            <div class="variant-details" id="variant2-details">
+                <h2 class="section-title">📋 Детайли - Вариант 2: Прав паркет</h2>
+                
+                <div class="rooms-grid">
+                    <!-- Similar structure for Variant 2 -->
+                    <div class="room-card">
+                        <div class="room-header">
+                            <div class="room-name">🏠 Дневна</div>
+                            <div class="room-meta">
+                                <span>📐 85 м²</span>
+                                <span>💰 8% отстъпка</span>
+                                <span>📊 10% фира</span>
+                            </div>
+                        </div>
+                        
+                        <div class="room-content">
+                            <table class="products-table">
+                                <thead>
+                                    <tr>
+                                        <th>Продукт</th>
+                                        <th>Количество</th>
+                                        <th>Ед. цена</th>
+                                        <th>Отстъпка</th>
+                                        <th>Обща сума</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="product-name">Паркет Дъб Натурал</td>
+                                        <td>94 м² (85+10% фира)</td>
+                                        <td>75 лв/м²</td>
+                                        <td><span class="discount-badge">8% отстъпка</span></td>
+                                        <td><strong>6,486 лв</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="product-name">Первази дъб</td>
+                                        <td>35 лм</td>
+                                        <td>15 лв/лм</td>
+                                        <td><span class="discount-badge">8% отстъпка</span></td>
+                                        <td><strong>483 лв</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installation Options -->
+            <div class="installation-section">
+                <h2 class="section-title">🔧 Опции за монтаж</h2>
+                <div class="installation-grid" id="installation-options">
+                    <!-- Dynamic content based on selected variant -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h3 class="sidebar-title">💰 Обобщение на офертата</h3>
+            
+            <div class="price-summary">
+                <div class="price-line">
+                    <span>Материали:</span>
+                    <span id="materials-price">34,000 лв</span>
+                </div>
+                <div class="price-line">
+                    <span>Монтаж:</span>
+                    <span id="installation-price">10,000 лв</span>
+                </div>
+                <div class="price-line">
+                    <span>Подсума:</span>
+                    <span id="subtotal-price">44,000 лв</span>
+                </div>
+                <div class="price-line">
+                    <span>ДДС (20%):</span>
+                    <span id="vat-price">8,800 лв</span>
+                </div>
+                <div class="price-line">
+                    <span>Обща сума:</span>
+                    <span class="total-price" id="total-price">52,800 лв</span>
+                </div>
+            </div>
+
+            <button class="btn btn-success" onclick="acceptOffer()">
+                ✅ Приемам офертата
+            </button>
+            
+            <button class="btn btn-outline" onclick="requestChanges()">
+                📝 Искам промени
+            </button>
+            
+            <button class="btn btn-primary" onclick="downloadPDF()">
+                📄 Изтегли PDF
+            </button>
+            
+            <button class="btn btn-outline" onclick="scheduleMeeting()">
+                📅 Насрочи среща
+            </button>
+
+            <div class="notes-section">
+                <label for="client-notes" style="display: block; margin-bottom: var(--space-2); font-weight: 600;">📝 Вашите забележки:</label>
+                <textarea 
+                    id="client-notes"
+                    class="notes-textarea" 
+                    placeholder="Споделете вашите коментари, въпроси или специални изисквания..."
+                    onchange="updateClientNotes(this.value)">
+                </textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation Details Modal -->
+    <div class="modal-overlay" id="installationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">🔧 Детайли за монтаж</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="installation-details-grid" id="installationDetailsContent">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+                
+                <div class="installation-total">
+                    <div class="installation-total-title">Обща цена за монтажа</div>
+                    <div class="installation-total-price" id="modalTotalPrice">12,000 лв</div>
+                </div>
+                
+                <div class="installation-gallery">
+                    <h3>📸 Примери от наши монтажи</h3>
+                    <div class="installation-gallery-grid">
+                        <div class="installation-gallery-item" onclick="openInstallationGallery(1)">
+                            <div class="installation-gallery-placeholder">
+                                🏗️<br>Подготовка<br>на основа
+                            </div>
+                        </div>
+                        <div class="installation-gallery-item" onclick="openInstallationGallery(2)">
+                            <div class="installation-gallery-placeholder">
+                                🔨<br>Монтаж<br>в процес
+                            </div>
+                        </div>
+                        <div class="installation-gallery-item" onclick="openInstallationGallery(3)">
+                            <div class="installation-gallery-placeholder">
+                                ✨<br>Финален<br>резултат
+                            </div>
+                        </div>
+                        <div class="installation-gallery-item" onclick="openInstallationGallery(4)">
+                            <div class="installation-gallery-placeholder">
+                                🧹<br>Почистване<br>и предаване
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Project data structure
+        const projectData = {
+            variants: {
+                1: {
+                    name: "Рибена кост",
+                    materialsCost: 34000,
+                    installationOptions: {
+                        basic: { name: "Без монтаж", price: 0 },
+                        standard: { name: "Стандартен монтаж", price: 12000 },
+                        premium: { name: "Премиум монтаж", price: 18000 }
+                    }
+                },
+                2: {
+                    name: "Прав паркет", 
+                    materialsCost: 28000,
+                    installationOptions: {
+                        basic: { name: "Без монтаж", price: 0 },
+                        standard: { name: "Стандартен монтаж", price: 9500 },
+                        premium: { name: "Премиум монтаж", price: 14500 }
+                    }
+                }
+            }
+        };
+
+        let currentVariant = 1;
+        let currentInstallation = 'standard';
+
+        function selectVariant(variantId) {
+            // Update UI
+            document.querySelectorAll('.variant-summary').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-variant="${variantId}"]`).classList.add('selected');
+
+            // Show/hide details
+            document.querySelectorAll('.variant-details').forEach(details => {
+                details.classList.remove('active');
+            });
+            document.getElementById(`variant${variantId}-details`).classList.add('active');
+
+            // Update current variant
+            currentVariant = variantId;
+            
+            // Update installation options
+            updateInstallationOptions();
+            
+            // Update pricing
+            updatePricing();
+        }
+
+        function updateInstallationOptions() {
+            const variant = projectData.variants[currentVariant];
+            const container = document.getElementById('installation-options');
+            
+            container.innerHTML = '';
+            
+            Object.entries(variant.installationOptions).forEach(([key, option]) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = `installation-option ${key === currentInstallation ? 'selected' : ''}`;
+                optionDiv.onclick = () => selectInstallation(key);
+                
+                const detailsButton = key !== 'basic' ? 
+                    `<button class="details-button" onclick="event.stopPropagation(); showInstallationDetails('${key}')">
+                        📋 Виж детайли
+                    </button>` : '';
+                
+                optionDiv.innerHTML = `
+                    <div class="installation-name">${option.name}</div>
+                    <div class="installation-description">
+                        ${key === 'basic' ? 'Само доставка на материалите. Монтажът се извършва от ваш екип.' : 
+                          key === 'standard' ? 'Професионален монтаж от сертифицирани специалисти с 2 години гаранция.' :
+                          'Включва подготовка на основата, монтаж, финишни работи и 3 години гаранция.'}
+                    </div>
+                    <div class="installation-price">
+                        ${option.price === 0 ? 'Включено' : `+ ${option.price.toLocaleString('bg-BG')} лв`}
+                    </div>
+                    ${detailsButton}
+                `;
+                
+                container.appendChild(optionDiv);
+            });
+        }
+
+        function selectInstallation(installationType) {
+            currentInstallation = installationType;
+            
+            // Update UI
+            document.querySelectorAll('.installation-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.installation-option').classList.add('selected');
+            
+            // Update pricing
+            updatePricing();
+            
+            // Update variant labels
+            updateVariantLabels();
+        }
+
+        function updateVariantLabels() {
+            const installationNames = {
+                'basic': 'без монтаж',
+                'standard': 'стандартен монтаж', 
+                'premium': 'премиум монтаж'
+            };
+            
+            // Update all variant labels
+            Object.keys(projectData.variants).forEach(variantId => {
+                const labelElement = document.getElementById(`variant${variantId}-label`);
+                const installationText = installationNames[currentInstallation];
+                labelElement.textContent = `с ДДС и ${installationText}`;
+                
+                // Add update animation
+                labelElement.classList.add('price-updating');
+                setTimeout(() => labelElement.classList.remove('price-updating'), 600);
+            });
+        }
+
+        function updatePricing() {
+            const variant = projectData.variants[currentVariant];
+            const materialsPrice = variant.materialsCost;
+            const installationPrice = variant.installationOptions[currentInstallation].price;
+            const subtotal = materialsPrice + installationPrice;
+            const vat = subtotal * 0.2;
+            const total = subtotal + vat;
+
+            // Update current sidebar pricing with animation
+            const updates = [
+                { id: 'materials-price', value: materialsPrice },
+                { id: 'installation-price', value: installationPrice },
+                { id: 'subtotal-price', value: subtotal },
+                { id: 'vat-price', value: vat },
+                { id: 'total-price', value: total }
+            ];
+
+            updates.forEach(({ id, value }) => {
+                const element = document.getElementById(id);
+                element.classList.add('price-updating');
+                element.textContent = `${value.toLocaleString('bg-BG')} лв`;
+                setTimeout(() => element.classList.remove('price-updating'), 600);
+            });
+
+            // Update ALL variant summary totals (not just current)
+            Object.keys(projectData.variants).forEach(variantId => {
+                const variantData = projectData.variants[variantId];
+                const variantMaterials = variantData.materialsCost;
+                const variantInstallation = variantData.installationOptions[currentInstallation].price;
+                const variantSubtotal = variantMaterials + variantInstallation;
+                const variantVat = variantSubtotal * 0.2;
+                const variantTotal = variantSubtotal + variantVat;
+                
+                const totalElement = document.getElementById(`variant${variantId}-total`);
+                totalElement.classList.add('price-updating');
+                totalElement.textContent = `${variantTotal.toLocaleString('bg-BG')} лв`;
+                setTimeout(() => totalElement.classList.remove('price-updating'), 600);
+            });
+        }
+
+        // Installation details data
+        const installationDetails = {
+            standard: {
+                title: "Стандартен монтаж",
+                description: "Професионален монтаж с 2 години гаранция",
+                services: [
+                    {
+                        category: "Подготовка",
+                        items: [
+                            { name: "Оглед и замерване", description: "Детайлно замерване и оценка на основата", price: "150 лв" },
+                            { name: "Почистване на основата", description: "Премахване на стари покрития и мръсотия", price: "3 лв/м²" },
+                            { name: "Нивелиране", description: "Изравняване на неравности до 3мм", price: "8 лв/м²" }
+                        ]
+                    },
+                    {
+                        category: "Монтаж",
+                        items: [
+                            { name: "Полагане на паркета", description: "Професионален монтаж според схемата", price: "12 лв/м²" },
+                            { name: "Рязане и подгонка", description: "Прецизно рязане и подгонка около препятствия", price: "включено" },
+                            { name: "Монтаж на первази", description: "Поставяне на дървени первази", price: "8 лв/лм" }
+                        ]
+                    },
+                    {
+                        category: "Финализиране",
+                        items: [
+                            { name: "Почистване", description: "Основно почистване на работното място", price: "2 лв/м²" },
+                            { name: "Контрол на качеството", description: "Финална проверка и предаване", price: "включено" }
+                        ]
+                    }
+                ]
+            },
+            premium: {
+                title: "Премиум монтаж",
+                description: "Пълен пакет с 3 години гаранция",
+                services: [
+                    {
+                        category: "Разширена подготовка",
+                        items: [
+                            { name: "3D сканиране", description: "Прецизно 3D замерване с лазер", price: "300 лв" },
+                            { name: "Дълбоко почистване", description: "Професионално почистване с машини", price: "5 лв/м²" },
+                            { name: "Грундиране", description: "Специално грундиране за подобра адхезия", price: "4 лв/м²" },
+                            { name: "Самонивелираща замазка", description: "Изравняване до идеална равност", price: "15 лв/м²" }
+                        ]
+                    },
+                    {
+                        category: "Премиум монтаж",
+                        items: [
+                            { name: "Експертно полагане", description: "Монтаж от майстор с 15+ години опит", price: "18 лв/м²" },
+                            { name: "Специални срезове", description: "Сложни геометрични форми и детайли", price: "включено" },
+                            { name: "Премиум первази", description: "Първокласни дървени първази с монтаж", price: "15 лв/лм" },
+                            { name: "Прагове и профили", description: "Алуминиеви прагове между помещенията", price: "включено" }
+                        ]
+                    },
+                    {
+                        category: "Завършване",
+                        items: [
+                            { name: "Лакиране", description: "Двукомпонентен лак за максимална защита", price: "8 лв/м²" },
+                            { name: "Полиране", description: "Машинно полиране до огледален блясък", price: "4 лв/м²" },
+                            { name: "Защитно покритие", description: "Специално защитно покритие", price: "3 лв/м²" },
+                            { name: "Детайлно почистване", description: "Перфектно почистване и дезинфекция", price: "включено" }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        function showInstallationDetails(installationType) {
+            const details = installationDetails[installationType];
+            const variant = projectData.variants[currentVariant];
+            const price = variant.installationOptions[installationType].price;
+            
+            // Update modal title and price
+            document.getElementById('modalTitle').textContent = `🔧 ${details.title}`;
+            document.getElementById('modalTotalPrice').textContent = `${price.toLocaleString('bg-BG')} лв`;
+            
+            // Generate content
+            const content = document.getElementById('installationDetailsContent');
+            content.innerHTML = '';
+            
+            details.services.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'service-category';
+                
+                const itemsHTML = category.items.map(item => `
+                    <div class="service-item">
+                        <div class="service-item-info">
+                            <div class="service-item-name">${item.name}</div>
+                            <div class="service-item-description">${item.description}</div>
+                        </div>
+                        <div class="service-item-price">${item.price}</div>
+                    </div>
+                `).join('');
+                
+                categoryDiv.innerHTML = `
+                    <h3>📋 ${category.category}</h3>
+                    <div class="service-items">
+                        ${itemsHTML}
+                    </div>
+                `;
+                
+                content.appendChild(categoryDiv);
+            });
+            
+            // Show modal
+            document.getElementById('installationModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('installationModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openInstallationGallery(imageId) {
+            const galleryImages = {
+                1: "Подготовка на основата",
+                2: "Монтаж в процес", 
+                3: "Финален резултат",
+                4: "Почистване и предаване"
+            };
+            
+            alert(`🖼️ Отваряне на галерия: ${galleryImages[imageId]}\n\nТук ще се покажат реални снимки от монтажни работи.`);
+        }
+
+        // AI Chat functionality
+        let aiChatOpen = false;
+        let conversationHistory = [];
+        let isAITyping = false;
+
+        function toggleAIChat() {
+            aiChatOpen = !aiChatOpen;
+            const chatWindow = document.getElementById('aiChatWindow');
+            const notification = document.getElementById('aiNotification');
+            
+            if (aiChatOpen) {
+                chatWindow.classList.add('active');
+                notification.style.display = 'none';
+                document.getElementById('aiChatBubble').classList.remove('has-notification');
+                
+                // Auto-suggest based on current state
+                updateAISuggestions();
+            } else {
+                chatWindow.classList.remove('active');
+            }
+        }
+
+        function closeAIChat() {
+            aiChatOpen = false;
+            document.getElementById('aiChatWindow').classList.remove('active');
+        }
+
+        function updateAISuggestions() {
+            const variant = projectData.variants[currentVariant];
+            const variantName = variant.name || `Вариант ${currentVariant}`;
+            const installationName = variant.installationOptions[currentInstallation].name;
+            
+            const suggestions = [
+                `Защо да избера ${variantName}?`,
+                `Какво включва ${installationName}?`,
+                `Мога ли да получа отстъпка?`,
+                `Кога може да започне монтажът?`
+            ];
+            
+            const container = document.getElementById('aiSuggestions');
+            container.innerHTML = suggestions.map(suggestion => 
+                `<div class="suggestion-chip" onclick="askAI('${suggestion}')">${suggestion}</div>`
+            ).join('');
+        }
+
+        function askAI(question) {
+            // Add user message to chat
+            addMessageToChat('user', question);
+            
+            // Send to AI
+            sendToAI(question);
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiChatInput');
+            const message = input.value.trim();
+            
+            if (message && !isAITyping) {
+                input.value = '';
+                askAI(message);
+            }
+        }
+
+        function handleAIInputKeypress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendAIMessage();
+            }
+        }
+
+        function addMessageToChat(sender, message) {
+            const messagesContainer = document.getElementById('aiChatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = sender === 'user' ? 'user-message' : 'ai-message';
+            messageDiv.textContent = message;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showAITyping() {
+            isAITyping = true;
+            document.getElementById('aiTyping').classList.add('active');
+            document.getElementById('aiChatSend').disabled = true;
+            
+            const messagesContainer = document.getElementById('aiChatMessages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideAITyping() {
+            isAITyping = false;
+            document.getElementById('aiTyping').classList.remove('active');
+            document.getElementById('aiChatSend').disabled = false;
+        }
+
+        async function sendToAI(userMessage) {
+            showAITyping();
+            
+            // Add user message to conversation history
+            conversationHistory.push({
+                role: 'user',
+                content: userMessage
+            });
+            
+            try {
+                // Get current offer context
+                const offerContext = getOfferContext();
+                
+                // Create comprehensive prompt with full context
+                const prompt = createAIPrompt(userMessage, offerContext);
+                
+                // Send to Claude
+                const response = await window.claude.complete(prompt);
+                
+                // Parse JSON response
+                const aiResponse = JSON.parse(response);
+                
+                // Add AI response to conversation history
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: aiResponse.response
+                });
+                
+                // Display response
+                hideAITyping();
+                addMessageToChat('ai', aiResponse.response);
+                
+                // Update suggestions if provided
+                if (aiResponse.suggestions && aiResponse.suggestions.length > 0) {
+                    updateSuggestionsFromAI(aiResponse.suggestions);
+                }
+                
+            } catch (error) {
+                console.error('AI Error:', error);
+                hideAITyping();
+                addMessageToChat('ai', 'Извинявайте, възникна техническа грешка. Моля опитайте отново или се свържете с нашия екип за помощ.');
+            }
+        }
+
+        function getOfferContext() {
+            const variant = projectData.variants[currentVariant];
+            const materialsPrice = variant.materialsCost;
+            const installationPrice = variant.installationOptions[currentInstallation].price;
+            const total = (materialsPrice + installationPrice) * 1.2; // with VAT
+            
+            return {
+                projectName: document.getElementById('projectTitle').textContent,
+                currentVariant: currentVariant,
+                variantName: variant.name || `Вариант ${currentVariant}`,
+                currentInstallation: currentInstallation,
+                installationName: variant.installationOptions[currentInstallation].name,
+                materialsPrice: materialsPrice,
+                installationPrice: installationPrice,
+                totalPrice: total,
+                area: "400 м²", // from the example
+                rooms: [
+                    { name: "Дневна", area: "85 м²", discount: "5%" },
+                    { name: "Спалня", area: "35 м²", discount: "5%" }
+                ]
+            };
+        }
+
+        function createAIPrompt(userMessage, context) {
+            const conversationHistoryText = conversationHistory.length > 0 ? 
+                `\n\nПредишен разговор:\n${JSON.stringify(conversationHistory)}` : '';
+            
+            return `Ти си AI асистент на PARKETSENSE - водеща компания за подови покрития в България. Отговаряш на въпроси за конкретна оферта.
+
+КОНТЕКСТ НА ОФЕРТАТА:
+- Проект: ${context.projectName}
+- Текущ избор: ${context.variantName}
+- Монтаж: ${context.installationName}
+- Обща площ: ${context.area}
+- Стаи: ${context.rooms.map(r => `${r.name} (${r.area})`).join(', ')}
+- Цена материали: ${context.materialsPrice.toLocaleString('bg-BG')} лв
+- Цена монтаж: ${context.installationPrice.toLocaleString('bg-BG')} лв  
+- Обща цена: ${context.totalPrice.toLocaleString('bg-BG')} лв (с ДДС)
+
+ЕКСПЕРТИЗА:
+- Паркети: Дъб, бук, ясен, екзотични дървета
+- Монтаж: Стандартен (2г гаранция), Премиум (3г гаранция)
+- Схеми: Рибена кост, прав паркет, френски паркет
+- Процеси: Подготовка, полагане, лакиране, финиширане
+
+ПРАВИЛА:
+1. Отговаряй кратко и конкретно (максимум 100 думи)
+2. Използвай данните от офертата
+3. Бъди експерт по подови покрития
+4. Дай практични съвети
+5. Предлагай алтернативи когато е подходящо${conversationHistoryText}
+
+ВЪПРОС ОТ КЛИЕНТА: "${userMessage}"
+
+Отговори САМО с валиден JSON в този формат:
+{
+  "response": "твоят експертен отговор тук",
+  "suggestions": ["предложение 1", "предложение 2", "предложение 3"]
+}
+
+ВАЖНО: Отговори САМО с JSON. Не добавяй други текстове или форматиране.`;
+        }
+
+        function updateSuggestionsFromAI(suggestions) {
+            const container = document.getElementById('aiSuggestions');
+            container.innerHTML = suggestions.map(suggestion => 
+                `<div class="suggestion-chip" onclick="askAI('${suggestion}')">${suggestion}</div>`
+            ).join('');
+        }
+
+        // Initialize AI notification
+        function showAINotification() {
+            document.getElementById('aiNotification').style.display = 'block';
+            document.getElementById('aiChatBubble').classList.add('has-notification');
+        }
+
+        // Show notification after page load
+        setTimeout(() => {
+            if (!aiChatOpen) {
+                showAINotification();
+            }
+        }, 3000);
+
+        // Close modal on outside click
+        document.getElementById('installationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal on Escape key  
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                if (aiChatOpen) {
+                    closeAIChat();
+                }
+            }
+        });
+
+        function openGallery(roomId, imageId) {
+            alert(`🖼️ Отваряне на галерия за ${roomId}, снимка ${imageId}\n\nТук ще се отвори lightbox с реални снимки от проекта.`);
+        }
+
+        function updateClientNotes(notes) {
+            console.log('Client notes updated:', notes);
+            // Here you would send to backend in real implementation
+        }
+
+        function acceptOffer() {
+            const variant = projectData.variants[currentVariant];
+            const total = document.getElementById('total-price').textContent;
+            
+            // Add to AI conversation for context
+            conversationHistory.push({
+                role: 'user',
+                content: `Приех офертата: ${variant.name}, обща сума: ${total}`
+            });
+            
+            alert(`🎉 Благодарим Ви за приемането на офертата!
+
+📋 Избран вариант: ${variant.name}
+💰 Обща сума: ${total}
+
+📧 Ще получите потвърждение на email
+📞 Ще се свържем с Вас в рамките на 2 часа
+📅 Ще координираме датите за доставка и монтаж
+
+💬 AI асистентът остава на разположение за въпроси!`);
+        }
+
+        function requestChanges() {
+            // Show AI suggestion
+            if (!aiChatOpen) {
+                showAINotification();
+                setTimeout(() => {
+                    addMessageToChat('ai', 'Виждам, че искате промени в офертата. Как мога да ви помогна? Мога да обясня различните опции или да отговоря на въпроси за алтернативи.');
+                }, 1000);
+            }
+            
+            alert('📝 Вашето искане за промени е получено.\n\nНашият екип ще прегледа Вашите забележки и ще Ви изпрати актуализирана оферта в рамките на 24 часа.\n\n💡 Можете също да попитате AI асистента за алтернативи!');
+        }
+
+        function downloadPDF() {
+            alert('📄 PDF файлът се генерира...\n\nИзтеглянето ще започне автоматично.');
+        }
+
+        function scheduleMeeting() {
+            alert('📅 Пренасочване към календара...\n\nМоже да избирате удобно време от наличните слотове.');
+        }
+
+        // Initialize
+        updateInstallationOptions();
+        updatePricing();
+        
+        // Sticky comparison enhancements
+        let isScrolled = false;
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const comparison = document.querySelector('.variants-overview');
+            
+            if (scrollTop > 100 && !isScrolled) {
+                comparison.classList.add('scrolled');
+                isScrolled = true;
+            } else if (scrollTop <= 100 && isScrolled) {
+                comparison.classList.remove('scrolled');
+                isScrolled = false;
+            }
+        });
+    </script>
+</body>
+</html>

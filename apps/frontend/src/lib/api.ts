@@ -127,12 +127,12 @@ export class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      return data;
     } catch (error) {
-      clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Request timeout');
       }
