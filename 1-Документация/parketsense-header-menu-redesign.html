@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKETSENSE ERP - Header Menu Redesign</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ERP Design System Tokens */
+        :root {
+            --color-primary: #000000;
+            --color-on-primary: #FFFFFF;
+            --color-bg: #F4F5F6;
+            --color-surface: #FFFFFF;
+            --color-border: #E0E0E0;
+            --color-neutral-500: #A1A3A5;
+            --color-neutral-700: #686869;
+            --color-success: #91C479;
+            --font-family: "Inter", sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg);
+            color: var(--color-primary);
+        }
+        
+        /* Version 1: Elegant Dropdown Menu */
+        .header-v1 {
+            background-color: var(--color-primary);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 64px;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo {
+            width: 36px;
+            height: 36px;
+            background-color: var(--color-on-primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--color-primary);
+        }
+        
+        .logo-text {
+            color: var(--color-on-primary);
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* Main Navigation */
+        .main-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            color: var(--color-on-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Icons */
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+        
+        .nav-link:hover .nav-icon {
+            opacity: 1;
+        }
+        
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            background-color: var(--color-surface);
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            padding: 8px;
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+        }
+        
+        .nav-item:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .dropdown-item {
+            display: block;
+            padding: 10px 16px;
+            color: var(--color-primary);
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--color-bg);
+            transform: translateX(4px);
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--color-border);
+            margin: 8px 0;
+        }
+        
+        /* User Menu */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--color-success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Version 2: Mega Menu Style */
+        .header-v2 {
+            background-color: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-v2 .logo {
+            background-color: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+        
+        .header-v2 .logo-text {
+            color: var(--color-primary);
+        }
+        
+        .header-v2 .nav-link {
+            color: var(--color-primary);
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .header-v2 .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 16px;
+            right: 16px;
+            height: 2px;
+            background-color: var(--color-primary);
+            transform: scaleX(0);
+            transition: transform 0.2s ease;
+        }
+        
+        .header-v2 .nav-link:hover {
+            background-color: var(--color-bg);
+        }
+        
+        .header-v2 .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+        
+        .header-v2 .nav-link.active::after {
+            transform: scaleX(1);
+            background-color: var(--color-success);
+        }
+        
+        /* Version 3: Grouped Menu */
+        .header-v3 {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .menu-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0 12px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .menu-group:last-child {
+            border-right: none;
+        }
+        
+        .group-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 8px;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--color-on-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        /* Badge */
+        .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background-color: var(--color-success);
+            color: white;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Demo Container */
+        .demo-section {
+            margin-bottom: 60px;
+        }
+        
+        .demo-title {
+            text-align: center;
+            padding: 40px 0 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-neutral-700);
+        }
+        
+        /* Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Version 1: Elegant Dropdown Menu -->
+    <div class="demo-section">
+        <h2 class="demo-title">Вариант 1: Елегантно Dropdown меню</h2>
+        <header class="header-v1">
+            <div class="header-container">
+                <div class="logo-section">
+                    <div class="logo">PS</div>
+                    <div class="logo-text">PARKETSENSE ERP</div>
+                </div>
+                
+                <nav class="main-nav">
+                    <div class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            </svg>
+                            Начало
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            </svg>
+                            Клиенти
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item">Всички клиенти</a>
+                            <a href="#" class="dropdown-item">Добави клиент</a>
+                            <a href="#" class="dropdown-item">Архитекти</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item">Импорт/Експорт</a>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-7-7z"/>
+                            </svg>
+                            Проекти
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item">Активни проекти</a>
+                            <a href="#" class="dropdown-item">Създай проект</a>
+                            <a href="#" class="dropdown-item">Фази и варианти</a>
+                            <a href="#" class="dropdown-item">Архив</a>
+                        </div>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            </svg>
+                            Продукти
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            </svg>
+                            Поръчки
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                            </svg>
+                            Документи
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item">Оферти</a>
+                            <a href="#" class="dropdown-item">Фактури</a>
+                            <a href="#" class="dropdown-item">Складови документи</a>
+                            <a href="#" class="dropdown-item">Доставки</a>
+                        </div>
+                    </div>
+                </nav>
+                
+                <div class="user-menu">
+                    <div class="quick-actions">
+                        <button class="action-btn" style="position: relative;">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            </svg>
+                            <span class="badge">3</span>
+                        </button>
+                    </div>
+                    <div class="user-avatar">АМ</div>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Version 2: Light Theme with Underline -->
+    <div class="demo-section">
+        <h2 class="demo-title">Вариант 2: Светла тема с подчертаване</h2>
+        <header class="header-v2">
+            <div class="header-container">
+                <div class="logo-section">
+                    <div class="logo">PS</div>
+                    <div class="logo-text">PARKETSENSE ERP</div>
+                </div>
+                
+                <nav class="main-nav">
+                    <div class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            </svg>
+                            Начало
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            </svg>
+                            Клиенти
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-7-7z"/>
+                            </svg>
+                            Проекти
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            </svg>
+                            Продукти
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            </svg>
+                            Поръчки
+                        </a>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon icon" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                            </svg>
+                            Документи
+                        </a>
+                    </div>
+                </nav>
+                
+                <div class="user-menu">
+                    <div class="quick-actions">
+                        <button class="action-btn" style="position: relative;">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            </svg>
+                            <span class="badge">3</span>
+                        </button>
+                    </div>
+                    <div class="user-avatar" style="background-color: var(--color-primary);">АМ</div>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Version 3: Grouped Menu -->
+    <div class="demo-section">
+        <h2 class="demo-title">Вариант 3: Групирано меню</h2>
+        <header class="header-v3">
+            <div class="header-container">
+                <div class="logo-section">
+                    <div class="logo">PS</div>
+                    <div class="logo-text" style="color: white;">PARKETSENSE ERP</div>
+                </div>
+                
+                <nav class="main-nav">
+                    <div class="menu-group">
+                        <span class="group-label">CRM</span>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Клиенти</a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Архитекти</a>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-group">
+                        <span class="group-label">Проекти</span>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Проекти</a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Оферти</a>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-group">
+                        <span class="group-label">Операции</span>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Поръчки</a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Склад</a>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-group">
+                        <span class="group-label">Финанси</span>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Фактури</a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">Отчети</a>
+                        </div>
+                    </div>
+                </nav>
+                
+                <div class="user-menu">
+                    <div class="quick-actions">
+                        <button class="action-btn" style="position: relative;">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            </svg>
+                            <span class="badge">3</span>
+                        </button>
+                        <button class="action-btn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="user-avatar">АМ</div>
+                </div>
+            </div>
+        </header>
+    </div>
+</body>
+</html>
