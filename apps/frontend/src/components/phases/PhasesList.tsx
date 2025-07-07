@@ -9,7 +9,6 @@ import {
   XCircle, 
   Clock, 
   AlertCircle,
-  DollarSign,
   Users,
   Eye,
   Edit,
@@ -266,7 +265,6 @@ export default function PhasesList({
 
                     {phase.totalValue !== undefined && (
                       <div className="flex items-center text-gray-600">
-                        <DollarSign className="w-4 h-4 mr-1" />
                         <span>{formatCurrency(phase.totalValue)}</span>
                       </div>
                     )}
@@ -323,8 +321,7 @@ export default function PhasesList({
                       className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
                       title="Плащания към архитект"
                     >
-                      <DollarSign className="w-4 h-4 mr-1" />
-                      Плащания
+                      <span>{formatCurrency(phase.totalValue)}</span>
                     </Link>
                   )}
                   

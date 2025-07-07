@@ -104,7 +104,7 @@ const EditVariantModal: React.FC<EditVariantModalProps> = ({
 
     setIsLoading(true);
     try {
-      await variantsApi.updateVariant(variant.id, formData);
+      await variantsApi.update(variant.id, formData);
       onSuccess();
       onClose();
       setErrors({});
@@ -124,7 +124,7 @@ const EditVariantModal: React.FC<EditVariantModalProps> = ({
 
     setIsDeleting(true);
     try {
-      await variantsApi.deleteVariant(variant.id);
+      await variantsApi.delete(variant.id);
       onSuccess();
       onClose();
     } catch (error) {

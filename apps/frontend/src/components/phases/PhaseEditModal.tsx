@@ -112,11 +112,15 @@ export default function PhaseEditModal({ isOpen, onClose, onSave, initialData }:
         phaseOrder: formData.phaseOrder,
       };
 
+      console.log('PhaseEditModal: Submitting phase data:', phaseData);
+      console.log('PhaseEditModal: Initial data:', initialData);
+
       await onSave(phaseData);
+      console.log('PhaseEditModal: Phase updated successfully');
       onClose();
 
     } catch (error) {
-      console.error('Error updating phase:', error);
+      console.error('PhaseEditModal: Error updating phase:', error);
       setErrors({ 
         submit: 'Грешка при обновяване на фаза: ' + (error instanceof Error ? error.message : 'Неизвестна грешка') 
       });

@@ -59,7 +59,8 @@ class ClientsApiService {
       throw new Error('Failed to create client');
     }
     
-    return response.json();
+    const result = await response.json();
+    return result.data; // Backend returns { success: true, data: Client }
   }
 
   async updateClient(id: string, client: Partial<CreateClientDto>): Promise<Client> {
@@ -75,7 +76,8 @@ class ClientsApiService {
       throw new Error('Failed to update client');
     }
     
-    return response.json();
+    const result = await response.json();
+    return result.data; // Backend returns { success: true, data: Client }
   }
 
   async deleteClient(id: string): Promise<void> {

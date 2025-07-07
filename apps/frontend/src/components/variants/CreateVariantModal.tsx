@@ -82,7 +82,7 @@ const CreateVariantModal: React.FC<CreateVariantModalProps> = ({
 
     setIsLoading(true);
     try {
-      await variantsApi.createVariant(formData);
+      await variantsApi.create(formData);
       onSuccess();
       onClose();
       // Reset form

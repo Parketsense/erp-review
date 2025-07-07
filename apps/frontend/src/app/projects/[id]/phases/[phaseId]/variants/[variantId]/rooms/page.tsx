@@ -20,6 +20,9 @@ import { roomsApi } from '@/services/roomsApi';
 import { variantsApi } from '@/services/variantsApi';
 import { phasesApi } from '@/services/phasesApi';
 import { projectsApi } from '@/services/projectsApi';
+import RoomCreateModal from '@/components/rooms/RoomCreateModal';
+import RoomEditModal from '@/components/rooms/RoomEditModal';
+import RoomCloneModal from '@/components/rooms/RoomCloneModal';
 
 export default function RoomsPage() {
   const { id: projectId, phaseId, variantId } = useParams() as { 
@@ -35,6 +38,10 @@ export default function RoomsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<VariantRoom | null>(null);
 
   const loadData = async () => {
     try {
@@ -43,7 +50,7 @@ export default function RoomsPage() {
       
       const [roomsResponse, variantResponse, phaseResponse, projectResponse] = await Promise.all([
         roomsApi.getRoomsByVariant(variantId),
-        variantsApi.getVariantById(variantId),
+        variantsApi.getById(variantId),
         phasesApi.getPhaseById(phaseId),
         projectsApi.getProjectById(projectId)
       ]);
@@ -82,6 +89,37 @@ export default function RoomsPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Грешка при дублиране');
     }
+  };
+
+  const handleCreateRoom = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleRoomCreated = () => {
+    setIsCreateModalOpen(false);
+    loadData();
+  };
+
+  const handleEditRoom = (room: VariantRoom) => {
+    setSelectedRoom(room);
+    setIsEditModalOpen(true);
+  };
+
+  const handleRoomUpdated = () => {
+    setIsEditModalOpen(false);
+    setSelectedRoom(null);
+    loadData();
+  };
+
+  const handleCloneRoom = (room: VariantRoom) => {
+    setSelectedRoom(room);
+    setIsCloneModalOpen(true);
+  };
+
+  const handleRoomCloned = () => {
+    setIsCloneModalOpen(false);
+    setSelectedRoom(null);
+    loadData();
   };
 
   // Calculate stats
@@ -217,7 +255,7 @@ export default function RoomsPage() {
 
                 {/* Create Room */}
                 <button
-                  onClick={() => alert('Функционалност за създаване на стая ще бъде добавена скоро')}
+                  onClick={handleCreateRoom}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -304,6 +342,15 @@ export default function RoomsPage() {
                   : 'Започнете с създаване на първата стая за този вариант'
                 }
               </p>
+              {!searchTerm && (
+                <button
+                  onClick={handleCreateRoom}
+                  className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Създай първата стая
+                </button>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -335,17 +382,24 @@ export default function RoomsPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      <Link
+                        href={`/projects/${projectId}/phases/${phaseId}/variants/${variantId}/rooms/${room.id}/products`}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Управлявай продукти"
+                      >
+                        <Package className="w-4 h-4" />
+                      </Link>
                       <button
-                        onClick={() => alert('Функционалност за редактиране ще бъде добавена скоро')}
+                        onClick={() => handleEditRoom(room)}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Редактирай"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDuplicateRoom(room.id)}
+                        onClick={() => handleCloneRoom(room)}
                         className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Дублирай"
+                        title="Клонирай"
                       >
                         <Copy className="w-4 h-4" />
                       </button>
@@ -364,6 +418,43 @@ export default function RoomsPage() {
           )}
         </div>
       </div>
+
+      {/* Create Room Modal */}
+      <RoomCreateModal
+        variantId={variantId}
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onRoomCreated={handleRoomCreated}
+      />
+
+      {/* Edit Room Modal */}
+      {selectedRoom && (
+        <RoomEditModal
+          room={selectedRoom}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedRoom(null);
+          }}
+          onRoomUpdated={handleRoomUpdated}
+        />
+      )}
+
+      {/* Clone Room Modal */}
+      {selectedRoom && (
+        <RoomCloneModal
+          isOpen={isCloneModalOpen}
+          onClose={() => {
+            setIsCloneModalOpen(false);
+            setSelectedRoom(null);
+          }}
+          room={selectedRoom}
+          currentVariantId={variantId}
+          currentPhaseId={phaseId}
+          projectId={projectId}
+          onCloned={handleRoomCloned}
+        />
+      )}
     </div>
   );
 } 

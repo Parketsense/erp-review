@@ -68,11 +68,7 @@ export const interactiveOffersApi = {
    * Get offer data for client view
    */
   async getOfferData(token: string, offerId: string): Promise<ClientOfferData> {
-    const response = await apiClient.get<ClientOfferData>(`/offers/client/${offerId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await apiClient.get<ClientOfferData>(`/offers/client/${offerId}`);
     return response;
   },
 
@@ -80,22 +76,14 @@ export const interactiveOffersApi = {
    * Update offer selection
    */
   async updateSelection(token: string, offerId: string, selection: OfferSelection): Promise<void> {
-    await apiClient.put(`/offers/client/${offerId}/selection`, selection, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    await apiClient.put(`/offers/client/${offerId}/selection`, selection);
   },
 
   /**
    * Calculate pricing based on selection
    */
   async calculatePricing(token: string, offerId: string, selection: OfferSelection): Promise<PricingData> {
-    const response = await apiClient.post<PricingData>(`/offers/client/${offerId}/pricing`, selection, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await apiClient.post<PricingData>(`/offers/client/${offerId}/pricing`, selection);
     return response;
   },
 
@@ -121,11 +109,7 @@ export const interactiveOffersApi = {
         alt: string;
         thumbnail: string;
       }>;
-    }>>(`/offers/client/${offerId}/galleries`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    }>>(`/offers/client/${offerId}/galleries`);
     return response;
   },
 
@@ -137,11 +121,7 @@ export const interactiveOffersApi = {
     comments: string;
     contactPreference: 'email' | 'phone' | 'meeting';
   }): Promise<void> {
-    await apiClient.post(`/offers/client/${offerId}/feedback`, feedback, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    await apiClient.post(`/offers/client/${offerId}/feedback`, feedback);
   },
 
   /**
@@ -156,11 +136,7 @@ export const interactiveOffersApi = {
       phone?: string;
     };
   }): Promise<void> {
-    await apiClient.post(`/offers/client/${offerId}/accept`, acceptanceData, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    await apiClient.post(`/offers/client/${offerId}/accept`, acceptanceData);
   },
 
   /**
@@ -176,11 +152,7 @@ export const interactiveOffersApi = {
       phone?: string;
     };
   }): Promise<void> {
-    await apiClient.post(`/offers/client/${offerId}/reject`, rejectionData, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    await apiClient.post(`/offers/client/${offerId}/reject`, rejectionData);
   },
 
   /**
@@ -196,10 +168,6 @@ export const interactiveOffersApi = {
       phone?: string;
     };
   }): Promise<void> {
-    await apiClient.post(`/offers/client/${offerId}/modify`, modificationData, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    await apiClient.post(`/offers/client/${offerId}/modify`, modificationData);
   }
 }; 

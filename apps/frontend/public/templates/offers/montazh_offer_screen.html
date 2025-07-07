@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оферта за Монтаж - Апартамент Георги Петров | PARKETSENSE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #D4AF37;
+            --primary-dark: #1A1A1A;
+            --secondary-dark: #2C2C2C;
+            --accent-light: #F8F7F4;
+            --text-primary: #1A1A1A;
+            --text-secondary: #666666;
+            --text-light: #999999;
+            --border-light: #E5E5E5;
+            --shadow-elegant: 0 10px 40px rgba(0, 0, 0, 0.1);
+            --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            min-height: 100vh;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 400"><rect fill="%23333" width="1920" height="400"/><text x="960" y="200" text-anchor="middle" font-size="24" fill="%23888">Професионален монтаж на паркет</text></svg>') center/cover;
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+            z-index: 2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 1rem;
+            position: relative;
+            animation: slideInFromTop 0.8s ease-out 0.3s both;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 2px;
+            background: var(--primary-gold);
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+            animation: slideInFromTop 0.8s ease-out 0.5s both;
+        }
+
+        /* Project Info Section */
+        .project-info {
+            background: white;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-subtle);
+            margin: -50px auto 3rem;
+            max-width: 1200px;
+            border-radius: 20px;
+            position: relative;
+            z-index: 10;
+            animation: slideInFromBottom 0.8s ease-out 0.7s both;
+        }
+
+        .project-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .project-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .project-meta {
+            text-align: right;
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .project-meta strong {
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Timeline Section */
+        .timeline-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: var(--shadow-subtle);
+            animation: slideInFromLeft 0.8s ease-out 0.9s both;
+        }
+
+        .timeline-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--primary-dark);
+        }
+
+        .timeline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border-light);
+            z-index: 1;
+        }
+
+        .timeline-progress {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-gold), #f4d03f);
+            width: 50%;
+            z-index: 2;
+            animation: progressGrow 2s ease-out 1.5s both;
+        }
+
+        .timeline-step {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-step.completed .timeline-icon {
+            background: var(--primary-gold);
+            border-color: var(--primary-gold);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .timeline-step.active .timeline-icon {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .timeline-step:hover .timeline-icon {
+            transform: scale(1.2);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+        }
+
+        .timeline-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .timeline-step.active .timeline-text,
+        .timeline-step.completed .timeline-text {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Variant Card */
+        .variant-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+            margin-bottom: 3rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+            animation: slideInFromRight 0.8s ease-out 1.1s both;
+        }
+
+        .variant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-elegant);
+        }
+
+        .variant-header {
+            padding: 2.5rem 2.5rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-light) 0%, #ffffff 100%);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .variant-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+        }
+
+        .variant-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .variant-meta {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .variant-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Gallery */
+        .variant-gallery {
+            padding: 0 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 1rem;
+            height: 300px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--accent-light);
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.02);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-item::after {
+            content: '🔍';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .gallery-item:hover::after {
+            opacity: 1;
+        }
+
+        .gallery-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Services Table */
+        .services-section {
+            padding: 2.5rem;
+        }
+
+        .services-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .services-table th {
+            background: var(--accent-light);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-light);
+            font-size: 0.9rem;
+        }
+
+        .services-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
+            transition: all 0.3s ease;
+        }
+
+        .services-table tr:hover td {
+            background: var(--accent-light);
+            transform: scale(1.01);
+        }
+
+        .service-name {
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        .service-cell {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .service-price {
+            font-weight: 600;
+            color: var(--primary-gold);
+            font-size: 1.1rem;
+        }
+
+        /* Total Section */
+        .total-section {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            color: white;
+            padding: 2rem 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .total-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 4s infinite;
+        }
+
+        .total-amount {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .total-details {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Action Buttons */
+        .variant-actions {
+            padding: 2.5rem;
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary-gold), #f4d03f);
+            color: var(--primary-dark);
+            font-weight: 700;
+            min-width: 200px;
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: white;
+            color: var(--primary-dark);
+            border: 2px solid var(--border-light);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--primary-dark);
+            color: white;
+            border-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(26, 26, 26, 0.2);
+        }
+
+        /* Gallery Modal */
+        .gallery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .gallery-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 12px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -50px;
+            right: 0;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--primary-dark);
+        }
+
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary-dark);
+            transition: all 0.3s ease;
+        }
+
+        .modal-nav:hover {
+            background: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .modal-prev {
+            left: -80px;
+        }
+
+        .modal-next {
+            right: -80px;
+        }
+
+        /* AR Viewer Modal */
+        .ar-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+        }
+
+        .ar-modal.show {
+            display: flex;
+        }
+
+        .ar-viewer {
+            width: 90%;
+            height: 80%;
+            background: #222;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ar-viewer-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .ar-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+        }
+
+        .ar-btn {
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .ar-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        /* Chat Bot */
+        .chatbot {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-gold), #f4d03f);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+            z-index: 100;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            font-size: 1.5rem;
+        }
+
+        .chatbot:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(212, 175, 55, 0.4);
+        }
+
+        .chatbot-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-elegant);
+            display: none;
+            flex-direction: column;
+            z-index: 101;
+        }
+
+        .chatbot-window.show {
+            display: flex;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-gold), #f4d03f);
+            color: var(--primary-dark);
+            border-radius: 20px 20px 0 0;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border-light);
+            border-radius: 25px;
+            outline: none;
+        }
+
+        .chat-send {
+            padding: 12px 15px;
+            background: var(--primary-gold);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px 25px;
+            box-shadow: var(--shadow-elegant);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1002;
+            border-left: 4px solid var(--primary-gold);
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-left-color: #e74c3c;
+        }
+
+        .notification.warning {
+            border-left-color: #f39c12;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+        }
+
+        .notification-message {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Liquid Loader */
+        .liquid-loader {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-gold), #f4d03f);
+            animation: liquidWave 2s ease-in-out infinite;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromBottom {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+            }
+        }
+
+        @keyframes progressGrow {
+            from { width: 0%; }
+            to { width: 50%; }
+        }
+
+        @keyframes liquidWave {
+            0%, 100% {
+                border-radius: 50%;
+            }
+            25% {
+                border-radius: 60% 40% 60% 40%;
+            }
+            50% {
+                border-radius: 40% 60% 40% 60%;
+            }
+            75% {
+                border-radius: 60% 40% 60% 40%;
+            }
+        }
+
+        @keyframes sparkle {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero {
+                height: 300px;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .project-header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .project-title {
+                font-size: 2rem;
+            }
+
+            .timeline {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .timeline::before {
+                display: none;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+                gap: 1rem;
+            }
+
+            .gallery-item {
+                height: 200px;
+            }
+
+            .services-table {
+                font-size: 0.8rem;
+            }
+
+            .services-table th,
+            .services-table td {
+                padding: 0.5rem;
+            }
+
+            .variant-actions {
+                flex-direction: column;
+            }
+
+            .chatbot-window {
+                width: calc(100% - 60px);
+                height: 400px;
+                right: 30px;
+            }
+
+            .modal-nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1 class="logo">{{COMPANY_NAME}}</h1>
+            <p class="hero-subtitle">Професионални услуги за монтаж</p>
+        </div>
+    </div>
+
+    <!-- Project Info -->
+    <div class="project-info">
+        <div class="project-header">
+            <div>
+                <h2 class="project-title">{{PROJECT_NAME}}</h2>
+                <p class="project-subtitle">{{CLIENT_NAME}}</p>
+            </div>
+            <div class="project-meta">
+                <strong>Дизайнер:</strong> Йосиф Бижанов<br>
+                <strong>Дата:</strong> 24 Юни 2025<br>
+                <strong>Фаза:</strong> Монтаж
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline Section -->
+    <div class="timeline-section">
+        <h3 class="timeline-title">Етапи на монтажа</h3>
+        <div class="timeline">
+            <div class="timeline-progress"></div>
+            <div class="timeline-step completed" onclick="showTimelineDetails(1)">
+                <div class="timeline-icon">✓</div>
+                <div class="timeline-text">Подготовка<br><small>Ден 1</small></div>
+            </div>
+            <div class="timeline-step active" onclick="showTimelineDetails(2)">
+                <div class="timeline-icon">2</div>
+                <div class="timeline-text">Монтаж<br><small>Дни 2-4</small></div>
+            </div>
+            <div class="timeline-step" onclick="showTimelineDetails(3)">
+                <div class="timeline-icon">3</div>
+                <div class="timeline-text">Финализиране<br><small>Дни 5-7</small></div>
+            </div>
+            <div class="timeline-step" onclick="showTimelineDetails(4)">
+                <div class="timeline-icon">4</div>
+                <div class="timeline-text">Гаранция<br><small>24 месеца</small></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Variant Card -->
+        <div class="variant-card">
+            <div class="variant-header">
+                <h3 class="variant-name">Професионален монтаж</h3>
+                <p class="variant-description">
+                    Пълен пакет монтажни услуги включващ подготовка на основата, 
+                    полагане на паркета, шлайфане, лакиране и монтаж на первази
+                </p>
+                <div class="variant-meta">
+                    <span>📐 Площ: 75 кв.м</span>
+                    <span>⏱️ Срок: 5-7 дни</span>
+                    <span>🛡️ Гаранция: 24 месеца</span>
+                </div>
+            </div>
+
+            <!-- Gallery -->
+            <div class="variant-gallery">
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openGallery(0)">
+                        <div class="gallery-placeholder">
+                            🖼️<br>Снимка от<br>готов проект
+                        </div>
+                    </div>
+                    <div class="gallery-item" onclick="openGallery(1)">
+                        <div class="gallery-placeholder">
+                            🔨<br>Процес на<br>монтаж
+                        </div>
+                    </div>
+                    <div class="gallery-item" onclick="openGallery(2)">
+                        <div class="gallery-placeholder">
+                            ✨<br>Финален<br>резултат
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Table -->
+            <div class="services-section">
+                <table class="services-table">
+                    <thead>
+                        <tr>
+                            <th>Услуга</th>
+                            <th>Мерна единица</th>
+                            <th>Количество</th>
+                            <th>Единична цена</th>
+                            <th>Обща сума</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="animateRow(this)">
+                            <td class="service-name">Подготовка на основата</td>
+                            <td class="service-cell">кв.м</td>
+                            <td class="service-cell">75.00</td>
+                            <td class="service-cell">6.00 лв</td>
+                            <td class="service-cell service-price">450.00 лв</td>
+                        </tr>
+                        <tr onclick="animateRow(this)">
+                            <td class="service-name">Монтаж на паркет</td>
+                            <td class="service-cell">кв.м</td>
+                            <td class="service-cell">75.00</td>
+                            <td class="service-cell">25.00 лв</td>
+                            <td class="service-cell service-price">1,875.00 лв</td>
+                        </tr>
+                        <tr onclick="animateRow(this)">
+                            <td class="service-name">Шлайфане и лакиране</td>
+                            <td class="service-cell">кв.м</td>
+                            <td class="service-cell">75.00</td>
+                            <td class="service-cell">15.00 лв</td>
+                            <td class="service-cell service-price">1,125.00 лв</td>
+                        </tr>
+                        <tr onclick="animateRow(this)">
+                            <td class="service-name">Монтаж на первази</td>
+                            <td class="service-cell">л.м</td>
+                            <td class="service-cell">48.00</td>
+                            <td class="service-cell">5.00 лв</td>
+                            <td class="service-cell service-price">240.00 лв</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total Section -->
+            <div class="total-section">
+                <div class="total-amount">3,690.00 лв</div>
+                <div class="total-details">Общо за монтажни услуги (с ДДС)</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="variant-actions">
+                <button class="action-btn primary" onclick="selectVariant()">
+                    ✓ Избери този вариант
+                </button>
+                <button class="action-btn secondary" onclick="requestChanges()">
+                    ✏️ Заяви промени
+                </button>
+                <button class="action-btn secondary" onclick="downloadPDF()">
+                    📄 Изтегли PDF
+                </button>
+                <button class="action-btn secondary" onclick="openARViewer()">
+                    🏠 3D Преглед
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div class="gallery-modal" id="galleryModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeGallery()">✕</button>
+            <button class="modal-nav modal-prev" onclick="prevImage()">❮</button>
+            <img class="modal-image" id="modalImage" src="" alt="Gallery Image">
+            <button class="modal-nav modal-next" onclick="nextImage()">❯</button>
+        </div>
+    </div>
+
+    <!-- AR Viewer Modal -->
+    <div class="ar-modal" id="arModal">
+        <div class="ar-viewer">
+            <div class="ar-viewer-content">
+                <div class="liquid-loader"></div>
+                <div>
+                    <h3>3D Визуализация на стаята</h3>
+                    <p>Използвайте контролите за навигация в 3D пространството</p>
+                </div>
+            </div>
+            <div class="ar-controls">
+                <button class="ar-btn">🔄 Завъртане</button>
+                <button class="ar-btn">🔍 Мащабиране</button>
+                <button class="ar-btn">⚖️ Преди/След</button>
+                <button class="ar-btn" onclick="closeARViewer()">❌ Затвори</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Bot -->
+    <div class="chatbot" onclick="toggleChat()">💬</div>
+
+    <div class="chatbot-window" id="chatWindow">
+        <div class="chat-header">
+            Асистент за монтаж
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div style="background: var(--accent-light); padding: 15px; border-radius: 12px; margin-bottom: 15px; font-size: 14px;">
+                Здравейте! Как мога да Ви помогна с офертата за монтаж? 😊
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="Напишете съобщение..." onkeypress="handleChatInput(event)">
+            <button class="chat-send" onclick="sendMessage()">📤</button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notificationTitle">Успех!</div>
+        <div class="notification-message" id="notificationMessage">Действието беше изпълнено успешно.</div>
+    </div>
+
+    <script>
+        // Gallery images (placeholder data)
+        const galleryImages = [
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><rect fill="%23f5f5f5" width="800" height="600"/><text x="400" y="300" text-anchor="middle" font-size="24" fill="%23666">Готов проект - монтаж на паркет</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><rect fill="%23e8e8e8" width="800" height="600"/><text x="400" y="300" text-anchor="middle" font-size="24" fill="%23666">Процес на монтаж</text></svg>',
+            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><rect fill="%23ddd" width="800" height="600"/><text x="400" y="300" text-anchor="middle" font-size="24" fill="%23666">Финален резултат</text></svg>'
+        ];
+        
+        let currentImageIndex = 0;
+
+        // Timeline interaction
+        function showTimelineDetails(step) {
+            const details = {
+                1: 'Подготовка на основата включва проверка на нивото, почистване и подравняване',
+                2: 'Професионален монтаж на паркета според избрания модел и техника',
+                3: 'Шлайфане, лакиране и монтаж на първази за завършен вид',
+                4: 'Предаване на проекта с пълна документация и 24 месеца гаранция'
+            };
+            
+            showNotification(`Етап ${step}`, details[step]);
+        }
+
+        // Row animation
+        function animateRow(row) {
+            row.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                row.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Gallery functionality
+        function openGallery(index) {
+            currentImageIndex = index;
+            document.getElementById('modalImage').src = galleryImages[index];
+            document.getElementById('galleryModal').classList.add('show');
+        }
+
+        function closeGallery() {
+            document.getElementById('galleryModal').classList.remove('show');
+        }
+
+        function prevImage() {
+            currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+            document.getElementById('modalImage').src = galleryImages[currentImageIndex];
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+            document.getElementById('modalImage').src = galleryImages[currentImageIndex];
+        }
+
+        // AR Viewer
+        function openARViewer() {
+            document.getElementById('arModal').classList.add('show');
+            showNotification('3D Визуализация', 'Отваря се интерактивен 3D модел на стаята');
+        }
+
+        function closeARViewer() {
+            document.getElementById('arModal').classList.remove('show');
+        }
+
+        // Chat functionality
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.toggle('show');
+        }
+
+        function handleChatInput(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.querySelector('#chatWindow input');
+            const message = input.value.trim();
+            
+            if (message) {
+                const messagesDiv = document.getElementById('chatMessages');
+                
+                // User message
+                messagesDiv.innerHTML += `
+                    <div style="text-align: right; margin-bottom: 15px;">
+                        <div style="background: var(--primary-gold); color: var(--primary-dark); padding: 12px 16px; border-radius: 18px; display: inline-block; font-size: 14px; max-width: 80%;">
+                            ${message}
+                        </div>
+                    </div>
+                `;
+                
+                input.value = '';
+                
+                // Bot response
+                setTimeout(() => {
+                    const responses = [
+                        'Монтажът включва пълна подготовка на основата с професионални материали.',
+                        'Срокът за изпълнение е 5-7 работни дни в зависимост от сложността.',
+                        'Предлагаме 24 месеца гаранция на всички видове работи.',
+                        'Можем да организираме безплатен оглед на място за точна оценка.',
+                        'Всички необходими материали и инструменти са включени в цената.',
+                        'При нужда можем да предоставим референции от завършени проекти.'
+                    ];
+                    
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    
+                    messagesDiv.innerHTML += `
+                        <div style="margin-bottom: 15px;">
+                            <div style="background: var(--accent-light); padding: 12px 16px; border-radius: 18px; display: inline-block; font-size: 14px; max-width: 80%;">
+                                ${randomResponse}
+                            </div>
+                        </div>
+                    `;
+                    
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }, 1000);
+                
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+
+        // Main actions
+        function selectVariant() {
+            createSparkles(event.target);
+            event.target.innerHTML = '✓ Избран!';
+            event.target.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+            showNotification('Избор потвърден!', 'Вашият избор беше изпратен до екипа на Паркет Сенс Про. Ще се свържем с вас за потвърждение.');
+            
+            // Simulate confirmation modal
+            setTimeout(() => {
+                if (confirm('Сигурни ли сте, че искате да изберете този вариант за монтаж? Ще получите потвърждение по телефона.')) {
+                    showNotification('Заявка изпратена', 'Благодарим ви! Ще се свържем с вас в рамките на 1 час за финално потвърждение.');
+                }
+            }, 500);
+        }
+
+        function requestChanges() {
+            const changes = prompt('Моля, опишете желаните промени:');
+            if (changes) {
+                showNotification('Заявка изпратена', 'Вашата заявка за промени беше изпратена. Ще подготвим актуализирана оферта.');
+            }
+        }
+
+        function downloadPDF() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '⏳ Генериране...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = '✓ Готово!';
+                showNotification('PDF готов', 'Офертата беше изтеглена успешно в PDF формат.');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }, 1500);
+        }
+
+        // Utility functions
+        function showNotification(title, message, type = 'success') {
+            const notification = document.getElementById('notification');
+            document.getElementById('notificationTitle').textContent = title;
+            document.getElementById('notificationMessage').textContent = message;
+            
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        function createSparkles(element) {
+            const rect = element.getBoundingClientRect();
+            const sparkleCount = 12;
+            
+            for (let i = 0; i < sparkleCount; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.style.position = 'fixed';
+                sparkle.style.width = '8px';
+                sparkle.style.height = '8px';
+                sparkle.style.background = 'var(--primary-gold)';
+                sparkle.style.borderRadius = '50%';
+                sparkle.style.pointerEvents = 'none';
+                sparkle.style.zIndex = '1000';
+                sparkle.style.animation = 'sparkle 1.5s ease-out forwards';
+                
+                const x = rect.left + rect.width / 2 + (Math.random() - 0.5) * 120;
+                const y = rect.top + rect.height / 2 + (Math.random() - 0.5) * 60;
+                
+                sparkle.style.left = x + 'px';
+                sparkle.style.top = y + 'px';
+                
+                document.body.appendChild(sparkle);
+                
+                setTimeout(() => sparkle.remove(), 1500);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('galleryModal').classList.contains('show')) {
+                if (e.key === 'ArrowLeft') prevImage();
+                if (e.key === 'ArrowRight') nextImage();
+                if (e.key === 'Escape') closeGallery();
+            }
+            
+            if (document.getElementById('arModal').classList.contains('show')) {
+                if (e.key === 'Escape') closeARViewer();
+            }
+        });
+
+        // Smooth scrolling for better UX
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('timeline-step')) {
+                e.target.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    e.target.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+
+        // Initialize welcome message
+        setTimeout(() => {
+            showNotification('Добре дошли!', 'Прегледайте детайлите на офертата и използвайте интерактивните функции.');
+        }, 2000);
+
+        // Gamification - view time tracking
+        let viewStartTime = Date.now();
+        let achievements = [];
+
+        function trackViewTime() {
+            const viewTime = Date.now() - viewStartTime;
+            
+            if (viewTime > 30000 && !achievements.includes('engaged_viewer')) {
+                achievements.push('engaged_viewer');
+                showNotification('🏆 Внимателен клиент', 'Прекарахте време да разгледате детайлите на офертата!');
+            }
+            
+            if (viewTime > 120000 && !achievements.includes('thorough_reviewer')) {
+                achievements.push('thorough_reviewer');
+                showNotification('🏆 Щателен преглед', 'Благодарим за вниманието към детайлите!');
+            }
+        }
+
+        setInterval(trackViewTime, 5000);
+
+        // Advanced interaction tracking
+        let interactionCount = 0;
+
+        document.addEventListener('click', function() {
+            interactionCount++;
+            
+            if (interactionCount === 5 && !achievements.includes('interactive_user')) {
+                achievements.push('interactive_user');
+                showNotification('🏆 Активен потребител', 'Отлично използване на интерактивните функции!');
+            }
+        });
+
+        // Easter egg - Konami code
+        let konamiCode = [];
+        const targetCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight'];
+
+        document.addEventListener('keydown', function(e) {
+            konamiCode.push(e.key);
+            if (konamiCode.length > targetCode.length) {
+                konamiCode.shift();
+            }
+            
+            if (JSON.stringify(konamiCode) === JSON.stringify(targetCode)) {
+                showNotification('🎉 Тайно постижение!', 'Открихте скритата функция! Получавате 15% отстъпка!');
+                konamiCode = [];
+            }
+        });
+    </script>
+</body>
+</html>

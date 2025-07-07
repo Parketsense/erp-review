@@ -96,11 +96,15 @@ export default function PhaseCreateModal({ isOpen, onClose, onSave, projectId }:
         status: formData.status,
       };
 
+      console.log('PhaseCreateModal: Submitting phase data:', phaseData);
+      console.log('PhaseCreateModal: Project ID:', projectId);
+
       await onSave(phaseData);
+      console.log('PhaseCreateModal: Phase saved successfully');
       onClose();
 
     } catch (error) {
-      console.error('Error creating phase:', error);
+      console.error('PhaseCreateModal: Error creating phase:', error);
       setErrors({ 
         submit: 'Грешка при създаване на фаза: ' + (error instanceof Error ? error.message : 'Неизвестна грешка') 
       });

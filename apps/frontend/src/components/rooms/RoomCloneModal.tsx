@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Copy, X, ChevronDown, Home, Building, Package, Check } from 'lucide-react';
-import { VariantRoom, RoomProduct } from '@/types/room';
+import { VariantRoom } from '@/types/room';
+import { RoomProduct } from '@/services/roomProductsApi';
 import { PhaseVariant } from '@/types/variant';
 import { ProjectPhase } from '@/services/phasesApi';
 import { roomsApi } from '@/services/roomsApi';
@@ -81,7 +82,7 @@ export default function RoomCloneModal({
 
   const loadVariants = async (phaseId: string) => {
     try {
-      const variantsData = await variantsApi.getVariantsByPhase(phaseId);
+      const variantsData = await variantsApi.getByPhase(phaseId);
       setVariants(variantsData);
       
       // If changing phase, select first variant in the new phase

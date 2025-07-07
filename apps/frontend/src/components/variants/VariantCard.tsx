@@ -230,22 +230,11 @@ const VariantCard: React.FC<VariantCardProps> = ({
                   const isRoomExpanded = expandedRooms.has(room.id);
 
                   return (
-                    <div 
-                      key={room.id} 
-                      className="bg-white rounded-lg border border-gray-200 overflow-hidden cursor-pointer active:scale-[0.98] transform transition-all duration-200"
-                      onClick={() => toggleRoomExpansion(room.id)}
-                    >
-                      {/* Room Header */}
+                    <div key={room.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      {/* Room Header - Non-clickable area with buttons */}
                       <div className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="p-1 text-gray-400">
-                              {isRoomExpanded ? (
-                                <ChevronDown className="w-4 h-4" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4" />
-                              )}
-                            </div>
                             <h5 className="font-medium text-gray-900">{room.name}</h5>
                             {room.area && (
                               <span className="text-sm text-gray-500">({room.area} м²)</span>
@@ -261,21 +250,21 @@ const VariantCard: React.FC<VariantCardProps> = ({
                             </div>
                             <div className="flex items-center space-x-1">
                               <button
-                                onClick={(e) => { e.stopPropagation(); onRoomEdit(room.id); }}
+                                onClick={() => onRoomEdit(room.id)}
                                 className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all duration-200"
                                 title="Редактирай стая"
                               >
                                 <Edit className="w-3 h-3" />
                               </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); onRoomDuplicate(room.id); }}
+                                onClick={() => onRoomDuplicate(room.id)}
                                 className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-all duration-200"
-                                title="Дублирай стая"
+                                title="Клонирай стая"
                               >
                                 <Copy className="w-3 h-3" />
                               </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); onRoomDelete(room.id); }}
+                                onClick={() => onRoomDelete(room.id)}
                                 className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all duration-200"
                                 title="Изтрий стая"
                               >
@@ -286,38 +275,130 @@ const VariantCard: React.FC<VariantCardProps> = ({
                         </div>
                       </div>
 
+                      {/* Clickable area for expansion - only the left part with chevron */}
+                      <div 
+                        className="border-t border-gray-100 cursor-pointer active:scale-[0.98] transform transition-all duration-200"
+                        onClick={() => toggleRoomExpansion(room.id)}
+                      >
+                        <div className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-1 text-gray-400">
+                              {isRoomExpanded ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </div>
+                            <span className="text-sm text-gray-600">Кликнете за разгъване/сгъване</span>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Room Products */}
                       {isRoomExpanded && room.products && room.products.length > 0 && (
                         <div className="border-t border-gray-100 bg-gray-50">
                           <div className="p-4">
                             <h6 className="text-sm font-medium text-gray-700 mb-3">Продукти в стаята</h6>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               {room.products.map((product) => {
-                                const productTotal = product.quantity * product.unitPrice * (1 - (product.discount || 0) / 100);
+                                // Calculate values
+                                const quantityAfterWaste = product.quantity * (1 + (product.wastePercent || 0) / 100);
+                                const discountToUse = product.discount !== undefined ? product.discount : (variant.variantDiscount || 0);
+                                const unitPriceAfterDiscount = product.unitPrice * (1 - discountToUse / 100);
+                                const productTotal = quantityAfterWaste * unitPriceAfterDiscount;
+                                
                                 return (
-                                  <div key={product.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 cursor-pointer active:scale-[0.98] transform transition-all duration-200">
-                                    <div className="flex-1">
-                                      <div className="font-medium text-sm text-gray-900">
-                                        {product.product?.nameBg || 'Неизвестен продукт'}
+                                  <div key={product.id} className="bg-white rounded-lg border border-gray-200 p-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-sm">
+                                      {/* Product Name */}
+                                      <div className="col-span-2 md:col-span-1">
+                                        <div className="font-medium text-gray-900 truncate" title={product.product?.nameBg || 'Неизвестен продукт'}>
+                                          {product.product?.nameBg || 'Неизвестен продукт'}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                          {product.product?.code || 'Няма код'}
+                                        </div>
                                       </div>
-                                      <div className="text-xs text-gray-500">
-                                        {product.product?.code} • {product.quantity} {product.product?.unit}
+                                      
+                                      {/* Quantity */}
+                                      <div>
+                                        <div className="text-xs text-gray-500 font-medium">Количество</div>
+                                        <div className="font-medium text-gray-900">
+                                          {product.quantity?.toFixed(2) || '0.00'}
+                                        </div>
                                       </div>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {formatCurrency(productTotal)}
+                                      
+                                      {/* Waste Factor */}
+                                      <div>
+                                        <div className="text-xs text-gray-500 font-medium">Фира %</div>
+                                        <div className="font-medium text-gray-900">
+                                          {(product.wastePercent || 0).toFixed(1)}%
+                                        </div>
                                       </div>
-                                      <div className="text-xs text-gray-500">
-                                        {formatCurrency(product.unitPrice)}/бр.
-                                        {product.discount && product.discount > 0 && (
-                                          <span className="text-green-600 ml-1">-{product.discount}%</span>
-                                        )}
+                                      
+                                      {/* Quantity After Waste */}
+                                      <div>
+                                        <div className="text-xs text-gray-500 font-medium">Кол. след фира</div>
+                                        <div className="font-medium text-gray-900">
+                                          {quantityAfterWaste.toFixed(2)}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Unit Price */}
+                                      <div>
+                                        <div className="text-xs text-gray-500 font-medium">Ед. цена</div>
+                                        <div className="font-medium text-gray-900">
+                                          {formatCurrency(product.unitPrice || 0)}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Discount */}
+                                      <div>
+                                        <div className="text-xs text-gray-500 font-medium">
+                                          Отстъпка
+                                          {product.discount !== undefined && (
+                                            <span className="text-blue-600 ml-1">(override)</span>
+                                          )}
+                                        </div>
+                                        <div className="font-medium text-gray-900">
+                                          {discountToUse.toFixed(1)}%
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Unit Price After Discount */}
+                                      <div>
+                                        <div className="text-xs text-gray-500 font-medium">Ед. цена след отстъпка</div>
+                                        <div className="font-medium text-gray-900">
+                                          {formatCurrency(unitPriceAfterDiscount)}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Total for Product */}
+                                      <div className="col-span-2 md:col-span-1">
+                                        <div className="text-xs text-gray-500 font-medium">Обща сума</div>
+                                        <div className="font-bold text-green-600">
+                                          {formatCurrency(productTotal)}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
                                 );
                               })}
+                            </div>
+                            
+                            {/* Room Total */}
+                            <div className="mt-4 pt-3 border-t border-gray-200">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700">Обща сума за стаята:</span>
+                                <span className="text-lg font-bold text-green-600">
+                                  {formatCurrency(room.products.reduce((total, product) => {
+                                    const quantityAfterWaste = product.quantity * (1 + (product.wastePercent || 0) / 100);
+                                    const discountToUse = product.discount !== undefined ? product.discount : (variant.variantDiscount || 0);
+                                    const unitPriceAfterDiscount = product.unitPrice * (1 - discountToUse / 100);
+                                    return total + (quantityAfterWaste * unitPriceAfterDiscount);
+                                  }, 0))}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>

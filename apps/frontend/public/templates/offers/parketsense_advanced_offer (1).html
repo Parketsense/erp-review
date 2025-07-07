@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PROJECT_NAME}} - Интерактивна оферта от PARKETSENSE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* ERP Design System Tokens */
+        :root {
+            /* Colors */
+            --color-primary: #000000;
+            --color-on-primary: #FFFFFF;
+            --color-bg: #F4F5F6;
+            --color-surface: #FFFFFF;
+            --color-border: #E0E0E0;
+            --color-neutral-500: #A1A3A5;
+            --color-neutral-700: #686869;
+            --color-success: #91C479;
+            --color-success-light: #C7F8D3;
+            --color-warning-light: #FFE7C1;
+            --color-danger: #FF4F4F;
+            --color-info-indicator: #2ECC71;
+            
+            /* Typography */
+            --font-family: "Inter", sans-serif;
+            
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            
+            /* Component tokens */
+            --radius-btn: 8px;
+            --size-btn: 40px;
+            --space-btn-x: 20px;
+            --shadow-btn: 0 1px 2px rgba(0,0,0,0.05);
+            
+            /* Elevation */
+            --elevation-0: none;
+            --elevation-1: 0 1px 2px rgba(0,0,0,0.05);
+            --elevation-2: 0 4px 8px rgba(0,0,0,0.08);
+            --elevation-3: 0 10px 25px rgba(0,0,0,0.12);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg);
+            color: var(--color-primary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        /* Typography Classes */
+        .display-sm {
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .heading {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .body {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .caption {
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.4;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Layout */
+        .offer-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .offer-header {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            padding: var(--space-6);
+            text-align: center;
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-4);
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--color-surface);
+            color: var(--color-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 20px;
+            margin-right: var(--space-3);
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .project-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin: var(--space-4) 0;
+        }
+
+        .project-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .project-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-top: var(--space-5);
+        }
+
+        .meta-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: var(--space-3);
+            border-radius: var(--radius-btn);
+            backdrop-filter: blur(10px);
+        }
+
+        .meta-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: var(--space-1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: var(--space-6);
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .content-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .sidebar-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        /* Sticky Variants Overview */
+        .variants-overview {
+            background: var(--color-surface);
+            border-radius: 12px;
+            box-shadow: var(--elevation-2);
+            padding: var(--space-6);
+            position: sticky;
+            top: var(--space-4);
+            z-index: 100;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .variants-grid {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .variant-summary {
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            padding: var(--space-4);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--color-surface);
+        }
+
+        .variant-summary:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--elevation-1);
+        }
+
+        .variant-summary.selected {
+            border-color: var(--color-primary);
+            background: rgba(0, 0, 0, 0.02);
+            box-shadow: var(--elevation-2);
+        }
+
+        .variant-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: var(--space-2);
+            color: var(--color-primary);
+        }
+
+        .variant-description {
+            color: var(--color-neutral-700);
+            font-size: 12px;
+            margin-bottom: var(--space-3);
+            line-height: 1.4;
+        }
+
+        .variant-total-price {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .variant-total-label {
+            font-size: 10px;
+            color: var(--color-neutral-500);
+            margin-top: var(--space-1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Sidebar Calculator */
+        .calculator-card {
+            background: var(--color-surface);
+            border-radius: 12px;
+            box-shadow: var(--elevation-2);
+            padding: var(--space-6);
+            position: sticky;
+            top: calc(var(--space-4) + 420px); /* Position below variants */
+        }
+
+        .calculator-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .price-breakdown {
+            background: var(--color-bg);
+            border-radius: var(--radius-btn);
+            padding: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 14px;
+        }
+
+        .price-line:last-child {
+            border-bottom: none;
+            margin-top: var(--space-2);
+            padding-top: var(--space-3);
+            border-top: 2px solid var(--color-border);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .price-highlight {
+            animation: priceUpdate 0.4s ease;
+        }
+
+        @keyframes priceUpdate {
+            0% { background: rgba(145, 196, 121, 0.2); border-radius: 4px; }
+            100% { background: transparent; }
+        }
+
+        /* Installation Options */
+        .installation-section {
+            background: var(--color-surface);
+            border-radius: 12px;
+            box-shadow: var(--elevation-2);
+            padding: var(--space-6);
+        }
+
+        .installation-options {
+            display: grid;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+
+        .installation-option {
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            padding: var(--space-4);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--color-surface);
+        }
+
+        .installation-option:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--elevation-1);
+        }
+
+        .installation-option.selected {
+            border-color: var(--color-primary);
+            background: rgba(0, 0, 0, 0.02);
+            box-shadow: var(--elevation-2);
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-2);
+        }
+
+        .option-header h4 {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--color-primary);
+        }
+
+        .option-price {
+            font-weight: 600;
+            color: var(--color-primary);
+            font-size: 14px;
+        }
+
+        .option-description {
+            color: var(--color-neutral-700);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .installation-description {
+            background: var(--color-bg);
+            padding: var(--space-4);
+            border-radius: var(--radius-btn);
+            border-left: 4px solid var(--color-primary);
+            font-size: 12px;
+            color: var(--color-neutral-700);
+        }
+
+        /* Variant Details */
+        .variant-details {
+            display: none;
+            background: var(--color-surface);
+            border-radius: 12px;
+            box-shadow: var(--elevation-2);
+            padding: var(--space-6);
+        }
+
+        .variant-details.active {
+            display: block;
+        }
+
+        .rooms-grid {
+            display: grid;
+            gap: var(--space-5);
+        }
+
+        .room-card {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-btn);
+            overflow: hidden;
+            background: var(--color-surface);
+            box-shadow: var(--elevation-1);
+        }
+
+        .room-header {
+            background: var(--color-bg);
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .room-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: var(--space-2);
+            color: var(--color-primary);
+        }
+
+        .room-meta {
+            display: flex;
+            gap: var(--space-4);
+            font-size: 12px;
+            color: var(--color-neutral-700);
+        }
+
+        .room-content {
+            padding: var(--space-4);
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: var(--space-4);
+            border-radius: var(--radius-btn);
+            overflow: hidden;
+            box-shadow: var(--elevation-1);
+        }
+
+        .products-table th {
+            background: var(--color-bg);
+            padding: var(--space-3);
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--color-neutral-700);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .products-table td {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--color-border);
+            font-size: 14px;
+        }
+
+        .products-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .discount-badge {
+            background: var(--color-success);
+            color: var(--color-on-primary);
+            padding: var(--space-1) var(--space-2);
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gallery-section {
+            margin-top: var(--space-4);
+        }
+
+        .gallery-title {
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+            color: var(--color-primary);
+            font-size: 14px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-2);
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            background: var(--color-bg);
+            border-radius: var(--radius-btn);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--color-border);
+        }
+
+        .gallery-item:hover {
+            background: var(--color-border);
+            transform: scale(1.02);
+            box-shadow: var(--elevation-1);
+        }
+
+        .gallery-placeholder {
+            text-align: center;
+            font-size: 10px;
+            color: var(--color-neutral-700);
+            padding: var(--space-2);
+            line-height: 1.2;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+        }
+
+        .btn {
+            height: var(--size-btn);
+            padding: 0 var(--space-btn-x);
+            border-radius: var(--radius-btn);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            box-shadow: var(--shadow-btn);
+            font-family: var(--font-family);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--elevation-2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .btn-success {
+            background: var(--color-success);
+            color: var(--color-on-primary);
+        }
+
+        .btn-danger {
+            background: var(--color-danger);
+            color: var(--color-on-primary);
+        }
+
+        .btn-outline {
+            background: var(--color-surface);
+            color: var(--color-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--color-primary);
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        /* Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: var(--space-4);
+                padding: var(--space-4);
+            }
+
+            .sidebar-column {
+                order: -1;
+            }
+
+            .calculator-card {
+                position: static;
+            }
+
+            .variants-overview {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .offer-header {
+                padding: var(--space-4);
+            }
+
+            .project-title {
+                font-size: 24px;
+            }
+
+            .project-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: var(--space-3);
+            }
+
+            .variants-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offer-container">
+        <!-- Header -->
+        <div class="offer-header">
+            <div class="company-logo">
+                <div class="logo-icon">PS</div>
+                <div class="company-name">PARKETSENSE</div>
+            </div>
+            
+            <h1 class="project-title" id="projectTitle">{{PROJECT_NAME}}</h1>
+            <p class="project-subtitle">Професионална оферта за подови покрития и монтаж</p>
+            
+            <div class="project-meta">
+                <div class="meta-item">
+                    <div class="meta-label">Клиент</div>
+                    <div class="meta-value">{{CLIENT_NAME}}</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Оферта №</div>
+                    <div class="meta-value">{{OFFER_NUMBER}}</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Дата</div>
+                    <div class="meta-value">{{OFFER_DATE}}</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Валидност</div>
+                    <div class="meta-value">{{VALID_UNTIL}}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Column - Content -->
+            <div class="content-column">
+                <!-- Sticky Variants Overview -->
+                <div class="variants-overview">
+                    <h2 class="section-title">🏠 Избор на вариант</h2>
+                    <div class="variants-grid" id="variants-grid">
+                        {{VARIANTS_GRID}}
+                    </div>
+                </div>
+
+                <!-- Installation Options -->
+                <div class="installation-section">
+                    <h3 class="section-title">🔧 Опции за монтаж</h3>
+                    
+                    <div class="installation-options">
+                        <div class="installation-option" data-installation="basic" onclick="selectInstallation('basic')">
+                            <div class="option-header">
+                                <h4>Без монтаж</h4>
+                                <div class="option-price">0 лв.</div>
+                            </div>
+                            <p class="option-description">Само доставка на материалите</p>
+                        </div>
+                        
+                        <div class="installation-option selected" data-installation="standard" onclick="selectInstallation('standard')">
+                            <div class="option-header">
+                                <h4>Стандартен монтаж</h4>
+                                <div class="option-price">{{STANDARD_PRICE}}</div>
+                            </div>
+                            <p class="option-description">2 години гаранция</p>
+                        </div>
+                        
+                        <div class="installation-option" data-installation="premium" onclick="selectInstallation('premium')">
+                            <div class="option-header">
+                                <h4>Премиум монтаж</h4>
+                                <div class="option-price">{{PREMIUM_PRICE}}</div>
+                            </div>
+                            <p class="option-description">3 години гаранция + допълнителни услуги</p>
+                        </div>
+                    </div>
+                    
+                    <div class="installation-description">
+                        <p id="installation-description">Професионален монтаж от сертифицирани специалисти с 2 години гаранция.</p>
+                    </div>
+                </div>
+
+                <!-- Variant Details -->
+                <div id="variant-details-container">
+                    {{VARIANT_DETAILS}}
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar Calculator -->
+            <div class="sidebar-column">
+                <!-- Price Calculator -->
+                <div class="calculator-card">
+                    <h3 class="calculator-title">💰 Калкулатор</h3>
+                    
+                    <div class="price-breakdown">
+                        <div class="price-line">
+                            <span>Материали:</span>
+                            <span id="materials-price">0 лв.</span>
+                        </div>
+                        <div class="price-line">
+                            <span>Монтаж:</span>
+                            <span id="installation-price">0 лв.</span>
+                        </div>
+                        <div class="price-line">
+                            <span>ДДС (20%):</span>
+                            <span id="vat-amount">0 лв.</span>
+                        </div>
+                        <div class="price-line">
+                            <strong>Обща сума: <span id="total-price">0 лв.</span></strong>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="acceptOffer()">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4" stroke="currentColor"/>
+                            </svg>
+                            Приемам офертата
+                        </button>
+                        
+                        <button class="btn btn-outline" onclick="requestChanges()">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor"/>
+                            </svg>
+                            Искам промени
+                        </button>
+                        
+                        <button class="btn btn-outline" onclick="downloadPDF()">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor"/>
+                                <polyline points="7,10 12,15 17,10" stroke="currentColor"/>
+                                <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor"/>
+                            </svg>
+                            Изтегли PDF
+                        </button>
+                        
+                        <button class="btn btn-outline" onclick="scheduleMeeting()">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor"/>
+                                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor"/>
+                                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor"/>
+                                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor"/>
+                            </svg>
+                            Насрочи среща
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ✅ Dynamic data from ERP (placeholder замества се от service)
+        const projectData = {{PROJECT_DATA_JSON}};
+        
+        // ✅ Interactive state variables
+        let currentVariant = 1;
+        let currentInstallation = 'standard';
+        
+        // ✅ Real-time price calculation function
+        function updatePricing() {
+            const variant = projectData.variants[currentVariant];
+            if (!variant) {
+                console.error('Variant not found:', currentVariant);
+                return;
+            }
+            
+            const materialsPrice = variant.materialsCost || 0;
+            const installationPrice = variant.installationOptions[currentInstallation]?.price || 0;
+            const subtotal = materialsPrice + installationPrice;
+            const vat = subtotal * 0.2;
+            const total = subtotal + vat;
+            
+            // Update price display elements
+            updatePriceDisplay(materialsPrice, installationPrice, vat, total);
+            
+            // Update variant summary total
+            const variantTotalEl = document.getElementById(`variant${currentVariant}-total`);
+            if (variantTotalEl) {
+                variantTotalEl.textContent = formatCurrency(total);
+            }
+            
+            console.log('Price updated:', { materialsPrice, installationPrice, vat, total });
+        }
+        
+        // ✅ Update price display in UI
+        function updatePriceDisplay(materials, installation, vat, total) {
+            const elements = {
+                'materials-price': formatCurrency(materials),
+                'installation-price': formatCurrency(installation),
+                'vat-amount': formatCurrency(vat),
+                'total-price': formatCurrency(total)
+            };
+            
+            Object.entries(elements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                    element.classList.add('price-highlight');
+                    setTimeout(() => element.classList.remove('price-highlight'), 400);
+                }
+            });
+        }
+        
+        // ✅ Variant selection function
+        function selectVariant(variantId) {
+            console.log('Selecting variant:', variantId);
+            currentVariant = variantId;
+            updateVariantDisplay();
+            updatePricing();
+        }
+        
+        // ✅ Installation selection function
+        function selectInstallation(installationType) {
+            console.log('Selecting installation:', installationType);
+            currentInstallation = installationType;
+            updateInstallationDisplay();
+            updatePricing();
+        }
+        
+        // ✅ Update variant display
+        function updateVariantDisplay() {
+            // Remove selected class from all variants
+            document.querySelectorAll('.variant-summary').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Add selected class to current variant
+            const selectedVariant = document.querySelector(`[data-variant="${currentVariant}"]`);
+            if (selectedVariant) {
+                selectedVariant.classList.add('selected');
+            }
+            
+            // Show/hide variant details
+            document.querySelectorAll('.variant-details').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            const activeDetails = document.getElementById(`variant${currentVariant}-details`);
+            if (activeDetails) {
+                activeDetails.classList.add('active');
+            }
+        }
+        
+        // ✅ Update installation display
+        function updateInstallationDisplay() {
+            // Remove selected class from all installation options
+            document.querySelectorAll('.installation-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Add selected class to current installation
+            const selectedInstallation = document.querySelector(`[data-installation="${currentInstallation}"]`);
+            if (selectedInstallation) {
+                selectedInstallation.classList.add('selected');
+            }
+            
+            // Update installation description
+            const variant = projectData.variants[currentVariant];
+            if (variant && variant.installationOptions[currentInstallation]) {
+                const option = variant.installationOptions[currentInstallation];
+                const descEl = document.getElementById('installation-description');
+                if (descEl) {
+                    descEl.textContent = option.description;
+                }
+            }
+        }
+        
+        // ✅ Gallery functions
+        function openGallery(roomId, imageIndex) {
+            console.log('Opening gallery:', roomId, imageIndex);
+            alert(`Галерия за ${roomId}, изображение ${imageIndex}\n\nФункционалността ще бъде добавена скоро.`);
+        }
+        
+        // ✅ Format currency
+        function formatCurrency(amount) {
+            if (typeof amount !== 'number' || isNaN(amount)) {
+                return '0 лв.';
+            }
+            
+            return new Intl.NumberFormat('bg-BG', {
+                style: 'currency',
+                currency: 'BGN',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount).replace('BGN', 'лв.');
+        }
+        
+        // ✅ Order functions
+        function acceptOffer() {
+            const variant = projectData.variants[currentVariant];
+            const installation = variant.installationOptions[currentInstallation];
+            
+            alert(`🎉 Благодарим Ви за поръчката!
+            
+📋 Избран вариант: ${variant.name}
+🔧 Монтаж: ${installation.name}
+💰 Обща сума: ${document.getElementById('total-price').textContent}
+
+📧 Ще получите потвърждение на email
+📞 Ще се свържем с Вас в рамките на 2 часа`);
+        }
+        
+        function requestChanges() {
+            alert('📝 Вашето искане за промени е получено.\n\nНашият екип ще прегледа Вашите забележки и ще Ви изпрати актуализирана оферта в рамките на 24 часа.');
+        }
+        
+        function downloadPDF() {
+            alert('📄 PDF файлът се генерира...\n\nИзтеглянето ще започне автоматично.');
+        }
+        
+        function scheduleMeeting() {
+            alert('📅 Пренасочване към календара...\n\nМоже да избирате удобно време от наличните слотове.');
+        }
+        
+        // ✅ Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing interactive offer with data:', projectData);
+            updatePricing();
+            updateVariantDisplay();
+            updateInstallationDisplay();
+        });
+        
+        // ✅ Error handling
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+        });
+    </script>
+</body>
+</html>

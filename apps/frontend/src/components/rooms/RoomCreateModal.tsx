@@ -52,16 +52,20 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
   }, [isOpen]);
 
   const loadVariantData = async () => {
+    if (!variantId || variantId.trim() === '') {
+      console.warn('No variantId provided to RoomCreateModal');
+      return;
+    }
+    
     try {
-      const variant = await variantsApi.getVariantById(variantId);
+      const variant = await variantsApi.getById(variantId);
       setVariantData(variant);
       
-      // Set default values from variant/phase if available
-      if (variant?.phase) {
+      // Set default values from variant if available
+      if (variant) {
         setFormData(prev => ({
           ...prev,
-          discount: variant.phase.phaseDiscount || 0,
-          discountEnabled: variant.discountEnabled && variant.phase.discountEnabled
+          discount: variant.variantDiscount || 0
         }));
       }
     } catch (err) {
@@ -100,7 +104,7 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
       productName: product.nameBg || product.nameEn,
       quantity: formData.area || 0, // наследява от стаята
       unitPrice: product.saleBgn || product.costBgn || 0, // използва saleBgn или costBgn
-      discount: formData.discount || 0, // наследява от стаята
+      discount: formData.discount || 0, // наследява от стаята (която наследява от варианта)
       unit: product.unit || 'м²',
       wastage: formData.wastePercent || 0 // наследява от стаята
     };
@@ -159,6 +163,7 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
       onClose();
     } catch (error) {
       console.error('Error creating room:', error);
+      alert('Грешка при създаване на стаята: ' + (error instanceof Error ? error.message : 'Неизвестна грешка'));
     } finally {
       setLoading(false);
     }
@@ -234,6 +239,11 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Отстъпка (%)
+                {variantData?.variantDiscount !== undefined && (
+                  <span className="text-xs text-blue-600 ml-1">
+                    (наследена от варианта: {variantData.variantDiscount}%)
+                  </span>
+                )}
               </label>
               <input
                 type="number"
@@ -241,7 +251,13 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
                 value={formData.discount}
                 onChange={(e) => handleInputChange('discount', parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={variantData?.variantDiscount ? `Наследена: ${variantData.variantDiscount}%` : "0"}
               />
+              {variantData?.variantDiscount !== undefined && formData.discount !== variantData.variantDiscount && (
+                <div className="text-xs text-blue-600 mt-1">
+                  ⚠️ Override на наследената отстъпка от варианта
+                </div>
+              )}
             </div>
           </div>
 
@@ -279,7 +295,7 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
                     >
                       <div className="font-medium">{product.nameBg || product.nameEn}</div>
                       <div className="text-sm text-gray-600">
-                        Код: {product.code} | Цена: {product.price} лв.
+                        Код: {product.code} | Цена: {product.saleBgn || product.costBgn || 0} лв.
                       </div>
                     </div>
                   ))}
@@ -357,6 +373,9 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">
                           Отстъпка (%)
+                          {product.discount === formData.discount && variantData?.variantDiscount !== undefined && (
+                            <span className="text-blue-600 ml-1">(наследена)</span>
+                          )}
                         </label>
                         <input
                           type="number"
@@ -364,7 +383,13 @@ export default function RoomCreateModal({ variantId, isOpen, onClose, onRoomCrea
                           value={product.discount}
                           onChange={(e) => updateProduct(index, 'discount', parseFloat(e.target.value) || 0)}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                          placeholder={formData.discount ? `Наследена: ${formData.discount}%` : "0"}
                         />
+                        {product.discount !== formData.discount && (
+                          <div className="text-xs text-blue-600 mt-1">
+                            Override
+                          </div>
+                        )}
                       </div>
 
                       {/* 6. Крайна цена */}

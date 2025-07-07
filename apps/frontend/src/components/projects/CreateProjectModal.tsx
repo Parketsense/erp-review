@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, X, MapPin, Users, Building, Phone, Mail, CheckCircle, AlertCircle, ArrowLeft, ArrowRight, Trash2, UserPlus } from 'lucide-react';
 import { clientsApi } from '../../services/clientsApi';
 import { architectsApi } from '../../services/architectsApi';
+import ClientModal from '../clients/ClientModal';
 
 interface Client {
   id: string;
@@ -49,8 +50,11 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
   const [architects, setArchitects] = useState<Client[]>([]);
   const [architectSearchTerm, setArchitectSearchTerm] = useState('');
   const [showArchitectDropdown, setShowArchitectDropdown] = useState(false);
-  const [showCreateArchitectForm, setShowCreateArchitectForm] = useState(false);
   const [selectedArchitect, setSelectedArchitect] = useState<Client | null>(null);
+  
+  // ClientModal states
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [newArchitectData, setNewArchitectData] = useState<any>(null);
   
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -233,17 +237,63 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
   };
 
   const handleCreateNewArchitect = () => {
-    setShowCreateArchitectForm(true);
-    setSelectedArchitect(null);
-    setProjectData(prev => ({
-      ...prev,
-      architectId: '',
-      architectName: '',
-      architectPhone: '',
-      architectEmail: '',
-      architectCommission: 10
-    }));
-    setArchitectSearchTerm('');
+    setShowClientModal(true);
+    setNewArchitectData({
+      isArchitect: true,
+      commissionPercent: 10
+    });
+  };
+
+  const handleClientModalSave = async (clientData: any) => {
+    try {
+      console.log('ClientModal onSave called with:', clientData);
+      
+      // Save the new architect client
+      const savedClient = await clientsApi.createClient(clientData);
+      console.log('Saved architect client:', savedClient);
+      
+      // Add the new architect to the local list immediately
+      const newArchitect = {
+        id: savedClient.id,
+        firstName: savedClient.firstName,
+        lastName: savedClient.lastName,
+        hasCompany: savedClient.hasCompany,
+        companyName: savedClient.companyName,
+        email: savedClient.email,
+        phone: savedClient.phone,
+        isArchitect: true,
+        commissionPercent: savedClient.commissionPercent || 10
+      } as any;
+      
+      setArchitects(prev => [newArchitect, ...prev]);
+      
+      // Auto-fill the architect data in the project form
+      setProjectData(prev => ({
+        ...prev,
+        architectId: savedClient.id,
+        architectName: `${savedClient.firstName} ${savedClient.lastName}`,
+        architectPhone: savedClient.phone || '',
+        architectEmail: savedClient.email || '',
+        architectCommission: (savedClient as any).commissionPercent || 10,
+        architectType: 'external',
+      }));
+      
+      // Set the selected architect
+      setSelectedArchitect(newArchitect);
+      setArchitectSearchTerm(`${savedClient.firstName} ${savedClient.lastName}`);
+      setShowArchitectDropdown(false);
+      
+      setShowClientModal(false);
+      setNewArchitectData(null);
+      
+      // Also reload the full list from server to ensure consistency
+      setTimeout(() => {
+        loadArchitects();
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error creating architect:', error);
+    }
   };
 
   const validateStep = () => {
@@ -567,20 +617,17 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                           <label className="block text-sm font-medium text-gray-700">
                             Търсене на архитект
                           </label>
-                          {!showCreateArchitectForm && (
-                            <button
-                              type="button"
-                              onClick={handleCreateNewArchitect}
-                              className="flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg hover:bg-blue-50"
-                            >
-                              <Plus className="w-4 h-4 mr-1" />
-                              Нов архитект
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={handleCreateNewArchitect}
+                            className="flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-lg hover:bg-blue-50"
+                          >
+                            <Plus className="w-4 h-4 mr-1" />
+                            Нов архитект
+                          </button>
                         </div>
                         
-                        {!showCreateArchitectForm && (
-                          <div className="relative">
+                        <div className="relative">
                             <input
                               type="text"
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -616,9 +663,9 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                                     <div className="text-sm text-gray-500 flex items-center gap-2">
                                       {architect.email && <span>{architect.email}</span>}
                                       {architect.phone && <span>{architect.phone}</span>}
-                                      {architect.commissionPercent && (
+                                      {(architect as any).commissionPercent && (
                                         <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
-                                          Комисионна {architect.commissionPercent}%
+                                          Комисионна {(architect as any).commissionPercent}%
                                         </span>
                                       )}
                                     </div>
@@ -630,7 +677,7 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                         )}
                         
                         {/* Selected Architect Display */}
-                        {selectedArchitect && !showCreateArchitectForm && (
+                        {selectedArchitect && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div>
@@ -642,8 +689,8 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                                 )}
                                 <div className="text-sm text-green-600">
                                   {selectedArchitect.email} • {selectedArchitect.phone}
-                                  {selectedArchitect.commissionPercent && (
-                                    <span className="ml-2">• Комисионна {selectedArchitect.commissionPercent}%</span>
+                                  {(selectedArchitect as any).commissionPercent && (
+                                    <span className="ml-2">• Комисионна {(selectedArchitect as any).commissionPercent}%</span>
                                   )}
                                 </div>
                               </div>
@@ -670,83 +717,42 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
                         )}
                       </div>
 
-                      {/* Create New Architect Form */}
-                      {showCreateArchitectForm && (
-                        <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-medium text-blue-900">Създаване на нов архитект</h4>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowCreateArchitectForm(false);
-                                setProjectData(prev => ({
-                                  ...prev,
-                                  architectName: '',
-                                  architectPhone: '',
-                                  architectEmail: '',
-                                  architectCommission: 10
-                                }));
-                              }}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Име на архитект *
-                            </label>
-                            <input
-                              type="text"
-                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                errors.architectName ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                              placeholder="Въведете име на архитекта"
-                              value={projectData.architectName}
-                              onChange={(e) => setProjectData(prev => ({ ...prev, architectName: e.target.value }))}
-                            />
-                            {errors.architectName && <p className="text-red-500 text-sm mt-1">{errors.architectName}</p>}
-                          </div>
-                        </div>
-                      )}
+
                     </div>
                   )}
 
                   {/* Additional fields only for new architect creation */}
-                  {(showCreateArchitectForm || (selectedArchitect && !showCreateArchitectForm)) && (
-                    <div className={showCreateArchitectForm ? "space-y-4" : "space-y-4 mt-4"}>
-                      {showCreateArchitectForm && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Телефон
-                            </label>
-                            <input
-                              type="text"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="+359..."
-                              value={projectData.architectPhone}
-                              onChange={(e) => setProjectData(prev => ({ ...prev, architectPhone: e.target.value }))}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                                errors.architectEmail ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                              placeholder="email@example.com"
-                              value={projectData.architectEmail}
-                              onChange={(e) => setProjectData(prev => ({ ...prev, architectEmail: e.target.value }))}
-                            />
-                            {errors.architectEmail && <p className="text-red-500 text-sm mt-1">{errors.architectEmail}</p>}
-                          </div>
+                  {selectedArchitect && (
+                    <div className="space-y-4 mt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Телефон
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="+359..."
+                            value={projectData.architectPhone}
+                            onChange={(e) => setProjectData(prev => ({ ...prev, architectPhone: e.target.value }))}
+                          />
                         </div>
-                      )}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                              errors.architectEmail ? 'border-red-300' : 'border-gray-300'
+                            }`}
+                            placeholder="email@example.com"
+                            value={projectData.architectEmail}
+                            onChange={(e) => setProjectData(prev => ({ ...prev, architectEmail: e.target.value }))}
+                          />
+                          {errors.architectEmail && <p className="text-red-500 text-sm mt-1">{errors.architectEmail}</p>}
+                        </div>
+                      </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1180,6 +1186,19 @@ export default function CreateProjectModal({ isOpen, onClose, onSave }: CreatePr
           </div>
         </div>
       </div>
+
+      {/* ClientModal for creating new architect */}
+      {showClientModal && (
+        <ClientModal
+          isOpen={showClientModal}
+          onClose={() => {
+            setShowClientModal(false);
+            setNewArchitectData(null);
+          }}
+          onSave={handleClientModalSave}
+          initialData={newArchitectData}
+        />
+      )}
     </div>
   );
 } 

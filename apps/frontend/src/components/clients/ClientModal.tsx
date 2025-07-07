@@ -63,12 +63,12 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
   useEffect(() => {
     if (initialData) {
       setFormData({
-        firstName: initialData.firstName,
-        lastName: initialData.lastName,
+        firstName: initialData.firstName || '',
+        lastName: initialData.lastName || '',
         phone: initialData.phone || '',
         email: initialData.email || '',
         address: initialData.address || '',
-        hasCompany: initialData.hasCompany,
+        hasCompany: initialData.hasCompany || false,
         companyName: initialData.companyName || '',
         eikBulstat: initialData.eikBulstat || '',
         vatNumber: initialData.vatNumber || '',
@@ -76,7 +76,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
         companyPhone: initialData.companyPhone || '',
         companyEmail: initialData.companyEmail || '',
         companyMol: initialData.companyMol || '',
-        isArchitect: initialData.isArchitect,
+        isArchitect: initialData.isArchitect || false,
         commissionPercent: initialData.commissionPercent || 10,
         notes: initialData.notes || '',
       });
@@ -112,7 +112,9 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
     
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : 
+              type === 'number' ? (value === '' ? 10 : Number(value)) : 
+              (value || '')
     }));
 
     // Clear error when user starts typing
@@ -210,6 +212,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
         notes: formData.notes || undefined,
       };
 
+      console.log('ClientModal onSave', clientData);
       await onSave(clientData);
       
       setShowSuccess(true);
@@ -298,7 +301,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                   <input
                     type="text"
                     name="firstName"
-                    value={formData.firstName}
+                    value={formData.firstName || ''}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border rounded-lg text-base transition-colors ${
                       errors.firstName ? 'border-red-500' : 'border-gray-300'
@@ -317,7 +320,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                   <input
                     type="text"
                     name="lastName"
-                    value={formData.lastName}
+                    value={formData.lastName || ''}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 border rounded-lg text-base transition-colors ${
                       errors.lastName ? 'border-red-500' : 'border-gray-300'
@@ -339,7 +342,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                   <input
                     type="tel"
                     name="phone"
-                    value={formData.phone}
+                    value={formData.phone || ''}
                     onChange={handleInputChange}
                     onBlur={(e) => checkPhoneForDuplicates(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -360,7 +363,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                   <input
                     type="email"
                     name="email"
-                    value={formData.email}
+                    value={formData.email || ''}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="email@example.com"
@@ -376,7 +379,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                 <input
                   type="text"
                   name="address"
-                  value={formData.address}
+                  value={formData.address || ''}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Град, улица, номер"
@@ -409,7 +412,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                       <input
                         type="text"
                         name="companyName"
-                        value={formData.companyName}
+                        value={formData.companyName || ''}
                         onChange={handleInputChange}
                         className={`w-full px-4 py-3 border rounded-lg text-base transition-colors ${
                           errors.companyName ? 'border-red-500' : 'border-gray-300'
@@ -429,7 +432,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                         <input
                           type="text"
                           name="eikBulstat"
-                          value={formData.eikBulstat}
+                          value={formData.eikBulstat || ''}
                           onChange={handleInputChange}
                           onBlur={(e) => {
                             const error = validateEIK(e.target.value);
@@ -454,7 +457,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                         <input
                           type="text"
                           name="vatNumber"
-                          value={formData.vatNumber}
+                          value={formData.vatNumber || ''}
                           onChange={handleInputChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="BG123456789"
@@ -470,7 +473,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                         <input
                           type="tel"
                           name="companyPhone"
-                          value={formData.companyPhone}
+                          value={formData.companyPhone || ''}
                           onChange={handleInputChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="+359 2 123 456"
@@ -484,7 +487,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                         <input
                           type="email"
                           name="companyEmail"
-                          value={formData.companyEmail}
+                          value={formData.companyEmail || ''}
                           onChange={handleInputChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="office@company.bg"
@@ -499,7 +502,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                       <input
                         type="text"
                         name="companyAddress"
-                        value={formData.companyAddress}
+                        value={formData.companyAddress || ''}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Адрес на фирмата"
@@ -513,7 +516,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                       <input
                         type="text"
                         name="companyMol"
-                        value={formData.companyMol}
+                        value={formData.companyMol || ''}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Име на МОЛ"
@@ -544,7 +547,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                     <input
                       type="number"
                       name="commissionPercent"
-                      value={formData.commissionPercent}
+                      value={formData.commissionPercent || 10}
                       onChange={handleInputChange}
                       min="0"
                       max="100"
@@ -564,7 +567,7 @@ export default function ClientModal({ isOpen, onClose, onSave, initialData, onCr
                 </label>
                 <textarea
                   name="notes"
-                  value={formData.notes}
+                  value={formData.notes || ''}
                   onChange={handleInputChange}
                   rows={3}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"

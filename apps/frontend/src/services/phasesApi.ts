@@ -25,6 +25,8 @@ export interface ProjectPhase {
   name: string;
   description?: string;
   includeArchitectCommission: boolean;
+  architectCommissionPercent?: number;
+  architectCommissionAmount?: number;
   discountEnabled?: boolean;
   phaseDiscount?: number;
   status: 'created' | 'quoted' | 'won' | 'lost';
